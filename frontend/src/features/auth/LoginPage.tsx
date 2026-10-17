@@ -59,7 +59,7 @@ export function LoginPage() {
             className="mt-5 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"
           >
             Supabase is not configured. Set VITE_SUPABASE_URL and
-            VITE_SUPABASE_ANON_KEY.
+            VITE_SUPABASE_PUBLISHABLE_KEY.
           </p>
         )}
         {message && (
