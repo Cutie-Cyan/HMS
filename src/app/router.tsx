@@ -35,12 +35,12 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
   const descriptions: Record<Exclude<HmsModule, "dashboard">, { title: string; description: string }> = {
-    patients: { title: "Patients", description: "Patient registration and demographic records for authorized staff. The workflow is scaffolded but not operational yet." },
-    encounters: { title: "Clinical encounters", description: "Emergency Nurse findings, recommendations, doctor records, and admission decisions. The workflow is scaffolded but not operational yet." },
-    requests: { title: "Requests", description: "Medicine and laboratory request queues, payment status, and fulfillment. The workflow is scaffolded but not operational yet." },
-    wards: { title: "Wards and beds", description: "Four-ward bed availability, room configuration, and admission assignment. The workflow is scaffolded but not operational yet." },
-    billing: { title: "Billing", description: "Request payments, final bill review, and discharge payment workflow. The workflow is scaffolded but not operational yet." },
-    inventory: { title: "Inventory", description: "Department-specific stock, fulfillment, laboratory results, and inventory profit records. The workflow is scaffolded but not operational yet." },
+    patients: { title: "Patients", description: "Patient registration and demographic records for authorized staff." },
+    encounters: { title: "Clinical encounters", description: "Emergency Nurse findings, recommendations, doctor records, and admission decisions." },
+    requests: { title: "Requests", description: "Medicine and laboratory request queues, payment status, and fulfillment." },
+    wards: { title: "Wards and beds", description: "Four-ward bed availability, room configuration, admission assignment, and ward transfers." },
+    billing: { title: "Billing", description: "Request payments, final bill review, and discharge processing." },
+    inventory: { title: "Inventory", description: "Department-specific stock, fulfillment, and laboratory results." },
     staff: { title: "Staff administration", description: "Manage authorized staff profiles and role assignments. Staff-management operations are not enabled yet." },
     audit: { title: "Audit log", description: "Review administrative audit events. The audit viewer is not enabled yet." },
   };
