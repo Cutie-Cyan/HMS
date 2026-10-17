@@ -179,6 +179,7 @@ export function InventoryWorkspace() {
         price: Number(price),
         cost: Number(cost),
         lowStock: Number(lowStock),
+        expectedStock: editing?.quantity_on_hand ?? null,
         id: editing?.id,
       });
       setMessage(editing ? "Inventory item updated." : "Inventory item added.");
