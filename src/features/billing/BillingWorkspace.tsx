@@ -104,7 +104,7 @@ export function BillingWorkspace() {
             return <article key={row.encounter_id} className="rounded-xl border border-slate-200 p-4 md:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><h2 className="font-semibold">{row.patient_name}</h2><p className="mt-1 text-xs text-slate-500">{row.patient_number} · {row.ward_name ?? "Ward unavailable"} · {row.bed_code ?? "No bed"}</p><p className="mt-1 text-xs text-slate-500">{row.admitted_at ? `Admitted ${new Date(row.admitted_at).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}` : "Not admitted"}</p></div>
-                <Badge tone={row.paid_at ? "success" : row.final_bill_id ? "warning" : row.requests_cleared ? "neutral" : "danger"}>{row.paid_at ? "Final bill paid" : row.final_bill_id ? "Payment pending" : row.requests_cleared ? "Ready for final bill" : "Requests not cleared"}</Badge>
+                <Badge tone={row.paid_at ? "success" : row.final_bill_id ? "warning" : row.requests_cleared ? "neutral" : "warning"}>{row.paid_at ? "Final bill paid" : row.final_bill_id ? "Payment pending" : row.requests_cleared ? "Ready for final bill" : "Requests not cleared"}</Badge>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-lg bg-slate-50 p-3"><p className="text-xs text-slate-500">Room charge · {row.lodging_days} day(s)</p><p className="mt-1 font-semibold">{money(Number(row.lodging_amount))}</p></div>
