@@ -70,7 +70,9 @@ Deno.serve(async (req: Request) => {
   if (existingError) return json(500, { error: "Could not check existing staff profiles." });
   if (existing) return json(409, { error: "A staff profile already uses that email." });
 
+  const setupUrl = new URL("/setup-password", allowedOrigin).toString();
   const { data: invitation, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
+    redirectTo: setupUrl,
     data: { display_name: displayName, hms_role: role },
   });
   if (inviteError || !invitation.user) {
