@@ -52,7 +52,7 @@ function FulfillmentCard({
   const canRelease =
     request.status === "paid" && (!isLab || result.trim().length > 0);
   return (
-    <article className="rounded-xl border border-slate-200 p-4">
+    <article className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold">{request.patient_name}</p>
@@ -88,7 +88,7 @@ function FulfillmentCard({
         </label>
       )}
       {isLab && request.lab_result && (
-        <p className="mt-3 rounded-lg bg-teal-50 p-3 text-sm text-teal-900">
+        <p className="mt-3 rounded-xl border border-sky-100 bg-sky-50 p-3 text-sm text-sky-900">
           Saved result: {request.lab_result}
         </p>
       )}
@@ -209,7 +209,7 @@ export function InventoryWorkspace() {
         <p className="text-sm font-medium text-teal-700">
           Department operations
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
           {departmentName} inventory
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
@@ -222,7 +222,7 @@ export function InventoryWorkspace() {
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
-          className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}
+          className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
         >
           {error || message}
         </div>
@@ -365,7 +365,7 @@ export function InventoryWorkspace() {
               {inventory.data.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">
