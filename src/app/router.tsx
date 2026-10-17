@@ -10,6 +10,7 @@ import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
 import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
 import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
 import { WardsWorkspace } from "../features/wards/WardsWorkspace";
+import { BillingWorkspace } from "../features/billing/BillingWorkspace";
 import { canAccessModule, homePathForRole, type HmsModule } from "../lib/permissions";
 
 function SessionGate() {
@@ -30,7 +31,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "patients") return <PatientWorkspace />;
   if (module === "encounters") return <DoctorFormPage />;
   if (module === "requests") return <RequestsWorkspace />;
-  if (module === "billing") return <RequestsWorkspace mode="billing" />;
+  if (module === "billing") return <BillingWorkspace />;
   if (module === "inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
   const descriptions: Record<Exclude<HmsModule, "dashboard">, { title: string; description: string }> = {
