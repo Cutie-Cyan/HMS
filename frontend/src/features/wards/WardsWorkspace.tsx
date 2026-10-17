@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { BedDouble, CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
@@ -63,25 +63,6 @@ function useWardBoard(canConfigure: boolean) {
       return (data ?? []) as RoomOption[];
     },
   });
-  const saveRoom = useMutation({
-    mutationFn: async (v: {
-      code: string;
-      wardId: string;
-      privateRoom: boolean;
-    }) => {
-      const { error } = await getSupabaseClient().rpc("admin_save_room", {
-        p_room_code: v.code,
-        p_ward_id: v.wardId,
-        p_is_private: v.privateRoom,
-        p_is_active: true,
-        p_room_id: null,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      void client.invalidateQueries({ queryKey: ["wards"] });
-    },
-  });
   const saveBed = useMutation({
     mutationFn: async (v: {
       code: string;
@@ -103,7 +84,7 @@ function useWardBoard(canConfigure: boolean) {
       void client.invalidateQueries({ queryKey: ["wards"] });
     },
   });
-  return { board, rooms, saveRoom, saveBed };
+  return { board, rooms, saveBed };
 }
 function BedCard({
   bed,
@@ -202,14 +183,11 @@ function BedCard({
 export function WardsWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
-  const { board, rooms, saveRoom, saveBed } = useWardBoard(role === "admin");
+  const { board, rooms, saveBed } = useWardBoard(role === "admin");
   const encounters = useOpenEncounters(
     role === "emergency_nurse" || role === "nurse_station",
   );
   const client = useQueryClient();
-  const [roomCode, setRoomCode] = useState("");
-  const [roomWard, setRoomWard] = useState("");
-  const [privateRoom, setPrivateRoom] = useState(false);
   const [bedCode, setBedCode] = useState("");
   const [bedWard, setBedWard] = useState("");
   const [bedType, setBedType] = useState<"public" | "private">("public");
@@ -256,23 +234,7 @@ export function WardsWorkspace() {
       setError(requestError(e));
     }
   };
-  const submitRoom = async (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    try {
-      await saveRoom.mutateAsync({
-        code: roomCode.trim(),
-        wardId: roomWard,
-        privateRoom,
-      });
-      setRoomCode("");
-      setMessage("Room configuration saved.");
-    } catch (err) {
-      setError(requestError(err));
-    }
-  };
-  const submitBed = async (e: FormEvent) => {
+  const submitBed = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setMessage("");
