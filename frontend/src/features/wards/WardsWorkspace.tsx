@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { BedDouble, CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
@@ -234,7 +234,7 @@ export function WardsWorkspace() {
       setError(requestError(e));
     }
   };
-  const submitBed = async (e: React.FormEvent<HTMLFormElement>) => {
+  const submitBed = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setMessage("");
