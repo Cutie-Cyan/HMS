@@ -201,6 +201,7 @@ export function useSaveInventoryItem() {
       price: number;
       cost: number;
       lowStock: number;
+      expectedStock: number | null;
       id?: string;
     }) => {
       const { data, error } = await getSupabaseClient().rpc(
@@ -214,6 +215,7 @@ export function useSaveInventoryItem() {
           p_unit_price: input.price,
           p_unit_cost: input.cost,
           p_low_stock_threshold: input.lowStock,
+          p_expected_quantity: input.expectedStock,
           p_item_id: input.id ?? null,
         },
       );
