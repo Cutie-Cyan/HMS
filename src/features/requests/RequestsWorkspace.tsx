@@ -24,10 +24,10 @@ function RequestCard({ request, canPay, onPay, paying }: { request: HmsRequest; 
   </article>;
 }
 
-export function RequestsWorkspace() {
+export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "billing" }) {
   const { profile } = useAuth();
   const role = profile?.role;
-  const canCreate = role === "emergency_nurse" || role === "nurse_station";
+  const canCreate = mode === "requests" && (role === "emergency_nurse" || role === "nurse_station");
   const canPay = role === "cashier";
   const patients = usePatientDirectory();
   const encounters = useOpenEncounters();
@@ -63,12 +63,12 @@ export function RequestsWorkspace() {
   };
 
   return <div className="mx-auto max-w-6xl space-y-6">
-    <header><p className="text-sm font-medium text-teal-700">Clinical operations</p><h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">Requests</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Medicine and laboratory requests move through Cashier payment before department fulfillment. Stock and bill amounts are controlled by the database.</p></header>
+    <header><p className="text-sm font-medium text-teal-700">Clinical operations</p><h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">{mode === "billing" ? "Cashier billing" : "Requests"}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{mode === "billing" ? "Review request charges and record payment. A request cannot be released to Pharmacy or Lab until payment is recorded." : "Medicine and laboratory requests move through Cashier payment before department fulfillment. Stock and bill amounts are controlled by the database."}</p></header>
     {(message || error) && <div role={error ? "alert" : "status"} className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{error || message}</div>}
     {canCreate && <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-teal-700"/> Create request</div><p className="mt-1 text-sm text-slate-500">Select an open encounter and a real item from the correct department's inventory.</p></CardHeader><CardContent>
       {patients.isError || encounters.isError ? <p role="alert" className="text-sm text-rose-700">Patient or encounter records could not be loaded. Refresh and try again.</p> :
       <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
-        <label className="text-sm font-medium text-slate-700">Patient<select required value={patientId} onChange={e=>{setPatientId(e.target.value);setEncounterId("");}} className={fieldClass}><option value="">Select patient</option>{(patients.data ?? []).filter(p=>p.status !== "discharged").map(p=><option key={p.patient_id} value={p.patient_id}>{p.patient_name ?? `${p.first_name} ${p.last_name}`} — {p.patient_number}</option>)}</select></label>
+        <label className="text-sm font-medium text-slate-700">Patient<select required value={patientId} onChange={e=>{setPatientId(e.target.value);setEncounterId("");}} className={fieldClass}><option value="">Select patient</option>{(patients.data ?? []).filter(p=>p.status !== "discharged").map(p=><option key={p.patient_id} value={p.patient_id}>{`${p.first_name} ${p.last_name}`} — {p.patient_number}</option>)}</select></label>
         <label className="text-sm font-medium text-slate-700">Open encounter<select required value={encounterId} onChange={e=>setEncounterId(e.target.value)} className={fieldClass}><option value="">Select encounter</option>{patientEncounters.map(e=><option key={e.encounter_id} value={e.encounter_id}>{e.doctor_name ? `Dr. ${e.doctor_name} · ` : ""}{new Date(e.created_at).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</option>)}</select></label>
         <label className="text-sm font-medium text-slate-700">Request type<select value={type} onChange={e=>{setType(e.target.value as RequestType);setItemId("");}} className={fieldClass}><option value="medicine">Medicine · Pharmacy</option><option value="lab">Laboratory · Lab</option></select></label>
         <label className="text-sm font-medium text-slate-700">Inventory item<select required value={itemId} onChange={e=>setItemId(e.target.value)} className={fieldClass}><option value="">Select item</option>{(items.data ?? []).map(item=><option key={item.id} value={item.id} disabled={item.quantity_on_hand < 1}>{item.item_name} · {money(Number(item.unit_price))}/{item.unit} · stock {item.quantity_on_hand}</option>)}</select>{selectedItem && <span className="mt-1 block text-xs text-slate-500">Available: {selectedItem.quantity_on_hand} {selectedItem.unit}(s). Price is set from the database.</span>}</label>
