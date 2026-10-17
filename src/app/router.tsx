@@ -5,6 +5,8 @@ import { FeaturePlaceholder } from "../components/feedback/FeaturePlaceholder";
 import { LoginPage } from "../features/auth/LoginPage";
 import { useAuth } from "../features/auth/AuthProvider";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import { PatientWorkspace } from "../features/patients/PatientWorkspace";
+import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
 import { canAccessModule, homePathForRole, type HmsModule } from "../lib/permissions";
 
 function SessionGate() {
@@ -22,6 +24,8 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (!profile) return <Navigate to="/login" replace />;
   if (!canAccessModule(profile.role, module)) return <AccessDeniedPage />;
   if (module === "dashboard") return <DashboardPage />;
+  if (module === "patients") return <PatientWorkspace />;
+  if (module === "encounters") return <DoctorFormPage />;
   const descriptions: Record<Exclude<HmsModule, "dashboard">, { title: string; description: string }> = {
     patients: { title: "Patients", description: "Patient registration and demographic records for authorized staff. The workflow is scaffolded but not operational yet." },
     encounters: { title: "Clinical encounters", description: "Emergency Nurse findings, recommendations, doctor records, and admission decisions. The workflow is scaffolded but not operational yet." },
