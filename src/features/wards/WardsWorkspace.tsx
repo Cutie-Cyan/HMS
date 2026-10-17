@@ -14,10 +14,10 @@ type RoomOption = { id:string; room_code:string; ward_id:string|null; is_private
 const field = "mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
 const money = (v:number) => new Intl.NumberFormat("en-PH",{style:"currency",currency:"PHP"}).format(Number(v??0));
 
-function useWardBoard() {
+function useWardBoard(canConfigure:boolean) {
  const client=useQueryClient();
  const board=useQuery({queryKey:["wards","bed-board"],queryFn:async()=>{const {data,error}=await getSupabaseClient().rpc("staff_ward_bed_workspace");if(error)throw error;return (data??[]) as BedRow[]}});
- const rooms=useQuery({queryKey:["wards","rooms"],enabled:true,queryFn:async()=>{const {data,error}=await getSupabaseClient().rpc("admin_room_options");if(error)throw error;return (data??[]) as RoomOption[]}});
+ const rooms=useQuery({queryKey:["wards","rooms"],enabled:canConfigure,queryFn:async()=>{const {data,error}=await getSupabaseClient().rpc("admin_room_options");if(error)throw error;return (data??[]) as RoomOption[]}});
  const saveRoom=useMutation({mutationFn:async(v:{code:string;wardId:string;privateRoom:boolean})=>{const {error}=await getSupabaseClient().rpc("admin_save_room",{p_room_code:v.code,p_ward_id:v.wardId,p_is_private:v.privateRoom,p_is_active:true,p_room_id:null});if(error)throw error},onSuccess:()=>{void client.invalidateQueries({queryKey:["wards"]})}});
  const saveBed=useMutation({mutationFn:async(v:{code:string;wardId:string;type:"public"|"private";roomId:string|null})=>{const {error}=await getSupabaseClient().rpc("admin_save_bed",{p_bed_code:v.code,p_ward_id:v.wardId,p_type:v.type,p_room_id:v.roomId,p_is_active:true,p_bed_id:null});if(error)throw error},onSuccess:()=>{void client.invalidateQueries({queryKey:["wards"]})}});
  return {board,rooms,saveRoom,saveBed};
@@ -34,7 +34,7 @@ function BedCard({bed,role,encounters,onAction,busy}:{bed:BedRow;role:string;enc
 }
 export function WardsWorkspace() {
  const {profile}=useAuth(); const role=profile?.role??"";
- const {board,rooms,saveRoom,saveBed}=useWardBoard();
+ const {board,rooms,saveRoom,saveBed}=useWardBoard(role==="admin");
  const encounters=useOpenEncounters(role==="emergency_nurse"||role==="nurse_station");
  const client=useQueryClient();
  const [roomCode,setRoomCode]=useState(""); const [roomWard,setRoomWard]=useState(""); const [privateRoom,setPrivateRoom]=useState(false);
