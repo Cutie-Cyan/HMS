@@ -304,11 +304,6 @@ export function WardsWorkspace() {
         <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
           Wards & beds
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          Live bed availability across the four configured wards. Private rooms
-          are reserved as a whole; ward staff can only manage patients assigned
-          to their ward.
-        </p>
       </header>
       {(message || error) && (
         <div
@@ -324,144 +319,18 @@ export function WardsWorkspace() {
         </div>
       )}
       {role === "admin" && (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <h2 className="font-semibold">Configure room</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Create a real room in one of the existing wards.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={submitRoom} className="space-y-3">
-                <label className="block text-sm font-medium">
-                  Room code
-                  <input
-                    required
-                    value={roomCode}
-                    onChange={(e) => setRoomCode(e.target.value)}
-                    className={field}
-                    maxLength={60}
-                  />
-                </label>
-                <label className="block text-sm font-medium">
-                  Ward
-                  <select
-                    required
-                    value={roomWard}
-                    onChange={(e) => setRoomWard(e.target.value)}
-                    className={field}
-                  >
-                    <option value="">Select ward</option>
-                    {wardList.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={privateRoom}
-                    onChange={(e) => setPrivateRoom(e.target.checked)}
-                  />{" "}
-                  Private room (exclusive occupancy)
-                </label>
-                <Button
-                  type="submit"
-                  disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}
-                >
-                  Create room
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <h2 className="font-semibold">Configure bed</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Public beds can be standalone. Private beds must belong to a
-                private room.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={submitBed} className="space-y-3">
-                <label className="block text-sm font-medium">
-                  Bed code
-                  <input
-                    required
-                    value={bedCode}
-                    onChange={(e) => setBedCode(e.target.value)}
-                    className={field}
-                    maxLength={60}
-                  />
-                </label>
-                <label className="block text-sm font-medium">
-                  Ward
-                  <select
-                    required
-                    value={bedWard}
-                    onChange={(e) => {
-                      setBedWard(e.target.value);
-                      setRoomId("");
-                    }}
-                    className={field}
-                  >
-                    <option value="">Select ward</option>
-                    {wardList.map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="block text-sm font-medium">
-                  Bed type
-                  <select
-                    value={bedType}
-                    onChange={(e) => {
-                      setBedType(e.target.value as "public" | "private");
-                      setRoomId("");
-                    }}
-                    className={field}
-                  >
-                    <option value="public">Public</option>
-                    <option value="private">Private room</option>
-                  </select>
-                </label>
-                <label className="block text-sm font-medium">
-                  Room
-                  <select
-                    value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
-                    className={field}
-                    required={bedType === "private"}
-                  >
-                    <option value="">No room / select private room</option>
-                    {roomsForWard(bedWard, bedType === "private").map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.room_code}
-                        {r.is_private ? " · Private" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <Button
-                  type="submit"
-                  disabled={
-                    saveBed.isPending ||
-                    !bedCode.trim() ||
-                    !bedWard ||
-                    (bedType === "private" && !roomId)
-                  }
-                >
-                  Create bed
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader><h2 className="font-semibold">Add bed</h2></CardHeader>
+          <CardContent>
+            <form onSubmit={submitBed} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <label className="block text-sm font-medium">Bed code<input required value={bedCode} onChange={(e) => setBedCode(e.target.value)} className={field} maxLength={60}/></label>
+              <label className="block text-sm font-medium">Ward<select required value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+              <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
+              <label className="block text-sm font-medium">Room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required={bedType === "private"}><option value="">No room / select private room</option>{roomsForWard(bedWard, bedType === "private").map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select></label>
+              <div className="sm:col-span-2 xl:col-span-4"><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding bed…" : "Add bed"}</Button></div>
+            </form>
+          </CardContent>
+        </Card>
       )}
       <Card>
         <CardHeader>
@@ -470,10 +339,6 @@ export function WardsWorkspace() {
               <div className="flex items-center gap-2 font-semibold">
                 <BedDouble size={18} className="text-teal-700" /> Bed board
               </div>
-              <p className="mt-1 text-sm text-slate-500">
-                Rates are configured in the database; this board does not create
-                placeholder beds.
-              </p>
             </div>
             <Button
               variant="secondary"
