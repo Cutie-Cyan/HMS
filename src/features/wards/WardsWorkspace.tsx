@@ -46,7 +46,7 @@ export function WardsWorkspace() {
  const submitRoom=async(e:FormEvent)=>{e.preventDefault();setError("");setMessage("");try{await saveRoom.mutateAsync({code:roomCode.trim(),wardId:roomWard,privateRoom});setRoomCode("");setMessage("Room configuration saved.")}catch(err){setError(requestError(err))}};
  const submitBed=async(e:FormEvent)=>{e.preventDefault();setError("");setMessage("");try{await saveBed.mutateAsync({code:bedCode.trim(),wardId:bedWard,type:bedType,roomId:roomId||null});setBedCode("");setMessage("Bed configuration saved.")}catch(err){setError(requestError(err))}};
  const wardList=wards.map(w=>({id:w.ward_id,name:w.ward_name}));
- const roomsForWard=(wardId:string,privateOnly=false)=>(rooms.data??[]).filter(r=>r.ward_id===wardId&&(!privateOnly||r.is_private));
+ const roomsForWard=(wardId:string,privateOnly=false)=>(rooms.data??[]).filter(r=>r.ward_id===wardId&&(privateOnly?r.is_private:!r.is_private));
  return <div className="mx-auto max-w-6xl space-y-6">
   <header><p className="text-sm font-medium text-teal-700">Inpatient operations</p><h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">Wards & beds</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">Live bed availability across the four configured wards. Private rooms are reserved as a whole; ward staff can only manage patients assigned to their ward.</p></header>
   {(message||error)&&<div role={error?"alert":"status"} className={"rounded-lg p-3 text-sm "+(error?"bg-rose-50 text-rose-800":"bg-emerald-50 text-emerald-800")}>{error||message}</div>}
