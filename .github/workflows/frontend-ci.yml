@@ -2,13 +2,22 @@ name: Frontend CI
 
 on:
   push:
-    branches: ["main", "feat/hms-capstone-foundation"]
+    branches: ["main", "development", "feat/hms-capstone-foundation"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "development"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
 
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
