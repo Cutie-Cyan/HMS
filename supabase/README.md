@@ -57,7 +57,7 @@ Never use this bootstrap to grant administrator access to an untrusted account. 
 ## Deployment and verification
 
 - Apply migrations in timestamp order to the intended project. The hms_staff_admin_audit migration is required for staff role changes and audit-log viewing.
-- Deploy `supabase/functions/admin-invite-staff/index.ts` as `admin-invite-staff` with JWT verification enabled. Set the `HMS_ALLOWED_ORIGIN` Edge Function secret to the exact deployed HMS origin; it uses server-side Supabase environment variables and must never expose the service-role key to the browser.
+- Deploy `supabase/functions/admin-invite-staff/index.ts` as `admin-invite-staff` with JWT verification enabled. Set the `HMS_ALLOWED_ORIGIN` Edge Function secret to the exact deployed HMS origin (scheme + hostname + any non-default port, no trailing slash). The function now fails closed if this secret is missing; do not restore a wildcard (`*`) fallback. It uses server-side Supabase environment variables and must never expose the service-role key to the browser.
 - Configure the frontend environment using .env.example; set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY only.
 - Test every role using separate real test accounts, including negative cases (wrong ward, wrong department, unauthorized billing, and inactive staff). Do not use fabricated patient or billing data in production.
 - Verify Auth email delivery, recovery, allowed redirect URLs, and session expiry before go-live.
