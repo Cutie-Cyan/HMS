@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, RefreshCw, ShieldCheck, Users } from "lucide-react";
+import { Pencil, RefreshCw, ShieldCheck, Users, Trash2, X } from "lucide-react";
 import { getSupabaseClient } from "../../lib/supabase";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -52,6 +52,7 @@ async function invitationErrorMessage(cause: unknown): Promise<string> {
 export function StaffAdminWorkspace() {
   const client = useQueryClient();
   const [selected, setSelected] = useState<StaffRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<StaffRole>("info_officer");
   const [wardId, setWardId] = useState("");
@@ -118,6 +119,27 @@ export function StaffAdminWorkspace() {
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
   });
+  const removeStaff = useMutation({
+    mutationFn: async () => {
+      if (!deleteTarget) throw new Error("Select a staff account first.");
+      const { data, error } = await getSupabaseClient().functions.invoke("admin-delete-staff", {
+        body: { userId: deleteTarget.user_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: async () => {
+      const deletedName = deleteTarget?.display_name ?? "Staff account";
+      setDeleteTarget(null);
+      setMessage(deletedName + " was permanently deleted.");
+      setErrorMessage("");
+      await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
+    },
+    onError: (cause) => {
+      setErrorMessage(cause instanceof Error ? cause.message : "Unable to delete staff account.");
+      setMessage("");
+    },
+  });
   const edit = (row: StaffRow) => {
     setSelected(row);
     setDisplayName(row.display_name);
@@ -144,20 +166,32 @@ export function StaffAdminWorkspace() {
           <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
         </form>
       </CardContent></Card>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
+      <div className="grid gap-5">
         <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><Users size={18} className="text-teal-700"/> Staff profiles</div></CardHeader><CardContent>
-          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Action</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Use the form above to create the first staff account.</p></div>}
+          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Actions</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button><Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Use the form above to create the first staff account.</p></div>}
         </CardContent></Card>
-        <Card><CardHeader><h2 className="font-semibold">{selected ? "Edit staff profile" : "Staff access details"}</h2></CardHeader><CardContent>
-          {selected ? <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
-            <div className="rounded-lg bg-muted/50 p-3"><p className="text-sm font-medium">{selected.email}</p><p className="text-xs text-muted-foreground">Auth identity is not changed here.</p></div>
+      {selected && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="edit-staff-title" className="text-lg font-semibold text-slate-900">Edit staff profile</h2><p className="mt-1 text-sm text-slate-500">{selected.email}</p></div><button type="button" aria-label="Close edit dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setSelected(null)} disabled={save.isPending}><X size={18}/></button></div>
+          <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
             <label className="block text-sm font-medium">Display name<input required maxLength={150} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={fieldClass}/></label>
             <label className="block text-sm font-medium">Role<select value={role} onChange={(event) => setRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             {role === "nurse_station" && <label className="block text-sm font-medium">Assigned ward<select required value={wardId} onChange={(event) => setWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{wards.isError && <span className="mt-1 block text-xs text-rose-700">Could not load wards.</span>}</label>}
-            <label className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-teal-700"/> Account active</label>
-            <div className="flex flex-wrap gap-2"><Button type="submit" disabled={save.isPending || wards.isLoading}>{save.isPending ? "Saving…" : "Save changes"}</Button><Button type="button" variant="secondary" onClick={() => setSelected(null)}>Cancel</Button></div>
-          </form> : <div className="space-y-3 text-sm text-muted-foreground"><p>Select a staff member to update their role, ward assignment, or active status.</p><p className="rounded-lg border border-border p-3">Changes are validated by a database function and written to the audit log.</p><p className="rounded-lg border border-border p-3">Staff accounts are created by a secured server-side operation. Share initial passwords privately and ask staff to change them after signing in.</p></div>}
-        </CardContent></Card>
+            <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-teal-700"/> <span><span className="block font-medium text-slate-800">Account active</span><span className="block text-xs text-slate-500">Turn off to deactivate access while keeping the staff record.</span></span></label>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4"><Button type="button" variant="secondary" onClick={() => setSelected(null)} disabled={save.isPending}>Cancel</Button><Button type="submit" disabled={save.isPending || wards.isLoading}>{save.isPending ? "Saving…" : "Save changes"}</Button></div>
+            {errorMessage && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
+          </form>
+        </section>
+      </div>}
+      {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !removeStaff.isPending) setDeleteTarget(null); }}>
+        <section role="alertdialog" aria-modal="true" aria-labelledby="delete-staff-title" aria-describedby="delete-staff-description" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+          <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-rose-100 text-rose-700"><Trash2 size={20}/></div>
+          <h2 id="delete-staff-title" className="text-lg font-semibold text-slate-900">Permanently delete staff account?</h2>
+          <p id="delete-staff-description" className="mt-2 text-sm leading-6 text-slate-600">This permanently removes <strong>{deleteTarget.display_name}</strong> ({deleteTarget.email}) from staff access and deletes the linked login identity. This cannot be undone. To retain their record and history, cancel and deactivate the account from Edit instead.</p>
+          {errorMessage && <p role="alert" className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
+          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={removeStaff.isPending}>Cancel</Button><Button type="button" variant="danger" onClick={() => removeStaff.mutate()} disabled={removeStaff.isPending}>{removeStaff.isPending ? "Deleting…" : "Delete permanently"}</Button></div>
+        </section>
+      </div>}
       </div>
     </div>
   );
