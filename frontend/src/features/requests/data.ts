@@ -74,6 +74,8 @@ export function requestError(error: unknown) {
     return "This request must be paid by the Cashier before it can be released.";
   if (/result before releasing/i.test(message))
     return "Enter the lab result before releasing this request.";
+  if (/stock changed since you opened|stale stock/i.test(message))
+    return "Stock changed while you were editing. Refresh inventory, review the latest quantity, and try again.";
   if (/stock|quantity exceeds/i.test(message))
     return "There is not enough stock for that quantity.";
   return message.replace(/^.*?message:\\s*/i, "").replace(/^\\[.*?\\]\\s*/, "");
