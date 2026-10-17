@@ -22,7 +22,14 @@ begin
   return query
     select r.id, r.patient_id, r.encounter_id, p.patient_number,
       trim(p.first_name || ' ' || coalesce(p.middle_name || ' ', '') || p.last_name),
-      r.type, r.status, r.lab_result, r.created_at, w.name::text,
+      r.type, r.status,
+      case
+        when v_role in ('lab'::public.staff_role, 'emergency_nurse'::public.staff_role)
+          or (v_role = 'nurse_station'::public.staff_role and v_ward is not null and p.current_ward_id = v_ward)
+        then r.lab_result
+        else null
+      end,
+      r.created_at, w.name::text,
       coalesce((select sum(ri.quantity * ri.unit_price) from public.request_items ri where ri.request_id=r.id),0)::numeric,
       coalesce((select jsonb_agg(jsonb_build_object(
         'id',ri.id,'inventory_item_id',ri.inventory_item_id,'description',ri.description,
