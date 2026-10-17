@@ -47,10 +47,11 @@ Deno.serve(async (req: Request) => {
     return json(403, { error: "Only an active administrator may invite staff." });
   }
 
-  let body: { email?: unknown; displayName?: unknown; role?: unknown; wardId?: unknown };
+  let body: { email?: unknown; displayName?: unknown; password?: unknown; role?: unknown; wardId?: unknown };
   try { body = await req.json(); } catch { return json(400, { error: "Request body must be valid JSON." }); }
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
+  const password = typeof body.password === "string" ? body.password : "";
   const role = typeof body.role === "string" ? body.role : "";
   const wardId = typeof body.wardId === "string" && body.wardId ? body.wardId : null;
 
@@ -58,6 +59,7 @@ Deno.serve(async (req: Request) => {
     return json(400, { error: "Enter a valid email address." });
   }
   if (!displayName || displayName.length > 150) return json(400, { error: "Display name is required (maximum 150 characters)." });
+  if (password.length < 8 || password.length > 128) return json(400, { error: "Initial password must be 8 to 128 characters." });
   if (!allowedRoles.has(role)) return json(400, { error: "Choose a valid staff role." });
   if (role === "nurse_station") {
     if (!wardId) return json(400, { error: "Nurse Station staff must be assigned to a ward." });
@@ -70,17 +72,16 @@ Deno.serve(async (req: Request) => {
   if (existingError) return json(500, { error: "Could not check existing staff profiles." });
   if (existing) return json(409, { error: "A staff profile already uses that email." });
 
-  const setupUrl = new URL("/setup-password", allowedOrigin).toString();
-  const { data: invitation, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    redirectTo: setupUrl,
-    data: { display_name: displayName, hms_role: role },
+  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { display_name: displayName, hms_role: role, must_change_password: true },
   });
-  if (inviteError || !invitation.user) {
-    return json(400, { error: inviteError?.message ?? "Could not send the invitation." });
-  }
+  if (createError || !created.user) return json(400, { error: createError?.message ?? "Could not create the staff account." });
 
   const { error: profileError } = await adminClient.from("staff_profiles").insert({
-    user_id: invitation.user.id,
+    user_id: created.user.id,
     email,
     display_name: displayName,
     role,
@@ -88,20 +89,20 @@ Deno.serve(async (req: Request) => {
     is_active: true,
   });
   if (profileError) {
-    await adminClient.auth.admin.deleteUser(invitation.user.id);
+    await adminClient.auth.admin.deleteUser(created.user.id);
     return json(500, { error: "Invitation setup failed and the unlinked Auth account was rolled back. Check the database schema and retry." });
   }
 
   const { error: auditError } = await adminClient.from("audit_logs").insert({
     actor_id: userData.user.id,
-    action: "staff.invited",
+    action: "staff.created",
     entity_type: "staff_profile",
-    entity_id: invitation.user.id,
+    entity_id: created.user.id,
     details: { email, display_name: displayName, role, ward_id: role === "nurse_station" ? wardId : null },
   });
   if (auditError) {
     // The invitation/profile exists; surface audit failure instead of claiming a fully audited success.
     return json(500, { error: "Staff invitation was created, but its audit event failed. Check audit logs before retrying." });
   }
-  return json(201, { userId: invitation.user.id, email, displayName, role, message: "Staff account created. The staff member must use the invitation email to finish setting up their account." });
+  return json(201, { userId: created.user.id, email, displayName, role, message: "Staff account created successfully." });
 });
