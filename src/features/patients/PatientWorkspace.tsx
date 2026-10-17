@@ -23,7 +23,7 @@ export function PatientWorkspace() {
   const isInfoOfficer = profile?.role === "info_officer";
   const [search, setSearch] = useState("");
   const patients = usePatientDirectory(search);
-  const doctors = useDoctors();
+  const doctors = useDoctors(isInfoOfficer);
   const register = useRegisterPatient();
   const saveDoctor = useSaveDoctor();
   const [success, setSuccess] = useState("");
