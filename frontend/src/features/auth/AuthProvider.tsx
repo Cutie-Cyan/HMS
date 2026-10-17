@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import type { Session } from "@supabase/supabase-js";
 import { getSupabaseClient } from "../../lib/supabase";
 import type { StaffProfile, StaffRole } from "../../lib/roles";
@@ -15,7 +23,15 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 function validRole(value: string): value is StaffRole {
-  return ["admin", "info_officer", "emergency_nurse", "cashier", "pharmacy", "lab", "nurse_station"].includes(value);
+  return [
+    "admin",
+    "info_officer",
+    "emergency_nurse",
+    "cashier",
+    "pharmacy",
+    "lab",
+    "nurse_station",
+  ].includes(value);
 }
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -35,7 +51,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (profileError) throw profileError;
       if (!data || !data.is_active || !validRole(data.role)) {
         setProfile(null);
-        setError("This account has no active staff profile. Contact the HMS administrator.");
+        setError(
+          "This account has no active staff profile. Contact the HMS administrator.",
+        );
         return;
       }
       setProfile({
@@ -49,13 +67,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setError(null);
     } catch (cause) {
       setProfile(null);
-      setError(cause instanceof Error ? cause.message : "Unable to verify staff access.");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Unable to verify staff access.",
+      );
     }
   }, []);
 
   const refreshProfile = useCallback(async () => {
     try {
-      const { data: { session: currentSession }, error: sessionError } = await getSupabaseClient().auth.getSession();
+      const {
+        data: { session: currentSession },
+        error: sessionError,
+      } = await getSupabaseClient().auth.getSession();
       if (sessionError) throw sessionError;
       setSession(currentSession);
       if (!currentSession?.user) {
@@ -65,7 +90,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
       }
       await loadProfile(currentSession.user.id);
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "Unable to verify staff access.";
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : "Unable to verify staff access.";
       if (message.includes("VITE_SUPABASE_")) setConfigured(false);
       setProfile(null);
       setError(message);
@@ -81,16 +109,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
     void initialize();
     let unsubscribe = () => {};
     try {
-      const { data } = getSupabaseClient().auth.onAuthStateChange((_event, nextSession) => {
-        setSession(nextSession);
-        if (!nextSession?.user) {
-          setProfile(null);
-          setError(null);
-          return;
-        }
-        // Do not call another Supabase auth method inside this callback; fetch the profile only.
-        void loadProfile(nextSession.user.id);
-      });
+      const { data } = getSupabaseClient().auth.onAuthStateChange(
+        (_event, nextSession) => {
+          setSession(nextSession);
+          if (!nextSession?.user) {
+            setProfile(null);
+            setError(null);
+            return;
+          }
+          // Do not call another Supabase auth method inside this callback; fetch the profile only.
+          void loadProfile(nextSession.user.id);
+        },
+      );
       unsubscribe = () => data.subscription.unsubscribe();
     } catch {
       setConfigured(false);
@@ -111,7 +141,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  const value = useMemo(() => ({ session, profile, loading, configured, error, refreshProfile, signOut }), [session, profile, loading, configured, error, refreshProfile, signOut]);
+  const value = useMemo(
+    () => ({
+      session,
+      profile,
+      loading,
+      configured,
+      error,
+      refreshProfile,
+      signOut,
+    }),
+    [session, profile, loading, configured, error, refreshProfile, signOut],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
