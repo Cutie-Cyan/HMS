@@ -20,7 +20,16 @@ export function AppShell() {
   const [hovered, setHovered] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const expanded = hovered || mobileOpen;\n\n  useEffect(() => {\n    if (!mobileOpen) return;\n    const closeOnEscape = (event: KeyboardEvent) => {\n      if (event.key === "Escape") setMobileOpen(false);\n    };\n    window.addEventListener("keydown", closeOnEscape);\n    return () => window.removeEventListener("keydown", closeOnEscape);\n  }, [mobileOpen]);
+  const expanded = hovered || mobileOpen;
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileOpen]);
   const links = navOrder.filter((module) => profile && canAccessModule(profile.role, module))
     .map((module) => ({ ...MODULES[module], module, icon: icons[module] }))
     .filter(({ label }) => label.toLowerCase().includes(search.toLowerCase()));
