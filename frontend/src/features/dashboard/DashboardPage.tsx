@@ -1,20 +1,20 @@
 import {
   Activity,
   BedDouble,
-  ClipboardCheck,
-  Wallet,
   Boxes,
+  ClipboardCheck,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Badge } from "../../components/ui/Badge";
+import { Card, CardContent } from "../../components/ui/Card";
 import { useAuth } from "../auth/AuthProvider";
 import {
   MODULES,
   canAccessModule,
   type HmsModule,
 } from "../../lib/permissions";
-import { Card, CardContent } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
-import { Link } from "react-router-dom";
 
 const moduleMeta: Record<
   HmsModule,
@@ -39,6 +39,7 @@ const moduleMeta: Record<
   },
   audit: { description: "Administrative audit events", icon: ShieldCheck },
 };
+
 const greetings = {
   admin: "Administration overview",
   info_officer: "Patient registration workspace",
@@ -55,29 +56,29 @@ export function DashboardPage() {
   const available = (Object.keys(MODULES) as HmsModule[]).filter(
     (module) => module !== "dashboard" && role && canAccessModule(role, module),
   );
+
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="mx-auto max-w-6xl space-y-8">
+      <section className="flex flex-col justify-between gap-4 rounded-2xl border border-input bg-card p-6 shadow-sm sm:flex-row sm:items-end md:p-8">
         <div>
-          <p className="text-sm font-medium text-teal-700">
-            Hospital operations
-          </p>
+          <p className="text-sm font-medium text-primary">Hospital operations</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
             {role ? greetings[role] : "Welcome to HMS"}
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             Welcome{profile?.displayName ? `, ${profile.displayName}` : ""}.
             Your workspace shows only modules assigned to your staff role.
           </p>
         </div>
         <Badge tone="warning">Implementation in progress</Badge>
-      </div>
-      <section aria-labelledby="modules-heading" className="mt-8">
+      </section>
+
+      <section aria-labelledby="modules-heading">
         <div className="mb-4">
           <h2 id="modules-heading" className="text-base font-semibold">
             Your modules
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Only role-authorized destinations appear here.
           </p>
         </div>
@@ -89,21 +90,21 @@ export function DashboardPage() {
               <Link
                 key={module}
                 to={MODULES[module].path}
-                className="group rounded-xl focus-visible:outline-teal-700"
+                className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <Card className="h-full transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-md">
-                  <CardContent>
-                    <div className="grid size-10 place-items-center rounded-lg bg-teal-50 text-teal-800">
+                <Card className="h-full transition-colors group-hover:border-primary/40 group-hover:bg-accent/30">
+                  <CardContent className="pt-6">
+                    <div className="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
                       <Icon size={19} aria-hidden="true" />
                     </div>
-                    <h3 className="mt-4 font-semibold group-hover:text-teal-800">
+                    <h3 className="mt-4 font-semibold group-hover:text-primary">
                       {MODULES[module].label}
                     </h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {meta.description}
                     </p>
-                    <p className="mt-4 text-xs font-semibold text-teal-700">
-                      Open module →
+                    <p className="mt-4 text-xs font-semibold text-primary">
+                      Open module <span aria-hidden="true">→</span>
                     </p>
                   </CardContent>
                 </Card>
@@ -112,9 +113,10 @@ export function DashboardPage() {
           })}
         </div>
       </section>
-      <section className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white p-5">
+
+      <section className="rounded-xl border border-dashed border-input bg-muted/30 p-5">
         <h2 className="font-semibold">No sample records loaded</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Patient, billing, inventory, and staffing metrics will appear when
           their workflows are connected to real database operations.
         </p>
