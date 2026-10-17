@@ -2,7 +2,7 @@ import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut,
   ScrollText, Stethoscope, Users, Wallet, Menu, X, ShieldCheck, Search,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthProvider";
 import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
@@ -20,14 +20,14 @@ export function AppShell() {
   const [hovered, setHovered] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const expanded = hovered || mobileOpen;
+  const expanded = hovered || mobileOpen;\n\n  useEffect(() => {\n    if (!mobileOpen) return;\n    const closeOnEscape = (event: KeyboardEvent) => {\n      if (event.key === "Escape") setMobileOpen(false);\n    };\n    window.addEventListener("keydown", closeOnEscape);\n    return () => window.removeEventListener("keydown", closeOnEscape);\n  }, [mobileOpen]);
   const links = navOrder.filter((module) => profile && canAccessModule(profile.role, module))
     .map((module) => ({ ...MODULES[module], module, icon: icons[module] }))
     .filter(({ label }) => label.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <aside onMouseEnter={() => { if (window.matchMedia("(min-width: 768px)").matches) setHovered(true); }} onMouseLeave={() => setHovered(false)}
+      <aside aria-label="Application sidebar" onMouseEnter={() => { if (window.matchMedia("(min-width: 768px)").matches) setHovered(true); }} onMouseLeave={() => setHovered(false)}
         className={`fixed inset-y-2 left-2 z-40 flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-[#f3f4f6] text-[#25282d] shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-[width,transform] duration-200 ease-out dark:bg-[#202226] dark:text-foreground ${expanded ? "w-[264px]" : "w-[60px]"} ${!mobileOpen ? "-translate-x-[calc(100%+0.5rem)] md:translate-x-0" : "translate-x-0"}`}>
         <div className={`flex h-[58px] shrink-0 items-center border-b border-black/[0.06] dark:border-white/[0.08] ${expanded ? "gap-3 px-3" : "justify-center"}`}>
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#173c42] text-xs font-bold text-white">H+</span>
@@ -50,7 +50,7 @@ export function AppShell() {
           {expanded && <button type="button" title="Sign out" onClick={() => void signOut()} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-black/5 dark:hover:bg-white/10"><LogOut size={16}/></button>}
         </div></div>
       </aside>
-      {mobileOpen && <button aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-black/20 md:hidden"/>}
+      {mobileOpen && <button type="button" aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 cursor-default bg-black/20 md:hidden"/>}
       <div className="min-h-screen min-w-0 md:ml-[76px]">
         <header className="sticky top-0 z-20 flex min-h-[62px] items-center justify-between gap-4 border-b border-border/70 bg-background/90 px-4 backdrop-blur sm:px-6">
           <div className="flex min-w-0 items-center gap-3"><button type="button" onClick={() => setMobileOpen((v) => !v)} aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen} className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm hover:bg-muted md:hidden">{mobileOpen ? <X size={18}/> : <Menu size={18}/>}</button><div className="min-w-0"><p className="truncate text-sm font-semibold">Hospital Management System</p><p className="hidden text-xs text-muted-foreground sm:block">Hospital operations workspace</p></div></div>
