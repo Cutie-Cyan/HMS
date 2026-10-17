@@ -122,7 +122,7 @@ export function BillingWorkspace() {
     <div className="mx-auto max-w-6xl space-y-6">
       <header>
         <p className="text-sm font-medium text-teal-700">Financial closeout</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
           {isCashier ? "Final billing" : "Discharge queue"}
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
@@ -134,7 +134,7 @@ export function BillingWorkspace() {
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
-          className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}
+          className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
         >
           {error || message}
         </div>
@@ -188,7 +188,7 @@ export function BillingWorkspace() {
                 return (
                   <article
                     key={row.encounter_id}
-                    className="rounded-xl border border-slate-200 p-4 md:p-5"
+                    className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] md:p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -225,7 +225,7 @@ export function BillingWorkspace() {
                       </Badge>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <div className="rounded-lg bg-slate-50 p-3">
+                      <div className="rounded-xl border border-[#e8e8ed] bg-[#f8f8fa] p-3">
                         <p className="text-xs text-slate-500">
                           Room charge · {row.lodging_days} day(s)
                         </p>
@@ -271,7 +271,7 @@ export function BillingWorkspace() {
                       </p>
                     )}
                     {row.final_bill_id && (
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-teal-100 bg-teal-50/50 p-3">
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-100 bg-sky-50/50 p-3">
                         <div>
                           <p className="text-xs text-slate-500">
                             Final bill total
@@ -327,7 +327,7 @@ export function BillingWorkspace() {
                       </div>
                     )}
                     {canPrepare && (
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-3">
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3">
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
