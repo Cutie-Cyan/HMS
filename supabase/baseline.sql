@@ -1,0 +1,16 @@
+-- HMS live database baseline snapshot
+-- Captured from Supabase project ref: vdvoyvietqkraazpvohu (HMS)
+-- Snapshot date: 2026-10-17
+--
+-- Verified state:
+--   public tables: none
+--   recorded migrations: none
+--   application schema objects: none found in public.pg_tables
+--
+-- This file intentionally contains no CREATE statements because the connected
+-- HMS project is a newly created, empty database. It is a baseline record,
+-- NOT an executable migration. Build the schema through new timestamped
+-- migrations in supabase/migrations/ as implementation proceeds.
+--
+-- No seed data is included. Do not add fake beds, staff, doctors, patients,
+-- inventory, prices, or accounts.
