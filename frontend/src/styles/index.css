@@ -20,7 +20,7 @@
 :root {
   --background: #f5f5f7;
   --foreground: #202124;
-  --primary: #0f766e;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
   --secondary: #ececf0;
   --secondary-foreground: #27272a;
@@ -28,7 +28,7 @@
   --accent-foreground: #18181b;
   --destructive: #be123c;
   --input: #dedee4;
-  --ring: #0f766e;
+  --ring: #60a5fa;
   --radius: 0.875rem;
 
   font-family:
@@ -82,7 +82,7 @@ a {
   color: #134e4a;
 }
 
-\n/* macOS-inspired desktop workspace: calm surfaces, soft borders, no window chrome. */
+/* macOS-inspired desktop workspace: calm surfaces, soft borders, no window chrome. */
 [data-slot="card"] {
   border-color: #e3e3e8;
   border-radius: 1rem;
