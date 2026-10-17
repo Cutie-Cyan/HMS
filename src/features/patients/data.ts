@@ -32,8 +32,9 @@ export function humanizeError(error: unknown): string {
   if (message.includes("22023")) return message.replace(/^.*?message:\s*/i, "").replace(/^\[.*?\]\s*/, "");
   return message;
 }
-export function usePatientDirectory(search = "") {
+export function usePatientDirectory(search = "", enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["patients", "directory", search],
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_patient_directory", { p_search: search.trim() || null });
@@ -55,8 +56,9 @@ export function useDoctors(enabled = true) {
     },
   });
 }
-export function useOpenEncounters() {
+export function useOpenEncounters(enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["encounters", "open"],
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_encounter_queue", { p_status: "open" });
