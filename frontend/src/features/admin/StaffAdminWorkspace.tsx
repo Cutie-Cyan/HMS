@@ -59,7 +59,6 @@ export function StaffAdminWorkspace() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [invitePassword, setInvitePassword] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState<StaffRole>("info_officer");
   const [inviteWardId, setInviteWardId] = useState("");
@@ -105,7 +104,7 @@ export function StaffAdminWorkspace() {
   const invite = useMutation({
     mutationFn: async () => {
       const { data, error } = await getSupabaseClient().functions.invoke("admin-invite-staff", {
-        body: { email: inviteEmail, password: invitePassword, displayName: inviteName, role: inviteRole, wardId: inviteRole === "nurse_station" ? inviteWardId : null },
+        body: { email: inviteEmail, displayName: inviteName, role: inviteRole, wardId: inviteRole === "nurse_station" ? inviteWardId : null },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -113,7 +112,7 @@ export function StaffAdminWorkspace() {
     },
     onSuccess: async () => {
       setMessage("Invitation sent to " + inviteEmail.trim() + "."); setErrorMessage("");
-      setInviteEmail(""); setInvitePassword(""); setInviteName(""); setInviteRole("info_officer"); setInviteWardId("");
+      setInviteEmail(""); setInviteName(""); setInviteRole("info_officer"); setInviteWardId("");
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
@@ -135,10 +134,9 @@ export function StaffAdminWorkspace() {
       </header>
       {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
       <Card><CardHeader><h2 className="font-semibold">Invite staff member</h2></CardHeader><CardContent>
-        <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
+        <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
           <label className="block text-sm font-medium">Full name<input required maxLength={150} value={inviteName} onChange={(event) => setInviteName(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
-          <label className="block text-sm font-medium">Initial password<input required type="password" minLength={8} autoComplete="new-password" value={invitePassword} onChange={(event) => setInvitePassword(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Assigned ward<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
           <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Sending invite…" : "Send invitation"}</Button></div>
