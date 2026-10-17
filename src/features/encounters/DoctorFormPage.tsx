@@ -1,6 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Printer, RefreshCw, Stethoscope } from "lucide-react";
-import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
@@ -15,7 +14,6 @@ function age(date: string | null) {
   return String(years);
 }
 export function DoctorFormPage() {
-  const { profile } = useAuth();
   const patients = usePatientDirectory("");
   const doctors = useDoctors();
   const encounters = useOpenEncounters();
