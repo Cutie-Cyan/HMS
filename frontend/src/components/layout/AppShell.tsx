@@ -28,7 +28,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <aside onMouseEnter={() => { if (window.matchMedia("(min-width: 768px)").matches) setHovered(true); }} onMouseLeave={() => setHovered(false)}
-        className={`fixed inset-y-2 left-2 z-40 flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-[#f3f4f6] text-[#25282d] shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-[width] duration-200 ease-out dark:bg-[#202226] dark:text-foreground ${expanded ? "w-[264px]" : "w-[60px]"}`}>
+        className={`fixed inset-y-2 left-2 z-40 flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-[#f3f4f6] text-[#25282d] shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-[width,transform] duration-200 ease-out dark:bg-[#202226] dark:text-foreground ${expanded ? "w-[264px]" : "w-[60px]"} ${!mobileOpen ? "-translate-x-[calc(100%+0.5rem)] md:translate-x-0" : "translate-x-0"}`}>
         <div className={`flex h-[58px] shrink-0 items-center border-b border-black/[0.06] dark:border-white/[0.08] ${expanded ? "gap-3 px-3" : "justify-center"}`}>
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#173c42] text-xs font-bold text-white">H+</span>
           {expanded && <div className="min-w-0"><p className="text-sm font-semibold tracking-tight">HMS</p><p className="text-[11px] text-black/55 dark:text-white/55">Hospital Management</p></div>}
@@ -51,7 +51,7 @@ export function AppShell() {
         </div></div>
       </aside>
       {mobileOpen && <button aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-black/20 md:hidden"/>}
-      <div className="ml-[76px] min-h-screen min-w-0">
+      <div className="min-h-screen min-w-0 md:ml-[76px]">
         <header className="sticky top-0 z-20 flex min-h-[62px] items-center justify-between gap-4 border-b border-border/70 bg-background/90 px-4 backdrop-blur sm:px-6">
           <div className="min-w-0"><p className="truncate text-sm font-semibold">Hospital Management System</p><p className="hidden text-xs text-muted-foreground sm:block">Hospital operations workspace</p></div>
           <Button variant="secondary" size="sm" onClick={() => void signOut()}><LogOut aria-hidden="true"/> <span className="hidden sm:inline">Sign out</span></Button>
