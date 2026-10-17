@@ -7,6 +7,8 @@ import { useAuth } from "../features/auth/AuthProvider";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { PatientWorkspace } from "../features/patients/PatientWorkspace";
 import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
+import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
+import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
 import { canAccessModule, homePathForRole, type HmsModule } from "../lib/permissions";
 
 function SessionGate() {
