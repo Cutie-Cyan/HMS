@@ -16,6 +16,8 @@ import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
 import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
 import { WardsWorkspace } from "../features/wards/WardsWorkspace";
 import { BillingWorkspace } from "../features/billing/BillingWorkspace";
+import { StaffAdminWorkspace } from "../features/admin/StaffAdminWorkspace";
+import { AuditWorkspace } from "../features/admin/AuditWorkspace";
 import {
   canAccessModule,
   homePathForRole,
@@ -64,6 +66,8 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "billing") return <BillingWorkspace />;
   if (module === "inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
+  if (module === "staff") return <StaffAdminWorkspace />;
+  if (module === "audit") return <AuditWorkspace />;
   const descriptions: Record<
     Exclude<HmsModule, "dashboard">,
     { title: string; description: string }
