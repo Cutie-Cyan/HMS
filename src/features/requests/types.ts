@@ -1,5 +1,11 @@
 export type RequestType = "medicine" | "lab";
-export type RequestStatus = "pending" | "paid" | "fulfilled" | "cancelled";
+export type RequestStatus =
+  | "pending_payment"
+  | "paid"
+  | "in_progress"
+  | "completed"
+  | "released"
+  | "cancelled";
 
 export interface RequestSummary {
   requestId: string;
