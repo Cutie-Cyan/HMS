@@ -11,6 +11,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthProvider";
 import {
@@ -64,6 +65,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { profile, signOut } = useAuth();
+  const [expanded, setExpanded] = useState(false);
   const links = navOrder
     .filter(
       (module) =>
@@ -74,9 +76,9 @@ export function AppShell() {
     .map((module) => ({ ...MODULES[module], icon: icons[module] }));
 
   return (
-    <div className="min-h-screen bg-background text-foreground md:grid md:grid-cols-[248px_minmax(0,1fr)]">
-      <aside className="border-b border-input bg-background p-4 md:sticky md:top-0 md:flex md:h-screen md:flex-col md:border-b-0 md:border-r md:p-5">
-        <div className="flex items-center gap-3 px-2 py-3">
+    <div className={`min-h-screen bg-background text-foreground md:grid ${expanded ? "md:grid-cols-[248px_minmax(0,1fr)]" : "md:grid-cols-[76px_minmax(0,1fr)]"} transition-[grid-template-columns] duration-200`}>
+      <aside onMouseEnter={() => setExpanded(true)} onMouseLeave={() => setExpanded(false)} onFocusCapture={() => setExpanded(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setExpanded(false); }} className={`border-b border-input bg-background p-3 md:sticky md:top-0 md:flex md:h-screen md:flex-col md:border-b-0 md:border-r md:overflow-x-hidden md:p-3 ${expanded ? "md:px-4" : "md:px-3"}`}>
+        <div className={`flex items-center gap-3 py-3 ${expanded ? "px-2" : "justify-center"}`}>
           <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
             H+
           </div>
@@ -86,7 +88,7 @@ export function AppShell() {
           </div>
         </div>
 
-        <div className="mx-1 mt-5 rounded-xl border border-input bg-secondary/50 p-3">
+        {expanded && <div className="mx-1 mt-5 rounded-xl border border-input bg-secondary/50 p-3">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <ShieldCheck aria-hidden="true" size={16} className="text-primary" />
             Staff workspace
@@ -117,7 +119,7 @@ export function AppShell() {
           ))}
         </nav>
 
-        <div className="mt-4 hidden rounded-xl border border-input bg-secondary/40 p-3 text-xs leading-5 text-muted-foreground md:block">
+        {expanded && <div className="mt-4 hidden rounded-xl border border-input bg-secondary/40 p-3 text-xs leading-5 text-muted-foreground md:block">
           Navigation is filtered by your active staff role. Database permissions
           remain the final access control.
         </div>
