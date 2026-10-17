@@ -1,7 +1,7 @@
 import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut,
   ScrollText, Stethoscope, Users, Wallet, Menu, X, ShieldCheck, Search,
-  ChevronRight, Command,
+  ChevronRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
