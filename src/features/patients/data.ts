@@ -42,8 +42,9 @@ export function usePatientDirectory(search = "") {
     },
   });
 }
-export function useDoctors() {
+export function useDoctors(enabled = true) {
   return useQuery({
+    enabled,
     queryKey: ["doctors", "active"],
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().from("doctors")
