@@ -28,6 +28,9 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "dashboard") return <DashboardPage />;
   if (module === "patients") return <PatientWorkspace />;
   if (module === "encounters") return <DoctorFormPage />;
+  if (module === "requests") return <RequestsWorkspace />;
+  if (module === "billing") return <RequestsWorkspace mode="billing" />;
+  if (module === "inventory") return <InventoryWorkspace />;
   const descriptions: Record<Exclude<HmsModule, "dashboard">, { title: string; description: string }> = {
     patients: { title: "Patients", description: "Patient registration and demographic records for authorized staff. The workflow is scaffolded but not operational yet." },
     encounters: { title: "Clinical encounters", description: "Emergency Nurse findings, recommendations, doctor records, and admission decisions. The workflow is scaffolded but not operational yet." },
