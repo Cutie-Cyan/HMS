@@ -7,6 +7,7 @@ import {
 import { AppShell } from "../components/layout/AppShell";
 import { AccessDeniedPage } from "../components/feedback/AccessDeniedPage";
 import { LoginPage } from "../features/auth/LoginPage";
+import { SetupPasswordPage } from "../features/auth/SetupPasswordPage";
 import { useAuth } from "../features/auth/AuthProvider";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { PatientWorkspace } from "../features/patients/PatientWorkspace";
@@ -79,6 +80,7 @@ function RoleHomeRedirect() {
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/setup-password", element: <SetupPasswordPage /> },
   {
     element: <SessionGate />,
     children: [
