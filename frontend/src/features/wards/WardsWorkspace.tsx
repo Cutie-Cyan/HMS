@@ -263,7 +263,7 @@ export function WardsWorkspace() {
         <p className="text-sm font-medium text-teal-700">
           Inpatient operations
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
           Wards & beds
         </h1>
       </header>
