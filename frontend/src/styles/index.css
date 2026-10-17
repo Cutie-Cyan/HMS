@@ -1,6 +1,36 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
 :root {
+  --background: #ffffff;
+  --foreground: #18181b;
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #be123c;
+  --input: #e4e4e7;
+  --ring: #0f766e;
+  --radius: 0.625rem;
+
   font-family:
     Inter,
     ui-sans-serif,
@@ -9,37 +39,44 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: #0f172a;
-  background: #f8fafc;
+  color: var(--foreground);
+  background: var(--background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 * {
   box-sizing: border-box;
 }
+
 html {
   color-scheme: light;
 }
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
 }
+
 button,
 input,
 select,
 textarea {
   font: inherit;
 }
+
 a {
   text-decoration: none;
 }
+
 :focus-visible {
   outline: 3px solid #38bdf8;
   outline-offset: 2px;
 }
+
 ::selection {
   background: #ccfbf1;
   color: #134e4a;
