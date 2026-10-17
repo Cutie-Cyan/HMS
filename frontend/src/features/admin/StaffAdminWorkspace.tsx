@@ -27,7 +27,7 @@ const roles: { value: StaffRole; label: string }[] = [
   { value: "lab", label: "Laboratory" },
   { value: "nurse_station", label: "Nurse Station" },
 ];
-const fieldClass = "mt-1.5 min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10";
+const fieldClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
@@ -130,7 +130,7 @@ export function StaffAdminWorkspace() {
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Administration</p><h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">Staff access</h1></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Administration</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">Staff access</h1></div>
         <Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button>
       </header>
       {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
