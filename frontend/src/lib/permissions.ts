@@ -17,7 +17,7 @@ export const MODULES: Record<
 > = {
   dashboard: {
     label: "Overview",
-    path: "/",
+    path: "/overview",
     roles: [
       "admin",
       "info_officer",
