@@ -120,7 +120,7 @@ export function StaffAdminWorkspace() {
           <label className="block text-sm font-medium">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Assigned ward<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
-          <div className="flex items-end"><Button block type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Sending invite…" : "Send invitation"}</Button></div>
+          <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Sending invite…" : "Send invitation"}</Button></div>
         </form>
       </CardContent></Card>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
