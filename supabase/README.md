@@ -32,6 +32,36 @@ Clinical and financial tables remain unavailable for direct client reads. Staff-
 
 All these functions are `SECURITY DEFINER` RPCs with an empty search path and explicit active-profile/role checks. They are intentionally executable by `authenticated` so the database can validate the caller's staff role; keep the security-advisor warning tracked and continue testing negative cases. The original inventory catalog RPC is revoked; use only the guarded `staff_inventory_catalog_safe` function.
 
+## First administrator bootstrap
+
+The connected project currently has no Auth users or staff profiles. The first administrator must be bootstrapped once by a project owner; the regular staff invitation endpoint intentionally requires an existing active administrator.
+
+1. In **Supabase Dashboard → Authentication → Users**, create the first trusted administrator account with the intended email. Use a real staff-owned email and require email confirmation.
+2. In **SQL Editor**, replace the email literal below with that exact address and run it once. Confirm the returned row is the intended user before continuing.
+
+```sql
+insert into public.staff_profiles (user_id, email, display_name, role, is_active)
+select u.id, lower(u.email), 'HMS Administrator', 'admin'::public.staff_role, true
+from auth.users u
+where lower(u.email) = lower('replace-with-admin-email@example.com')
+  and not exists (select 1 from public.staff_profiles sp where sp.user_id = u.id)
+returning user_id, email, role, is_active;
+```
+
+3. If no row is returned, verify the Auth email and whether a staff profile already exists. Do not bypass RLS or expose a service-role key to the frontend.
+4. Sign in through HMS. Use **Staff** to invite other users; invitation and profile creation are handled by the admin-invite-staff Edge Function, which verifies the caller's active administrator profile server-side.
+5. Set the Auth email redirect URL to the deployed HMS origin and configure SMTP/email delivery in Supabase before sending production invitations.
+
+Never use this bootstrap to grant administrator access to an untrusted account. Keep the first administrator's recovery email and MFA under the hospital's control.
+
+## Deployment and verification
+
+- Apply migrations in timestamp order to the intended project. The hms_staff_admin_audit migration is required for staff role changes and audit-log viewing.
+- Deploy admin-invite-staff with JWT verification enabled. It uses server-side Supabase environment variables and must never be configured with a client-exposed service-role key.
+- Configure the frontend environment using .env.example; set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY only.
+- Test every role using separate real test accounts, including negative cases (wrong ward, wrong department, unauthorized billing, and inactive staff). Do not use fabricated patient or billing data in production.
+- Verify Auth email delivery, recovery, allowed redirect URLs, and session expiry before go-live.
+
 ## Current database status
 
 - Foundational tables and RLS are applied.
@@ -39,4 +69,4 @@ All these functions are `SECURITY DEFINER` RPCs with an empty search path and ex
 - No beds, staff, doctors, patients, inventory items, or user accounts have been seeded.
 - Administrative room/bed/rate changes are exposed only through role-checked RPCs.
 - Role-scoped read RPCs are applied. Clinical/financial base tables remain closed to direct client access.
-- No staff accounts exist yet, so real JWT-based role-by-role integration tests remain outstanding; do not mark the access matrix fully tested until those tests run.
+- The first administrator must be bootstrapped manually using the steps above. Real JWT-based role-by-role integration tests remain outstanding; do not mark the access matrix fully tested until those tests run.
