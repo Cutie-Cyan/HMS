@@ -92,7 +92,7 @@ export function DoctorFormPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <header className="no-print">
         <p className="text-sm font-medium text-teal-700">Emergency Nurse</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
           Doctor form & encounters
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
@@ -103,7 +103,7 @@ export function DoctorFormPage() {
       {(error || success) && (
         <div
           role={error ? "alert" : "status"}
-          className={`no-print rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}
+          className={`no-print rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
         >
           {error || success}
         </div>
