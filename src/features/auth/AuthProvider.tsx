@@ -25,21 +25,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (userId: string) => {
     try {
-      const supabase = getSupabaseClient();
-      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      setSession(currentSession);
-      if (!currentSession?.user) {
-        setProfile(null);
-        setError(null);
-        return;
-      }
-      const { data, error: profileError } = await supabase
+      const { data, error: profileError } = await getSupabaseClient()
         .from("staff_profiles")
         .select("user_id,email,display_name,role,ward_id,is_active")
-        .eq("user_id", currentSession.user.id)
+        .eq("user_id", userId)
         .maybeSingle();
       if (profileError) throw profileError;
       if (!data || !data.is_active || !validRole(data.role)) {
@@ -57,12 +48,29 @@ export function AuthProvider({ children }: PropsWithChildren) {
       });
       setError(null);
     } catch (cause) {
+      setProfile(null);
+      setError(cause instanceof Error ? cause.message : "Unable to verify staff access.");
+    }
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const { data: { session: currentSession }, error: sessionError } = await getSupabaseClient().auth.getSession();
+      if (sessionError) throw sessionError;
+      setSession(currentSession);
+      if (!currentSession?.user) {
+        setProfile(null);
+        setError(null);
+        return;
+      }
+      await loadProfile(currentSession.user.id);
+    } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Unable to verify staff access.";
       if (message.includes("VITE_SUPABASE_")) setConfigured(false);
       setProfile(null);
       setError(message);
     }
-  }, []);
+  }, [loadProfile]);
 
   useEffect(() => {
     let mounted = true;
@@ -73,8 +81,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     void initialize();
     let unsubscribe = () => {};
     try {
-      const { data } = getSupabaseClient().auth.onAuthStateChange(() => {
-        void refreshProfile();
+      const { data } = getSupabaseClient().auth.onAuthStateChange((_event, nextSession) => {
+        setSession(nextSession);
+        if (!nextSession?.user) {
+          setProfile(null);
+          setError(null);
+          return;
+        }
+        // Do not call another Supabase auth method inside this callback; fetch the profile only.
+        void loadProfile(nextSession.user.id);
       });
       unsubscribe = () => data.subscription.unsubscribe();
     } catch {
@@ -84,7 +99,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       mounted = false;
       unsubscribe();
     };
-  }, [refreshProfile]);
+  }, [loadProfile, refreshProfile]);
 
   const signOut = useCallback(async () => {
     try {
