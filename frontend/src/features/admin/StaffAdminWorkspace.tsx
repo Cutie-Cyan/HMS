@@ -30,6 +30,25 @@ const roles: { value: StaffRole; label: string }[] = [
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10";
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
 
+async function invitationErrorMessage(cause: unknown): Promise<string> {
+  const context = cause && typeof cause === "object" && "context" in cause
+    ? (cause as { context?: unknown }).context
+    : null;
+  if (context instanceof Response) {
+    try {
+      const payload: unknown = await context.clone().json();
+      if (payload && typeof payload === "object") {
+        const details = payload as { error?: unknown; message?: unknown };
+        if (typeof details.error === "string" && details.error.trim()) return details.error;
+        if (typeof details.message === "string" && details.message.trim()) return details.message;
+      }
+    } catch {
+      // Fall back to the SDK error when the response isn't JSON.
+    }
+  }
+  return cause instanceof Error ? cause.message : "Unable to invite staff member.";
+}
+
 export function StaffAdminWorkspace() {
   const client = useQueryClient();
   const [selected, setSelected] = useState<StaffRow | null>(null);
@@ -96,7 +115,7 @@ export function StaffAdminWorkspace() {
       setInviteEmail(""); setInviteName(""); setInviteRole("info_officer"); setInviteWardId("");
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
-    onError: (cause) => { setErrorMessage(cause instanceof Error ? cause.message : "Unable to invite staff member."); setMessage(""); },
+    onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
   });
   const edit = (row: StaffRow) => {
     setSelected(row);
