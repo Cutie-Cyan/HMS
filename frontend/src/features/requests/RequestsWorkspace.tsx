@@ -22,7 +22,7 @@ import {
 } from "./data";
 
 const fieldClass =
-  "mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
+  "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(value ?? 0),
@@ -48,7 +48,7 @@ function RequestCard({
   paying: boolean;
 }) {
   return (
-    <article className="rounded-xl border border-slate-200 p-4">
+    <article className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold">{request.patient_name}</p>
@@ -175,7 +175,7 @@ export function RequestsWorkspace({
     <div className="mx-auto max-w-6xl space-y-6">
       <header>
         <p className="text-sm font-medium text-teal-700">Clinical operations</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
           {mode === "billing" ? "Cashier billing" : "Requests"}
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
@@ -187,7 +187,7 @@ export function RequestsWorkspace({
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
-          className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}
+          className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
         >
           {error || message}
         </div>
