@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { createBrowserRouter, Navigate, Outlet, useLocation } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { AccessDeniedPage } from "../components/feedback/AccessDeniedPage";
