@@ -4,7 +4,7 @@
 
 The connected project is **HMS** (`vdvoyvietqkraazpvohu`, region `ap-northeast-1`). The empty state was verified on 2026-10-17 and captured in [baseline.sql](./baseline.sql). The current schema is created by timestamped migrations in `supabase/migrations/`.
 
-The older project reference and pre-existing-schema description in the planning notes do not match the connected project. This repository follows the live HMS project identified above.
+The older project reference and pre-existing-schema description in planning notes do not match the connected project. This repository follows the live HMS project identified above.
 
 ## Migration policy
 
@@ -19,10 +19,24 @@ The older project reference and pre-existing-schema description in the planning 
 - PhilHealth is a ₱2,000 discount per admission. PhilHealth and PWD/Senior discounts may stack, but discounts within the same category may not stack; enforcement is added with billing.
 - The doctor form is recorded by the Emergency Nurse. Patient information is at the top, Findings on the left, Recommendation on the right. “HTI” is not a separate field; UTI is an example finding.
 
+## Role-scoped reads
+
+Clinical and financial tables remain unavailable for direct client reads. Staff-facing reads are exposed through role-checking RPCs:
+
+- `staff_patient_directory(search)`: cross-ward patient lookup, with contact/address fields limited to Information Officer and Emergency Nurse; cashier receives only the PWD/Senior flag needed for billing.
+- `staff_encounter_queue(status)`: Emergency Nurse queue; Nurse Station sees clinical encounter details only for its assigned ward.
+- `staff_request_queue(type)`: type-limited queues for Pharmacy/Lab, payment coordination for Cashier, creator/encounter-scoped requests for Emergency Nurse, and ward-scoped requests for Nurse Station.
+- `staff_bed_census()`: active bed availability only; private rooms are treated as one reservation when any bed in that room is occupied.
+- `staff_inventory_catalog_safe(department)`: only Pharmacy or Lab can read its own department catalog; unit cost is not returned.
+- `admin_staff_directory()`: active administrators only.
+
+All these functions are `SECURITY DEFINER` RPCs with an empty search path and explicit active-profile/role checks. They are intentionally executable by `authenticated` so the database can validate the caller's staff role; keep the security-advisor warning tracked and continue testing negative cases. The original inventory catalog RPC is revoked; use only the guarded `staff_inventory_catalog_safe` function.
+
 ## Current database status
 
 - Foundational tables and RLS are applied.
 - The four canonical wards exist with public rate ₱800 and private rate ₱5,000.
 - No beds, staff, doctors, patients, inventory items, or user accounts have been seeded.
 - Administrative room/bed/rate changes are exposed only through role-checked RPCs.
-- Clinical/financial tables currently have no direct client policies. Their role-scoped access and business workflow RPCs must be implemented before those screens are enabled.
+- Role-scoped read RPCs are applied. Clinical/financial base tables remain closed to direct client access.
+- No staff accounts exist yet, so real JWT-based role-by-role integration tests remain outstanding; do not mark the access matrix fully tested until those tests run.
