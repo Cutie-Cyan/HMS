@@ -4,31 +4,31 @@ HMS is a role-based hospital workflow application. The React application lives i
 
 ## Requirements
 
-- Node.js 22 or a version supported by Vite
-- npm
+- Bun
+- Node.js version supported by the installed Vite version
 - A Supabase project with the migrations in `supabase/migrations/` applied
 
 ## Frontend setup
 
 ```bash
 cd frontend
-npm install
+bun install
 cp ../.env.example .env
-npm run dev
+bun run dev
 ```
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `frontend/.env`. Use only the public anon/publishable key in the browser; never put a Supabase service-role key in frontend environment variables.
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `frontend/.env`. Use only the public publishable key in browser code; never put a Supabase secret or service-role key in frontend environment variables.
 
 ## Verification
 
 From `frontend/`:
 
 ```bash
-npm run build
-npm run lint
+bun run build
+bun run lint
 ```
 
-GitHub Actions runs the frontend build and lint checks from `frontend/`.
+GitHub Actions runs the frontend build and lint checks from `frontend/` using Bun.
 
 ## Database
 

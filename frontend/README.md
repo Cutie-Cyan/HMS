@@ -5,18 +5,18 @@ React 19, TypeScript, Vite, Tailwind CSS v4, React Router, TanStack Query, and S
 ## Setup
 
 ```bash
-npm install
+bun install
 cp ../.env.example .env
-npm run dev
+bun run dev
 ```
 
-Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`. Use only the public anon/publishable key in the browser; never expose the service-role key.
+Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env`. Use only the public publishable key in the browser; never expose a Supabase secret or service-role key.
 
 ## Checks
 
 ```bash
-npm run build
-npm run lint
+bun run build
+bun run lint
 ```
 
 Tailwind CSS v4 is integrated through `@tailwindcss/vite` in `vite.config.ts`; styles are loaded with `@import "tailwindcss";` in `src/styles/index.css`.
