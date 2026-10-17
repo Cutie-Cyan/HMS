@@ -47,10 +47,9 @@ Deno.serve(async (req: Request) => {
     return json(403, { error: "Only an active administrator may invite staff." });
   }
 
-  let body: { email?: unknown; password?: unknown; displayName?: unknown; role?: unknown; wardId?: unknown };
+  let body: { email?: unknown; displayName?: unknown; role?: unknown; wardId?: unknown };
   try { body = await req.json(); } catch { return json(400, { error: "Request body must be valid JSON." }); }
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const password = typeof body.password === "string" ? body.password : "";
   const displayName = typeof body.displayName === "string" ? body.displayName.trim() : "";
   const role = typeof body.role === "string" ? body.role : "";
   const wardId = typeof body.wardId === "string" && body.wardId ? body.wardId : null;
@@ -58,7 +57,6 @@ Deno.serve(async (req: Request) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return json(400, { error: "Enter a valid email address." });
   }
-  if (password.length < 8 || password.length > 128) return json(400, { error: "Initial password must be between 8 and 128 characters." });
   if (!displayName || displayName.length > 150) return json(400, { error: "Display name is required (maximum 150 characters)." });
   if (!allowedRoles.has(role)) return json(400, { error: "Choose a valid staff role." });
   if (role === "nurse_station") {
@@ -80,7 +78,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { error: profileError } = await adminClient.from("staff_profiles").insert({
-    user_id: created.user.id,
+    user_id: invitation.user.id,
     email,
     display_name: displayName,
     role,
@@ -103,5 +101,5 @@ Deno.serve(async (req: Request) => {
     // The invitation/profile exists; surface audit failure instead of claiming a fully audited success.
     return json(500, { error: "Staff invitation was created, but its audit event failed. Check audit logs before retrying." });
   }
-  return json(201, { userId: invitation.user.id, email, displayName, role, message: "Staff account created. Give the initial password to the staff member securely and require a password change at first sign-in." });
+  return json(201, { userId: invitation.user.id, email, displayName, role, message: "Staff account created. The staff member must use the invitation email to finish setting up their account." });
 });
