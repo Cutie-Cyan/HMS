@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, RefreshCw, UserPlus, Stethoscope } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { humanizeError, useDoctors, usePatientDirectory, useRegisterPatient, useSaveDoctor, type DoctorRecord } from "./data";
 
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return <label className="block text-sm font-medium text-slate-700">{label}{children}</label>;
 }
 function ageLabel(date: string | null) {
