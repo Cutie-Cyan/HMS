@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { AccessDeniedPage } from "../components/feedback/AccessDeniedPage";
-import { FeaturePlaceholder } from "../components/feedback/FeaturePlaceholder";
 import { LoginPage } from "../features/auth/LoginPage";
 import { useAuth } from "../features/auth/AuthProvider";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
@@ -68,55 +67,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "wards") return <WardsWorkspace />;
   if (module === "staff") return <StaffAdminWorkspace />;
   if (module === "audit") return <AuditWorkspace />;
-  const descriptions: Record<
-    Exclude<HmsModule, "dashboard">,
-    { title: string; description: string }
-  > = {
-    patients: {
-      title: "Patients",
-      description:
-        "Patient registration and demographic records for authorized staff.",
-    },
-    encounters: {
-      title: "Clinical encounters",
-      description:
-        "Emergency Nurse findings, recommendations, doctor records, and admission decisions.",
-    },
-    requests: {
-      title: "Requests",
-      description:
-        "Medicine and laboratory request queues, payment status, and fulfillment.",
-    },
-    wards: {
-      title: "Wards and beds",
-      description:
-        "Four-ward bed availability, room configuration, admission assignment, and ward transfers.",
-    },
-    billing: {
-      title: "Billing",
-      description:
-        "Request payments, final bill review, and discharge processing.",
-    },
-    inventory: {
-      title: "Inventory",
-      description:
-        "Department-specific stock, fulfillment, and laboratory results.",
-    },
-    staff: {
-      title: "Staff administration",
-      description:
-        "Manage authorized staff profiles and role assignments. Staff-management operations are not enabled yet.",
-    },
-    audit: {
-      title: "Audit log",
-      description:
-        "Review administrative audit events. The audit viewer is not enabled yet.",
-    },
-  };
-  const item = descriptions[module];
-  return (
-    <FeaturePlaceholder title={item.title} description={item.description} />
-  );
+  return <AccessDeniedPage title="Module unavailable" description="This module is not available for this account." />;
 }
 
 function RoleHomeRedirect() {
