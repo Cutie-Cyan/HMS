@@ -53,7 +53,7 @@ export function AppShell() {
       {mobileOpen && <button aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-30 bg-black/20 md:hidden"/>}
       <div className="min-h-screen min-w-0 md:ml-[76px]">
         <header className="sticky top-0 z-20 flex min-h-[62px] items-center justify-between gap-4 border-b border-border/70 bg-background/90 px-4 backdrop-blur sm:px-6">
-          <div className="min-w-0"><p className="truncate text-sm font-semibold">Hospital Management System</p><p className="hidden text-xs text-muted-foreground sm:block">Hospital operations workspace</p></div>
+          <div className="flex min-w-0 items-center gap-3"><button type="button" onClick={() => setMobileOpen((v) => !v)} aria-label={mobileOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileOpen} className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm hover:bg-muted md:hidden">{mobileOpen ? <X size={18}/> : <Menu size={18}/>}</button><div className="min-w-0"><p className="truncate text-sm font-semibold">Hospital Management System</p><p className="hidden text-xs text-muted-foreground sm:block">Hospital operations workspace</p></div></div>
           <Button variant="secondary" size="sm" onClick={() => void signOut()}><LogOut aria-hidden="true"/> <span className="hidden sm:inline">Sign out</span></Button>
         </header>
         <main className="mx-auto min-w-0 max-w-[1600px] p-4 sm:p-6 lg:p-8"><Outlet/></main>
