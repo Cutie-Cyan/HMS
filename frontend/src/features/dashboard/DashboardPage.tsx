@@ -112,7 +112,7 @@ export function DashboardPage() {
     { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
   ] : isInfo ? [
     { label: "Patient records", value: patients.data?.length ?? "—", detail: "Searchable patient directory", icon: Users, to: MODULES.patients.path },
-    { label: "Currently active", value: activePatients.length || (patients.data ? 0 : "—"), detail: "Not marked discharged", icon: Activity, to: MODULES.patients.path },
+    { label: "Currently active", value: patients.data ? activePatients.length : "—", detail: "Not marked discharged", icon: Activity, to: MODULES.patients.path },
     { label: "Doctor records", value: "Manage", detail: "Doctor records are not login accounts", icon: Stethoscope, to: MODULES.patients.path },
   ] : isEmergency ? [
     { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Consultations to review or continue", icon: Stethoscope, to: MODULES.encounters.path },
@@ -121,15 +121,15 @@ export function DashboardPage() {
   ] : isStation ? [
     { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Patients in the encounter queue", icon: Stethoscope, to: MODULES.encounters.path },
     { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} occupied across visible wards` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
-    { label: "Requests in progress", value: (requests.data ?? []).filter((row) => ["paid", "in_progress", "completed"].includes(row.status)).length || (requests.data ? 0 : "—"), detail: "Follow medicine and lab requests", icon: ClipboardList, to: MODULES.requests.path },
+    { label: "Requests in progress", value: requests.data ? requests.data.filter((row) => ["paid", "in_progress", "completed"].includes(row.status)).length : "—", detail: "Follow medicine and lab requests", icon: ClipboardList, to: MODULES.requests.path },
   ] : isCashier ? [
-    { label: "Requests awaiting payment", value: pendingRequests.length || (requests.data ? 0 : "—"), detail: "Medicine and laboratory requests", icon: Wallet, to: MODULES.requests.path },
-    { label: "Paid requests", value: readyRequests.length || (requests.data ? 0 : "—"), detail: "Already paid; handled by department staff", icon: ClipboardCheck, to: MODULES.requests.path },
+    { label: "Requests awaiting payment", value: requests.data ? pendingRequests.length : "—", detail: "Medicine and laboratory requests", icon: Wallet, to: MODULES.requests.path },
+    { label: "Paid requests", value: requests.data ? readyRequests.length : "—", detail: "Already paid; handled by department staff", icon: ClipboardCheck, to: MODULES.requests.path },
     { label: "Billing workspace", value: "Open", detail: "Final bills and discharge closeout", icon: FileText, to: MODULES.billing.path },
   ] : (isPharmacy || isLab) ? [
-    { label: "Requests ready", value: readyRequests.filter((row) => row.request_type === department).length || (requests.data ? 0 : "—"), detail: "Paid requests for your department", icon: PackageCheck, to: MODULES.inventory.path },
-    { label: "Awaiting payment", value: pendingRequests.filter((row) => row.request_type === department).length || (requests.data ? 0 : "—"), detail: "Cannot release until cashier payment", icon: Wallet, to: MODULES.requests.path },
-    { label: "Low-stock items", value: lowStock.length || (inventory.data ? 0 : "—"), detail: "At or below configured threshold", icon: Boxes, to: MODULES.inventory.path },
+    { label: "Requests ready", value: requests.data ? readyRequests.filter((row) => row.request_type === department).length : "—", detail: "Paid requests for your department", icon: PackageCheck, to: MODULES.inventory.path },
+    { label: "Awaiting payment", value: requests.data ? pendingRequests.filter((row) => row.request_type === department).length : "—", detail: "Cannot release until cashier payment", icon: Wallet, to: MODULES.requests.path },
+    { label: "Low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below configured threshold", icon: Boxes, to: MODULES.inventory.path },
   ] : [];
 
   const quickActions: { label: string; description: string; to: string; icon: typeof Users }[] =
