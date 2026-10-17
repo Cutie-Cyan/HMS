@@ -1,20 +1,23 @@
 import type { HTMLAttributes } from "react";
 
 type Tone = "neutral" | "success" | "warning" | "info";
+
+const toneStyles: Record<Tone, string> = {
+  neutral: "border-transparent bg-secondary text-secondary-foreground",
+  success: "border-transparent bg-emerald-50 text-emerald-700",
+  warning: "border-transparent bg-amber-50 text-amber-800",
+  info: "border-transparent bg-sky-50 text-sky-700",
+};
+
 export function Badge({
   tone = "neutral",
   className = "",
   ...props
 }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
-  const tones: Record<Tone, string> = {
-    neutral: "bg-slate-100 text-slate-700",
-    success: "bg-emerald-50 text-emerald-700",
-    warning: "bg-amber-50 text-amber-800",
-    info: "bg-sky-50 text-sky-700",
-  };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]} ${className}`}
+      data-slot="badge"
+      className={`inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap transition-colors ${toneStyles[tone]} ${className}`}
       {...props}
     />
   );
