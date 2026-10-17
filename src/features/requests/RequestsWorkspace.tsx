@@ -29,8 +29,8 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const role = profile?.role;
   const canCreate = mode === "requests" && (role === "emergency_nurse" || role === "nurse_station");
   const canPay = role === "cashier";
-  const patients = usePatientDirectory();
-  const encounters = useOpenEncounters();
+  const patients = usePatientDirectory("", canCreate);
+  const encounters = useOpenEncounters(canCreate);
   const requests = useRequestWorkspace();
   const create = useCreateRequest();
   const pay = usePayRequest();
