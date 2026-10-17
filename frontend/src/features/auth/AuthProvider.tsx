@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -40,8 +41,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const profileRequestId = useRef(0);
 
   const loadProfile = useCallback(async (userId: string) => {
+    const requestId = ++profileRequestId.current;
     try {
       const { data, error: profileError } = await getSupabaseClient()
         .from("staff_profiles")
@@ -49,6 +52,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         .eq("user_id", userId)
         .maybeSingle();
       if (profileError) throw profileError;
+      if (requestId !== profileRequestId.current) return;
       if (!data || !data.is_active || !validRole(data.role)) {
         setProfile(null);
         setError(
@@ -66,6 +70,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       });
       setError(null);
     } catch (cause) {
+      if (requestId !== profileRequestId.current) return;
       setProfile(null);
       setError(
         cause instanceof Error
@@ -113,6 +118,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         (_event, nextSession) => {
           setSession(nextSession);
           if (!nextSession?.user) {
+            profileRequestId.current += 1;
             setProfile(null);
             setError(null);
             return;
@@ -134,6 +140,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const signOut = useCallback(async () => {
     try {
       await getSupabaseClient().auth.signOut();
+      profileRequestId.current += 1;
       setSession(null);
       setProfile(null);
     } catch (cause) {
