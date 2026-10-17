@@ -161,10 +161,6 @@ export function DashboardPage() {
 
   const hasDataError = [staff, beds, patients, encounters, requests, inventory].some((query) => query.isError);
   return <div className="mx-auto max-w-[1440px] space-y-7 pb-8">
-    <header className="flex flex-wrap items-start justify-between gap-4">
-      <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{roleName} workspace</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">{copy.title}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{copy.description}</p><p className="mt-3 text-sm font-medium">{profile?.displayName ?? "Staff account"}</p></div>
-      <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium capitalize">{roleName}</span>
-    </header>
     {hasDataError && <div role="status" className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">Some live dashboard data could not be loaded. Open the relevant workspace to retry; metrics are not being replaced with sample data.</div>}
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm">
