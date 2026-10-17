@@ -1,9 +1,0 @@
-@page { size: A4; margin: 14mm; }
-@media print {
-  body { background: #fff !important; color: #000 !important; }
-  .no-print, aside, header, nav { display: none !important; }
-  main { padding: 0 !important; }
-  .print-sheet { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important; }
-  .print-sheet section { break-inside: avoid; }
-  .print-sheet p, .print-sheet h2, .print-sheet h3 { color: #000 !important; }
-}
