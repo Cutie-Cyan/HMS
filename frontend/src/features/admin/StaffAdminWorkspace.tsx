@@ -62,6 +62,7 @@ export function StaffAdminWorkspace() {
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState<StaffRole>("info_officer");
   const [inviteWardId, setInviteWardId] = useState("");
+  const [invitePassword, setInvitePassword] = useState("");
   const staff = useQuery({
     queryKey: ["admin", "staff-directory"],
     queryFn: async () => {
@@ -104,15 +105,15 @@ export function StaffAdminWorkspace() {
   const invite = useMutation({
     mutationFn: async () => {
       const { data, error } = await getSupabaseClient().functions.invoke("admin-invite-staff", {
-        body: { email: inviteEmail, displayName: inviteName, role: inviteRole, wardId: inviteRole === "nurse_station" ? inviteWardId : null },
+        body: { email: inviteEmail, displayName: inviteName, password: invitePassword, role: inviteRole, wardId: inviteRole === "nurse_station" ? inviteWardId : null },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: async () => {
-      setMessage("Invitation sent to " + inviteEmail.trim() + "."); setErrorMessage("");
-      setInviteEmail(""); setInviteName(""); setInviteRole("info_officer"); setInviteWardId("");
+      setMessage("Staff account created for " + inviteEmail.trim() + ". Give the initial password to the staff member securely."); setErrorMessage("");
+      setInviteEmail(""); setInviteName(""); setInvitePassword(""); setInviteRole("info_officer"); setInviteWardId("");
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
@@ -133,18 +134,18 @@ export function StaffAdminWorkspace() {
         <Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button>
       </header>
       {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
-      <Card><CardHeader><h2 className="font-semibold">Invite staff member</h2></CardHeader><CardContent>
-        <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
+      <Card><CardHeader><h2 className="font-semibold">Add staff</h2></CardHeader><CardContent>
+        <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
           <label className="block text-sm font-medium">Full name<input required maxLength={150} value={inviteName} onChange={(event) => setInviteName(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
-          <label className="block text-sm font-medium">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Assigned ward<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
-          <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Sending invite…" : "Send invitation"}</Button></div>
+          <label className="block text-sm font-medium">Initial password<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={invitePassword} onChange={(event) => setInvitePassword(event.target.value)} className={fieldClass} placeholder="At least 8 characters"/></label>\n          <label className="block text-sm font-medium">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Ward / nurse station<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
+          <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
         </form>
       </CardContent></Card>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
         <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><Users size={18} className="text-teal-700"/> Staff profiles</div></CardHeader><CardContent>
-          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Action</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Use the invitation form above to create the first staff account.</p></div>}
+          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Action</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Use the form above to create the first staff account.</p></div>}
         </CardContent></Card>
         <Card><CardHeader><h2 className="font-semibold">{selected ? "Edit staff profile" : "Staff access details"}</h2></CardHeader><CardContent>
           {selected ? <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
@@ -154,7 +155,7 @@ export function StaffAdminWorkspace() {
             {role === "nurse_station" && <label className="block text-sm font-medium">Assigned ward<select required value={wardId} onChange={(event) => setWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{wards.isError && <span className="mt-1 block text-xs text-rose-700">Could not load wards.</span>}</label>}
             <label className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-teal-700"/> Account active</label>
             <div className="flex flex-wrap gap-2"><Button type="submit" disabled={save.isPending || wards.isLoading}>{save.isPending ? "Saving…" : "Save changes"}</Button><Button type="button" variant="secondary" onClick={() => setSelected(null)}>Cancel</Button></div>
-          </form> : <div className="space-y-3 text-sm text-muted-foreground"><p>Select a staff member to update their role, ward assignment, or active status.</p><p className="rounded-lg border border-border p-3">Changes are validated by a database function and written to the audit log.</p><p className="rounded-lg border border-border p-3">Staff creation and role changes are handled by secured server-side operations.</p></div>}
+          </form> : <div className="space-y-3 text-sm text-muted-foreground"><p>Select a staff member to update their role, ward assignment, or active status.</p><p className="rounded-lg border border-border p-3">Changes are validated by a database function and written to the audit log.</p><p className="rounded-lg border border-border p-3">Staff accounts are created by a secured server-side operation. Share initial passwords privately and ask staff to change them after signing in.</p></div>}
         </CardContent></Card>
       </div>
     </div>
