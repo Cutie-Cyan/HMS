@@ -82,7 +82,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "requests") return <RequestsWorkspace />;
   if (module === "cbc") return profile.role === "lab" ? <InventoryWorkspace /> : <RequestsWorkspace mode="cbc" />;
   if (module === "billing") return <BillingWorkspace />;
-  if (module === "inventory" || module === "medicine-stock" || module === "profit-inventory" || module === "medicine-requests" || module === "lab-requests" || module === "lab-results" || module === "lab-profit-inventory") return <InventoryWorkspace />;
+  if (module === "inventory" || module === "medicine-stock" || module === "profit-inventory" || module === "medicine-requests" || module === "lab-supplies" || module === "lab-requests" || module === "lab-results" || module === "lab-profit-inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
   if (module === "staff") return <StaffAdminWorkspace />;
   if (module === "audit") return <AuditWorkspace />;
@@ -120,6 +120,7 @@ export const router = createBrowserRouter([
           { path: "billing", element: <RoleGate module="billing" /> },
           { path: "inventory", element: <Navigate to="/lab-inventory" replace /> },
           { path: "lab-inventory", element: <RoleGate module="inventory" /> },
+          { path: "lab-supplies", element: <RoleGate module="lab-supplies" /> },
           { path: "lab-requests", element: <RoleGate module="lab-requests" /> },
           { path: "lab-results", element: <RoleGate module="lab-results" /> },
           { path: "lab-profit-inventory", element: <RoleGate module="lab-profit-inventory" /> },
