@@ -163,6 +163,7 @@ export function InventoryWorkspace() {
   const [price, setPrice] = useState("0");
   const [cost, setCost] = useState("0");
   const [lowStock, setLowStock] = useState("5");
+  const [catalogType, setCatalogType] = useState<"requestable" | "supply">("requestable");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const reset = () => {
@@ -174,6 +175,7 @@ export function InventoryWorkspace() {
     setPrice("0");
     setCost("0");
     setLowStock("5");
+    setCatalogType("requestable");
   };
   const edit = (item: InventoryItem) => {
     setEditing(item);
@@ -184,6 +186,7 @@ export function InventoryWorkspace() {
     setPrice(String(item.unit_price));
     setCost(String(item.unit_cost));
     setLowStock(String(item.low_stock_threshold));
+    setCatalogType(item.catalog_type ?? "requestable");
   };
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -199,6 +202,7 @@ export function InventoryWorkspace() {
         price: Number(price),
         cost: Number(cost),
         lowStock: Number(lowStock),
+        catalogType,
         expectedStock: editing?.quantity_on_hand ?? null,
         id: editing?.id,
       });
@@ -223,6 +227,53 @@ export function InventoryWorkspace() {
     }
   };
   const queue = (requests.data ?? []).filter((r) => r.request_type === type);
+  const addStarterCatalog = async () => {
+    setError("");
+    setMessage("");
+    const catalog = [
+      { name: "CBC Test (Complete Blood Count)", code: "LAB-CBC", unit: "test", stock: 100, price: 350, cost: 150, lowStock: 10, catalogType: "requestable" as const },
+      { name: "Urinalysis", code: "LAB-UA", unit: "test", stock: 100, price: 180, cost: 65, lowStock: 10, catalogType: "requestable" as const },
+      { name: "Blood Chemistry Panel", code: "LAB-CHEM", unit: "test", stock: 100, price: 450, cost: 220, lowStock: 10, catalogType: "requestable" as const },
+      { name: "Pregnancy Test", code: "LAB-PREG", unit: "test", stock: 100, price: 200, cost: 75, lowStock: 10, catalogType: "requestable" as const },
+      { name: "Blood Typing", code: "LAB-BT", unit: "test", stock: 100, price: 250, cost: 110, lowStock: 10, catalogType: "requestable" as const },
+      { name: "CBC Reagent", code: "SUP-CBC-REAGENT", unit: "bottle", stock: 10, price: 0, cost: 1800, lowStock: 2, catalogType: "supply" as const },
+      { name: "Blood Collection Tubes", code: "SUP-BLOOD-TUBE", unit: "piece", stock: 200, price: 0, cost: 8, lowStock: 30, catalogType: "supply" as const },
+      { name: "Syringes and Needles", code: "SUP-SYRINGE", unit: "piece", stock: 200, price: 0, cost: 5, lowStock: 30, catalogType: "supply" as const },
+      { name: "Gloves", code: "SUP-GLOVES", unit: "pair", stock: 100, price: 0, cost: 4, lowStock: 20, catalogType: "supply" as const },
+      { name: "Urine Specimen Containers", code: "SUP-URINE-CUP", unit: "piece", stock: 100, price: 0, cost: 7, lowStock: 20, catalogType: "supply" as const },
+      { name: "Urine Test Strips", code: "SUP-URINE-STRIP", unit: "strip", stock: 100, price: 0, cost: 12, lowStock: 20, catalogType: "supply" as const },
+      { name: "Pregnancy Test Kits", code: "SUP-PREG-KIT", unit: "kit", stock: 50, price: 0, cost: 35, lowStock: 10, catalogType: "supply" as const },
+      { name: "Microscope Slides", code: "SUP-SLIDE", unit: "piece", stock: 100, price: 0, cost: 3, lowStock: 20, catalogType: "supply" as const },
+      { name: "Pipette Tips", code: "SUP-PIPETTE-TIP", unit: "piece", stock: 500, price: 0, cost: 1, lowStock: 50, catalogType: "supply" as const },
+      { name: "Laboratory Disinfectant", code: "SUP-DISINFECTANT", unit: "bottle", stock: 12, price: 0, cost: 250, lowStock: 3, catalogType: "supply" as const },
+    ];
+    const existing = new Set((inventory.data ?? []).map((item) => item.item_code.toUpperCase()));
+    const missing = catalog.filter((item) => !existing.has(item.code));
+    if (!missing.length) {
+      setMessage("The starter laboratory catalog is already present. Review and update its sample prices and costs as needed.");
+      return;
+    }
+    try {
+      for (const item of missing) {
+        await save.mutateAsync({
+          type: "lab",
+          name: item.name,
+          code: item.code,
+          unit: item.unit,
+          stock: item.stock,
+          price: item.price,
+          cost: item.cost,
+          lowStock: item.lowStock,
+          expectedStock: null,
+          catalogType: item.catalogType,
+        });
+      }
+      setMessage(`Added ${missing.length} starter laboratory items. Sample prices and costs are editable; confirm them against your hospital's actual rates.`);
+    } catch (cause) {
+      setError(requestError(cause));
+    }
+  };
+
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
@@ -278,6 +329,17 @@ export function InventoryWorkspace() {
                 onChange={(e) => setUnit(e.target.value)}
                 className={fieldClass}
               />
+            </label>
+            <label className="text-sm font-medium text-slate-700">
+              Catalog type
+              <select
+                value={catalogType}
+                onChange={(e) => setCatalogType(e.target.value as "requestable" | "supply")}
+                className={fieldClass}
+              >
+                <option value="requestable">{type === "lab" ? "Laboratory test / requestable" : "Medicine / requestable"}</option>
+                <option value="supply">Internal supply (not requestable)</option>
+              </select>
             </label>
             <label className="text-sm font-medium text-slate-700">
               {editing ? "Current stock (managed by requests)" : "Opening stock"}
@@ -355,6 +417,9 @@ export function InventoryWorkspace() {
               {(profile?.role === "pharmacy" || profile?.role === "lab") && <Button onClick={() => { reset(); setView("add"); }}>
                 <PackagePlus size={15} /> {type === "lab" ? "Add lab item" : "Add medicine"}
               </Button>}
+              {profile?.role === "lab" && <Button variant="secondary" onClick={() => void addStarterCatalog()} disabled={save.isPending || inventory.isLoading}>
+                <PackagePlus size={15} /> Add starter catalog
+              </Button>}
               <Button
                 variant="secondary"
                 onClick={() => void inventory.refetch()}
@@ -381,7 +446,7 @@ export function InventoryWorkspace() {
                 >
                   <div className="min-w-0">
                     <p className="font-medium">
-                      {item.item_name}{" "}
+                      {item.item_name}{" "}{item.catalog_type === "supply" && <Badge tone="neutral">Supply</Badge>}
                       <span className="font-mono text-xs text-slate-400">
                         {item.item_code}
                       </span>
