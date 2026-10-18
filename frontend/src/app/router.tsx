@@ -13,6 +13,7 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { PatientWorkspace } from "../features/patients/PatientWorkspace";
 import { PatientRegistrationWorkspace } from "../features/patients/PatientRegistrationWorkspace";
 import { PublicPatientRegistrationPage } from "../features/patients/PublicPatientRegistrationPage";
+import { PatientPortalPage } from "../features/patients/PatientPortalPage";
 import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
 import { AvailableDoctorsWorkspace } from "../features/encounters/AvailableDoctorsWorkspace";
 import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
@@ -88,6 +89,7 @@ function RoleHomeRedirect() {
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/patient-registration", element: <PublicPatientRegistrationPage /> },
+  { path: "/patient-portal", element: <PatientPortalPage /> },
   { path: "/setup-password", element: <SetupPasswordPage /> },
   {
     element: <SessionGate />,
