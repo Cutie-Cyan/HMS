@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { CheckCircle2, ClipboardPen, Eye, Printer, RefreshCw, Stethoscope, X } from "lucide-react";
+import { Activity, BedDouble, CheckCircle2, ClipboardList, ClipboardPen, Eye, FileText, FlaskConical, LayoutDashboard, Printer, RefreshCw, Stethoscope, X } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
+import { RequestsWorkspace } from "../requests/RequestsWorkspace";
+import { WardsWorkspace } from "../wards/WardsWorkspace";
 import {
   humanizeError,
   useDoctors,
@@ -60,6 +62,7 @@ export function DoctorFormPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
+  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">("overview");
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -69,6 +72,11 @@ export function DoctorFormPage() {
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
+
+  useEffect(() => {
+    if (activeTab === "clinical") setEncounterView("saved");
+    else if (activeTab === "queue") setEncounterView("queue");
+  }, [activeTab]);
 
   useEffect(() => {
     if (printTarget) {
@@ -178,9 +186,48 @@ export function DoctorFormPage() {
     <div className="mx-auto max-w-7xl space-y-5 pb-8">
       {(error || success) && <div role={error ? "alert" : "status"} className={`fixed right-4 top-4 z-[120] max-w-[min(30rem,calc(100vw-2rem))] rounded-xl border p-3 text-sm shadow-lg ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || success}</div>}
 
-      <Card>
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Emergency Services</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Emergency Room</h1>
+          <p className="mt-1 text-sm text-slate-500">Triage, encounter processing, clinical records, requests, and bed disposition.</p>
+        </div>
+        <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2" aria-label="Emergency Room sections">
+          {([
+            { id: "overview", label: "Overview", icon: LayoutDashboard },
+            { id: "queue", label: "Patient Queue", icon: ClipboardList },
+            { id: "triage", label: "Triage & Assessment", icon: Activity },
+            { id: "clinical", label: "Clinical Records", icon: FileText },
+            { id: "requests", label: "Requests & Results", icon: FlaskConical },
+            { id: "beds", label: "Beds & Disposition", icon: BedDouble },
+          ] as const).map(({ id, label, icon: Icon }) => (
+            <button key={id} type="button" onClick={() => setActiveTab(id)} aria-current={activeTab === id ? "page" : undefined}
+              className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition ${activeTab === id ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
+              <Icon size={16} />{label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {activeTab === "overview" && <div className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Card><CardContent><p className="text-sm text-slate-500">Open ER encounters</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.length}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-slate-500">Awaiting doctor / encoding</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-slate-500">Clinical records saved</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</p></CardContent></Card>
+          <Card><CardContent><p className="text-sm text-slate-500">Patients available for ER intake</p><p className="mt-2 text-3xl font-semibold text-slate-950">{selectablePatients.length}</p></CardContent></Card>
+        </div>
+        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2><p className="mt-1 text-sm text-slate-500">Start with triage, then manage the encounter queue, doctor records, requests, and disposition.</p></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
+          {[
+            ["1", "Triage & assessment", "Record urgency, chief complaint, vital signs, allergies, and initial nursing observations."],
+            ["2", "Doctor & clinical records", "Print the encounter form, mark it returned, and enter the doctor's findings and recommendations."],
+            ["3", "Requests & disposition", "Submit authorized medicine or laboratory requests and coordinate bed assignment or transfer."],
+          ].map(([number, title, detail]) => <li key={number} className="rounded-xl border border-slate-200 p-4"><span className="inline-grid size-7 place-items-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800">{number}</span><h3 className="mt-3 font-semibold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-5 text-slate-500">{detail}</p></li>)}
+        </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setActiveTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => setActiveTab("queue")}>Open patient queue</Button></div></CardContent></Card>
+      </div>}
+
+      {activeTab === "triage" && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Start encounter</div>
+          <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Triage & Assessment</div>
           <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record initial triage observations, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
         </CardHeader>
         <CardContent>
@@ -244,7 +291,9 @@ export function DoctorFormPage() {
         </CardContent>
       </Card>
 
-      <Card id="encounter-records-panel">
+      )}
+
+      {(activeTab === "queue" || activeTab === "clinical") && <Card id="encounter-records-panel">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
@@ -268,6 +317,11 @@ export function DoctorFormPage() {
           })()}
         </CardContent>
       </Card>
+
+      )}
+
+      {activeTab === "requests" && <RequestsWorkspace mode="requests" />}
+      {activeTab === "beds" && <WardsWorkspace />}
 
       {selectedEncounter && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !recordFindings.isPending) setSelectedEncounter(null); }}><section role="dialog" aria-modal="true" aria-labelledby="doctor-findings-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="doctor-findings-title" className="text-lg font-semibold tracking-tight text-slate-900">{selectedEncounter.workflow_stage === "recorded" ? "Doctor Record" : "Record Doctor Findings"}</h2><p className="mt-2 text-sm font-semibold text-slate-800">{selectedEncounter.patient_name}</p><p className="text-xs text-slate-500">{selectedEncounter.patient_number} · {selectedEncounter.doctor_name ?? "No doctor assigned"}</p></div><button type="button" aria-label="Close" onClick={() => setSelectedEncounter(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></div><form onSubmit={submitFindings} className="space-y-4"><label className="block text-sm font-medium text-slate-700">Recommendation type<select value={recommendationType} onChange={(event) => setRecommendationType(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} className={inputClass}><option value="">Not specified</option><option value="consult">Consult / follow-up</option><option value="lab">Laboratory</option><option value="medicine">Medicine</option><option value="mixed">Mixed</option></select></label><div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Findings<textarea required rows={7} value={findings} onChange={(event) => setFindings(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} placeholder="Doctor's findings" className={inputClass}/></label><label className="block text-sm font-medium text-slate-700">Recommendations<textarea required rows={7} value={recommendations} onChange={(event) => setRecommendations(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} placeholder="Doctor's recommendations" className={inputClass}/></label></div><div className="flex justify-end">{selectedEncounter.workflow_stage !== "recorded" && <Button type="submit" disabled={recordFindings.isPending}>{recordFindings.isPending ? "Saving…" : "Save"}</Button>}</div></form></section></div>}
 
