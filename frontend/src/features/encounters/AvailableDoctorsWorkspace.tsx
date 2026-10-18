@@ -94,7 +94,7 @@ export function AvailableDoctorsWorkspace() {
                     </div>
                   </div>
                   {doctor.is_on_duty ? (
-                    <Button asChild={false} type="button" onClick={() => { window.location.href = `/encounters?doctorId=${encodeURIComponent(doctor.id)}`; }}>
+                    <Button type="button" onClick={() => { window.location.href = `/encounters?doctorId=${encodeURIComponent(doctor.id)}`; }}>
                       Select doctor
                     </Button>
                   ) : (
