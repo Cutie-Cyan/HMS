@@ -90,14 +90,14 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
               </select>
             </label>}
             {mode === "cbc" && <div className="text-sm font-medium text-slate-700">Test type<div className="mt-1.5 flex min-h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3">CBC · Complete Blood Count</div></div>}
-            <label className="text-sm font-medium text-slate-700">Inventory item
+            <label className="text-sm font-medium text-slate-700">{type === "lab" ? "Diagnostic test / service" : "Medicine"}
               <select required value={itemId} onChange={(event) => setItemId(event.target.value)} className={fieldClass}>
                 <option value="">Select item</option>
-                {displayedItems.map((item) => <option key={item.id} value={item.id} disabled={item.quantity_on_hand < 1}>{item.item_name} · {money(Number(item.unit_price))}/{item.unit} · stock {item.quantity_on_hand}</option>)}
+                {displayedItems.map((item) => <option key={item.id} value={item.id} disabled={item.quantity_on_hand < 1}>{type === "lab" ? `${item.item_name} · test fee ${money(Number(item.unit_price))}` : `${item.item_name} · ${money(Number(item.unit_price))}/${item.unit} · stock ${item.quantity_on_hand}`}</option>)}
               </select>
-              {selectedItem && <span className="mt-1 block text-xs text-slate-500">Available: {selectedItem.quantity_on_hand} {selectedItem.unit}(s). Price is set from the database.</span>}
+              {selectedItem && <span className="mt-1 block text-xs text-slate-500">{type === "lab" ? "Diagnostic service fee is set by the laboratory catalog." : `Available: ${selectedItem.quantity_on_hand} ${selectedItem.unit}(s). Price is set from the database.`}</span>}
             </label>
-            <label className="text-sm font-medium text-slate-700">Quantity
+            <label className="text-sm font-medium text-slate-700">{type === "lab" ? "Number of tests" : "Quantity"}
               <input required type="number" min="1" max={selectedItem?.quantity_on_hand ?? undefined} step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className={fieldClass} />
             </label>
             {items.isError && <p role="alert" className="text-sm text-rose-700 md:col-span-2">Could not load department items. Check inventory setup and retry.</p>}
