@@ -15,15 +15,7 @@ type EncounterRow = { encounter_id: string; encounter_status: string; patient_st
 type RequestRow = { request_id: string; request_type: "medicine" | "lab"; status: string; total: number; bill_paid: boolean };
 type InventoryRow = { id: string; item_name: string; quantity_on_hand: number; low_stock_threshold: number };
 
-const roleCopy: Record<string, { title: string; description: string }> = {
-  admin: { title: "Hospital overview", description: "Monitor system access, ward capacity, and operational setup." },
-  info_officer: { title: "Patient services", description: "Register patients and find existing patient records." },
-  emergency_nurse: { title: "Emergency care", description: "Review active encounters, continue consultations, and coordinate admissions." },
-  nurse_station: { title: "Ward station", description: "Track your ward's patients, follow request progress, and manage bed transfers." },
-  cashier: { title: "Cashier desk", description: "Prioritize unpaid requests and final bills waiting for payment." },
-  pharmacy: { title: "Pharmacy operations", description: "Monitor medicine requests, release paid orders, and watch stock levels." },
-  lab: { title: "Laboratory operations", description: "Review paid lab requests, record results, and monitor laboratory stock." },
-};
+
 
 export function DashboardPage() {
   const { profile } = useAuth();
@@ -92,7 +84,6 @@ export function DashboardPage() {
     },
   });
 
-  const copy = roleCopy[role] ?? { title: "HMS overview", description: "Your role-based workspace and current operational priorities." };
   const pendingRequests = (requests.data ?? []).filter((row) => row.status === "pending_payment");
   const readyRequests = (requests.data ?? []).filter((row) => row.status === "paid");
   const activePatients = (patients.data ?? []).filter((row) => row.status !== "discharged");
