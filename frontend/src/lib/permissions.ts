@@ -81,8 +81,8 @@ export function canAccessModule(role: StaffRole, module: HmsModule): boolean {
 export function homePathForRole(role: StaffRole): string {
   if (role === "admin") return "/staff";
   if (role === "info_officer") return "/patients";
-  if (role === "emergency_nurse" || role === "nurse_station")
-    return "/encounters";
+  if (role === "emergency_nurse") return "/encounters";
+  if (role === "nurse_station") return "/wards";
   if (role === "cashier") return "/billing";
   if (role === "pharmacy" || role === "lab") return "/inventory";
   return "/";
