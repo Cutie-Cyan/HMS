@@ -36,6 +36,17 @@ export interface DoctorRecord {
   fixed_fee: number;
   is_active: boolean;
 }
+export interface PatientHistoryRecord {
+  encounter_id: string;
+  doctor_name: string | null;
+  findings: string | null;
+  recommendations: string | null;
+  recommendation_type: string | null;
+  encounter_status: string;
+  admitted_at: string | null;
+  discharged_at: string | null;
+  created_at: string;
+}
 export interface EncounterRecord {
   encounter_id: string;
   patient_id: string;
@@ -126,6 +137,20 @@ export function useDoctors(enabled = true) {
     },
   });
 }
+export function usePatientHistory(patientId: string | null, enabled = true) {
+  return useQuery({
+    enabled: enabled && Boolean(patientId),
+    queryKey: ["patients", "history", patientId],
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient().rpc("info_officer_patient_history", {
+        p_patient_id: patientId,
+      });
+      if (error) throw error;
+      return (data ?? []) as PatientHistoryRecord[];
+    },
+  });
+}
+
 export function useOpenEncounters(enabled = true) {
   return useQuery({
     enabled,
