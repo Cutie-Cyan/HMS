@@ -16,6 +16,18 @@ export interface PatientRecord {
   current_ward_id: string | null;
   created_at: string;
 }
+export interface PatientRegistrationSubmission {
+  submission_id: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  date_of_birth: string;
+  sex: string;
+  phone: string | null;
+  address: string | null;
+  pwd_or_senior: boolean;
+  submitted_at: string;
+}
 export interface DoctorRecord {
   id: string;
   full_name: string;
@@ -128,6 +140,39 @@ export function useOpenEncounters(enabled = true) {
     },
   });
 }
+
+export function usePendingPatientSubmissions(enabled = true) {
+  return useQuery({
+    enabled,
+    queryKey: ["patients", "registration-submissions", "pending"],
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient().rpc(
+        "info_officer_pending_patient_submissions",
+      );
+      if (error) throw error;
+      return (data ?? []) as PatientRegistrationSubmission[];
+    },
+  });
+}
+export function useReviewPatientSubmission() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { submissionId: string; approve: boolean }) => {
+      const { data, error } = await getSupabaseClient().rpc(
+        "info_officer_review_patient_submission",
+        { p_submission_id: input.submissionId, p_approve: input.approve },
+      );
+      if (error) throw error;
+      const rows = data as { submission_id: string; submission_status: string; patient_id: string | null; patient_number: string | null }[] | null;
+      if (!rows?.[0]) throw new Error("The submission review did not return a result.");
+      return rows[0];
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+}
+
 export function useRegisterPatient() {
   const client = useQueryClient();
   return useMutation({
