@@ -110,7 +110,7 @@ function useBillingQueue() {
 export function BillingWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
-  const { queue, prepare, pay, discharge } = useBillingQueue();
+  const { queue, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
   const [philhealthByEncounter, setPhilhealthByEncounter] = useState<
     Record<string, boolean>
   >({});
