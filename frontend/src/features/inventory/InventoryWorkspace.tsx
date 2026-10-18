@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -131,6 +132,7 @@ function FulfillmentCard({
 
 export function InventoryWorkspace() {
   const { profile } = useAuth();
+  const location = useLocation();
   const type: RequestType = profile?.role === "lab" ? "lab" : "medicine";
   const departmentName = type === "lab" ? "Laboratory" : "Pharmacy";
   const inventory = useInventoryItems(type);
@@ -138,7 +140,11 @@ export function InventoryWorkspace() {
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
-  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">("stock");
+  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" ? "profit" : "stock");
+  useEffect(() => {
+    if (location.pathname === "/profit-inventory") setView("profit");
+    else if (location.pathname === "/medicine-stock" || location.pathname === "/inventory") setView("stock");
+  }, [location.pathname]);
   const profit = useQuery({
     queryKey: ["profit-inventory", type],
     enabled: profile?.role === "pharmacy" && view === "profit",
@@ -341,17 +347,22 @@ export function InventoryWorkspace() {
       </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "stock") && <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Boxes size={18} className="text-sky-700" /> Stock list
+              <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Lab inventory" : "Medicine stock"}
             </div>
-            <Button
-              variant="secondary"
-              onClick={() => void inventory.refetch()}
-              disabled={inventory.isFetching}
-            >
-              <RefreshCw size={15} /> Refresh
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {profile?.role === "pharmacy" && <Button onClick={() => { reset(); setView("add"); }}>
+                <PackagePlus size={15} /> Add medicine
+              </Button>}
+              <Button
+                variant="secondary"
+                onClick={() => void inventory.refetch()}
+                disabled={inventory.isFetching}
+              >
+                <RefreshCw size={15} /> Refresh
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
