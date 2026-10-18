@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: process.env.GITHUB_ACTIONS === "true" ? "/HMS/" : "/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
