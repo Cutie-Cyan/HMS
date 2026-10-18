@@ -48,14 +48,6 @@ export function AvailableDoctorsWorkspace() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent>
-            <div className="flex items-center gap-3 p-1">
-              <div className="grid size-11 place-items-center rounded-xl bg-sky-50 text-sky-700"><Clock3 size={20} /></div>
-              <div><p className="text-sm text-slate-500">Status source</p><p className="text-sm font-semibold">Staff duty status</p></div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
