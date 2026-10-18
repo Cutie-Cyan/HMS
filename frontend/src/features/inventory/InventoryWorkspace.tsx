@@ -79,9 +79,9 @@ function FulfillmentCard({
     { key: "abo_group", label: "ABO group" }, { key: "rh_type", label: "Rh(D) type" },
     { key: "method", label: "Method / other findings" },
   ] : isLab && !isCBC ? [
-    { key: "analyte", label: "Test / analyte name" }, { key: "measured_value", label: "Measured result" },
-    { key: "unit", label: "Unit" }, { key: "reference_interval", label: "Lab-approved reference interval" },
-    { key: "flag", label: "Flag / interpretation (if verified)" }, { key: "additional_findings", label: "Additional findings / notes" },
+    { key: "analyte", label: "Test / analyte(s) performed" },
+    { key: "measured_value", label: "Measured result(s), units, and approved reference intervals" },
+    { key: "additional_findings", label: "Additional findings / notes" },
   ] : [];
   const cbcFields = [
     { key: "wbc", label: "WBC", unit: "×10⁹/L" },
@@ -180,10 +180,10 @@ function FulfillmentCard({
                 {testFields.map((field) => (
                   <label key={field.key} className="text-sm font-medium text-slate-700">
                     {field.label}
-                    {field.key === "microscopy" || field.key === "additional_findings" || field.key === "method" ? (
-                      <textarea rows={2} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Enter actual finding" />
+                    {field.key === "microscopy" || field.key === "additional_findings" || field.key === "method" || field.key === "measured_value" ? (
+                      <textarea rows={field.key === "measured_value" ? 4 : 2} required={field.key === "measured_value"} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder={field.key === "measured_value" ? "Enter each measured result, unit, and lab-approved reference interval" : "Enter actual finding"} />
                     ) : (
-                      <input required={["color", "appearance", "result", "abo_group", "analyte", "measured_value"].includes(field.key)} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Enter measured / observed result" />
+                      <input required={["color", "appearance", "result", "abo_group", "analyte"].includes(field.key)} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Enter measured / observed result" />
                     )}
                   </label>
                 ))}
