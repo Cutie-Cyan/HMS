@@ -48,7 +48,7 @@ export const MODULES: Record<
   "available-doctors": {
     label: "Available Doctors",
     path: "/available-doctors",
-    roles: ["emergency_nurse"],
+    roles: ["emergency_nurse", "info_officer"],
   },
   requests: {
     label: "Requests",
