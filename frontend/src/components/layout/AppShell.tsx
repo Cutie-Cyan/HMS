@@ -66,7 +66,7 @@ export function AppShell() {
             {(mobile || expanded) && <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{group.title}</p>}
             <div className="space-y-1">{items.map(module => {
               const Icon = icons[module]; const item = MODULES[module];
-              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={({isActive}) => `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${location.pathname === item.path ? "bg-white text-slate-950 shadow-md" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
+              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={() => `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${location.pathname === item.path ? "bg-white text-slate-950 shadow-md" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
                 <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${location.pathname === item.path ? "text-sky-700" : ""}`}/>
                 {(mobile || expanded) && <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{item.label}</span>}
                 {location.pathname === item.path && <span className={`absolute right-1.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-sky-600 ${mobile || expanded ? "" : "hidden"}`}/>}
