@@ -75,18 +75,25 @@ export function NurseStationERPage() {
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
 
+  // Keep browser navigation and the selected workspace tab in sync without
+  // repeatedly replacing the URL on every searchParams object update.
   useEffect(() => {
     const requestedTab = searchParams.get("tab");
-    if (requestedTab === "triage") setActiveTab("triage");
-    else if (requestedTab === null && activeTab === "triage") setActiveTab("overview");
+    if (requestedTab === "triage" && activeTab !== "triage") {
+      setActiveTab("triage");
+    } else if (requestedTab !== "triage" && activeTab === "triage") {
+      setActiveTab("overview");
+    }
   }, [searchParams, activeTab]);
 
   useEffect(() => {
-    const nextParams = new URLSearchParams(searchParams);
-    if (activeTab === "triage") nextParams.set("tab", "triage");
-    else nextParams.delete("tab");
-    if (nextParams.toString() !== searchParams.toString()) setSearchParams(nextParams, { replace: true });
-  }, [activeTab, searchParams, setSearchParams]);
+    setSearchParams((currentParams) => {
+      const nextParams = new URLSearchParams(currentParams);
+      if (activeTab === "triage") nextParams.set("tab", "triage");
+      else nextParams.delete("tab");
+      return nextParams;
+    }, { replace: true });
+  }, [activeTab, setSearchParams]);
 
   useEffect(() => {
     if (activeTab === "clinical") setEncounterView("saved");
