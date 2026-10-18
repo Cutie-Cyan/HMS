@@ -44,6 +44,7 @@ export interface InventoryItem {
   unit_cost: number;
   low_stock_threshold: number;
   is_active: boolean;
+  catalog_type?: "requestable" | "supply";
 }
 export interface RequestableItem {
   id: string;
@@ -205,10 +206,11 @@ export function useSaveInventoryItem() {
       cost: number;
       lowStock: number;
       expectedStock: number | null;
+      catalogType?: "requestable" | "supply";
       id?: string;
     }) => {
       const { data, error } = await getSupabaseClient().rpc(
-        "inventory_save_item",
+        "inventory_save_item_typed",
         {
           p_department: input.type,
           p_item_name: input.name,
@@ -220,6 +222,7 @@ export function useSaveInventoryItem() {
           p_low_stock_threshold: input.lowStock,
           p_expected_quantity: input.expectedStock,
           p_item_id: input.id ?? null,
+          p_catalog_type: input.catalogType ?? "requestable",
         },
       );
       if (error) throw error;
