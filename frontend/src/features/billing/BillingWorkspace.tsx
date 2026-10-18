@@ -120,17 +120,6 @@ export function BillingWorkspace() {
   const isCashier = role === "cashier";
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <header>
-        <p className="text-sm font-medium text-teal-700">Financial closeout</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
-          {isCashier ? "Final billing" : "Discharge queue"}
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          {isCashier
-            ? "Final inpatient charges are calculated in the database from admission time, ward rates, doctor fee, and eligible discounts. Request charges are paid separately."
-            : "Discharge is available only after the final bill is paid and every medicine/lab request is fulfilled or cancelled and paid."}
-        </p>
-      </header>
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
