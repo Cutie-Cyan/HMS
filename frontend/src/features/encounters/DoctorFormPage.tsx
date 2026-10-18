@@ -57,7 +57,7 @@ export function DoctorFormPage() {
   const normalizedPatientSearch = patientSearch.trim().toLowerCase();
   const matchingTypedPatient = normalizedPatientSearch
     ? (patients.data ?? []).find((item) =>
-        [item.patient_number, item.first_name, item.middle_name, item.last_name, nameOf(item)]
+        [item.patient_number, item.first_name, item.middle_name, item.last_name, nameOf(item), `${item.patient_number} — ${nameOf(item)}`]
           .filter(Boolean).some((value) => String(value).toLowerCase() === normalizedPatientSearch),
       )
     : undefined;
