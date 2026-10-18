@@ -407,10 +407,10 @@ export function InventoryWorkspace() {
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
             <PackagePlus size={18} className="text-sky-700" />
-            {editing ? (type === "lab" ? "Edit lab item" : "Edit medicine") : (type === "lab" ? "Add lab item" : "Add medicine")}
+            {editing ? (type === "lab" ? "Edit laboratory record" : "Edit medicine") : (type === "lab" ? "Add test or consumable" : "Add medicine")}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            {editing ? "Update the item details and pricing here. Stock quantity is controlled by request fulfillment." : "Add a medicine or lab item. Opening stock is set once; later stock changes happen through approved requests and fulfillment."}
+            {type === "lab" ? "Configure diagnostic services for patient requests, or track supplies used internally by the laboratory. Consumables are never sold to patients." : editing ? "Update medicine details and pricing. Stock quantity is controlled by request fulfillment." : "Add medicine. Opening stock is set once; later stock changes happen through approved requests and fulfillment."}
           </p>
         </CardHeader>
         <CardContent>
@@ -419,7 +419,7 @@ export function InventoryWorkspace() {
             className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
           >
             <label className="text-sm font-medium text-slate-700">
-              Item name
+              {type === "lab" ? "Test / service or supply name" : "Medicine name"}
               <input
                 required
                 maxLength={150}
@@ -429,7 +429,7 @@ export function InventoryWorkspace() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              Item code
+              {type === "lab" ? "Test / supply code" : "Medicine code"}
               <input
                 required
                 maxLength={80}
@@ -455,7 +455,7 @@ export function InventoryWorkspace() {
                 onChange={(e) => setCatalogType(e.target.value as "requestable" | "supply")}
                 className={fieldClass}
               >
-                <option value="requestable">{type === "lab" ? "Laboratory test / requestable" : "Medicine / requestable"}</option>
+                <option value="requestable">{type === "lab" ? "Diagnostic test / service" : "Medicine / requestable"}</option>
                 <option value="supply">Internal supply (not requestable)</option>
               </select>
             </label>
@@ -473,7 +473,7 @@ export function InventoryWorkspace() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              Selling price (₱)
+              {type === "lab" ? "Test / service fee (₱)" : "Selling price (₱)"}
               <input
                 required
                 type="number"
@@ -485,7 +485,7 @@ export function InventoryWorkspace() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              Unit cost (₱)
+              {type === "lab" ? "Internal cost (₱)" : "Unit cost (₱)"}
               <input
                 required
                 type="number"
@@ -579,11 +579,11 @@ export function InventoryWorkspace() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Lab inventory" : "Medicine stock"}
+              <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Diagnostic test catalog & internal consumables" : "Medicine stock"}
             </div>
             <div className="flex flex-wrap gap-2">
               {(profile?.role === "pharmacy" || profile?.role === "lab") && <Button onClick={() => { reset(); setView("add"); }}>
-                <PackagePlus size={15} /> {type === "lab" ? "Add lab item" : "Add medicine"}
+                <PackagePlus size={15} /> {type === "lab" ? "Add test / supply" : "Add medicine"}
               </Button>}
               <Button
                 variant="secondary"
@@ -617,8 +617,7 @@ export function InventoryWorkspace() {
                       </span>
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {money(Number(item.unit_price))}/{item.unit} · cost{" "}
-                      {money(Number(item.unit_cost))} · threshold{" "}
+                      {item.catalog_type === "supply" ? `Internal cost ${money(Number(item.unit_cost))} / ${item.unit} · ` : `Service fee ${money(Number(item.unit_price))} · `}threshold{" "}
                       {item.low_stock_threshold}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -650,10 +649,9 @@ export function InventoryWorkspace() {
           ) : (
             <div className="py-8 text-center">
               <CheckCircle2 className="mx-auto text-slate-300" size={28} />
-              <p className="mt-2 font-medium">No inventory items configured</p>
+              <p className="mt-2 font-medium">{type === "lab" ? "No tests or consumables configured" : "No medicines configured"}</p>
               <p className="mt-1 text-sm text-slate-500">
-                Add real {departmentName.toLowerCase()} stock above before
-                accepting requests.
+                {type === "lab" ? "Add diagnostic tests/services and configure actual consumables used by each test." : "Add real pharmacy stock above before accepting requests."}
               </p>
             </div>
           )}
@@ -661,7 +659,7 @@ export function InventoryWorkspace() {
       </Card>}
       {profile?.role === "lab" && view === "results" && <Card><CardHeader><div className="font-semibold">Released laboratory results</div><p className="mt-1 text-sm text-slate-500">Verified results released to the Nurse Station.</p></CardHeader><CardContent>{requests.isLoading ? <p className="py-6 text-sm text-slate-500">Loading lab results…</p> : requests.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load lab results.</p> : (requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).length ? <div className="space-y-3">{(requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).map((r) => <article key={r.request_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{r.patient_name}</p><p className="mt-1 text-xs text-slate-500">{r.patient_number} · {r.ward_name ?? "Emergency / outpatient"}</p></div><Badge tone="success">Released</Badge></div><p className="mt-3 text-sm font-medium">Requested tests</p><p className="text-sm text-slate-600">{r.items.map((item) => item.description).join(", ")}</p><p className="mt-3 text-sm font-medium">Result</p><p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm">{r.lab_result}</p></article>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No released lab results yet.</p>}</CardContent></Card>}
       {(profile?.role === "pharmacy" || profile?.role === "lab") && view === "profit" && <Card>
-        <CardHeader><div className="font-semibold">{type === "lab" ? "Laboratory profit records" : "Medicine profit records"}</div><p className="mt-1 text-sm text-slate-500">Revenue, cost, and profit recorded when paid {type === "lab" ? "laboratory requests" : "medicine requests"} are released.</p></CardHeader>
+        <CardHeader><div className="font-semibold">{type === "lab" ? "Laboratory service financial records" : "Medicine profit records"}</div><p className="mt-1 text-sm text-slate-500">Revenue, cost, and profit recorded when paid {type === "lab" ? "diagnostic services" : "medicine requests"} are released.</p></CardHeader>
         <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check {type === "lab" ? "laboratory" : "pharmacy"} read access to profit records.</p> : profit.data?.length ? <div className="space-y-3">{profit.data.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.recorded_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid {location.pathname === "/cbc" ? "CBC" : type === "lab" ? "laboratory" : "medicine"} requests are released.</p>}</CardContent>
       </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "requests") && <Card>
