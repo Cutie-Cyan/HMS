@@ -88,7 +88,7 @@ function RoleHomeRedirect() {
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/patient-registration", element: <PublicPatientRegistrationPage /> },
-  { path: "/setup-password", element: <SetupPasswordPage />, errorElement: <RouteErrorPage /> },
+  { path: "/setup-password", element: <SetupPasswordPage /> },
   {
     element: <SessionGate />,
     children: [
