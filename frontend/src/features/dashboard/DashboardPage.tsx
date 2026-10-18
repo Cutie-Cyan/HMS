@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck,
+  Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck, ClipboardList,
   FileText, PackageCheck, ScrollText, ShieldCheck, Stethoscope,
   UserRoundCheck, Users, Wallet,
 } from "lucide-react";
