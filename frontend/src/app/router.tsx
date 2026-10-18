@@ -14,6 +14,7 @@ import { PatientWorkspace } from "../features/patients/PatientWorkspace";
 import { PatientRegistrationWorkspace } from "../features/patients/PatientRegistrationWorkspace";
 import { PublicPatientRegistrationPage } from "../features/patients/PublicPatientRegistrationPage";
 import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
+import { AvailableDoctorsWorkspace } from "../features/encounters/AvailableDoctorsWorkspace";
 import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
 import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
 import { WardsWorkspace } from "../features/wards/WardsWorkspace";
@@ -65,6 +66,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "patients") return <PatientWorkspace />;
   if (module === "patient-registration") return <PatientRegistrationWorkspace />;
   if (module === "encounters") return <DoctorFormPage />;
+  if (module === "available-doctors") return <AvailableDoctorsWorkspace />;
   if (module === "requests") return <RequestsWorkspace />;
   if (module === "billing") return <BillingWorkspace />;
   if (module === "inventory") return <InventoryWorkspace />;
@@ -97,6 +99,7 @@ export const router = createBrowserRouter([
           { path: "patients", element: <RoleGate module="patients" /> },
           { path: "patient-registration-workspace", element: <RoleGate module="patient-registration" /> },
           { path: "encounters", element: <RoleGate module="encounters" /> },
+          { path: "available-doctors", element: <RoleGate module="available-doctors" /> },
           { path: "requests", element: <RoleGate module="requests" /> },
           { path: "wards", element: <RoleGate module="wards" /> },
           { path: "billing", element: <RoleGate module="billing" /> },
