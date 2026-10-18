@@ -112,7 +112,7 @@ export function StaffAdminWorkspace() {
       const accessToken = sessionData.session?.access_token;
       if (!accessToken) throw new Error("Your session has expired. Sign in again.");
 
-      const apiUrl = (import.meta.env.VITE_HMS_API_URL || "http://127.0.0.1:8000").replace(/\\/$/, "");
+      const apiUrl = (import.meta.env.VITE_HMS_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
       const response = await fetch(`${apiUrl}/api/admin/staff/invite`, {
         method: "POST",
         headers: {
