@@ -1,21 +1,26 @@
 import { useState, type FormEvent } from "react";
-import { AlertCircle, Send } from "lucide-react";
+import { AlertCircle, ClipboardList, CreditCard, Send } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { useOpenEncounters, usePatientDirectory } from "../patients/data";
-import { requestError, useCreateRequest, useRequestableItems, type RequestType } from "./data";
+import { requestError, useCreateRequest, usePayRequest, useRequestableItems, useRequestWorkspace, type RequestType } from "./data";
 
 const fieldClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value ?? 0));
+const statusTone = (status: string) => status === "released" || status === "completed" ? "success" as const : status === "paid" || status === "in_progress" ? "info" as const : status === "pending_payment" ? "warning" as const : "neutral" as const;
 
 export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "billing" }) {
   const { profile } = useAuth();
   const role = profile?.role;
   const canCreate = mode === "requests" && (role === "emergency_nurse" || role === "nurse_station");
+  const isCashier = role === "cashier";
   const patients = usePatientDirectory("", canCreate);
   const encounters = useOpenEncounters(canCreate);
   const create = useCreateRequest();
+  const requestQueue = useRequestWorkspace();
+  const payRequest = usePayRequest();
   const [patientId, setPatientId] = useState("");
   const [type, setType] = useState<RequestType>("medicine");
   const [itemId, setItemId] = useState("");
@@ -44,13 +49,24 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
     }
   };
 
+  const recordPayment = async (requestId: string, patientName: string) => {
+    setError("");
+    setMessage("");
+    if (!window.confirm(`Record payment for this request for ${patientName}?`)) return;
+    try {
+      await payRequest.mutateAsync(requestId);
+      setMessage("Request payment recorded. The department can now fulfill the request.");
+    } catch (cause) {
+      setError(requestError(cause));
+    }
+  };
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && <div role={error ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || message}</div>}
       {canCreate && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-sky-700" /> Create request</div>
-          
         </CardHeader>
         <CardContent>
           {patients.isError || encounters.isError ? <p role="alert" className="text-sm text-rose-700">Patient or consultation records could not be loaded. Refresh and try again.</p> : <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
@@ -82,7 +98,26 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
           </form>}
         </CardContent>
       </Card>}
-      {!canCreate && <Card><CardContent><div className="flex items-start gap-3 py-4"><AlertCircle size={20} className="mt-0.5 text-slate-500" /><div><p className="font-medium">Request creation is limited to clinical staff.</p><p className="mt-1 text-sm text-slate-500">Use your assigned department workspace to process requests and payments.</p></div></div></CardContent></Card>}
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2 font-semibold"><ClipboardList size={18} className="text-sky-700" /> {isCashier ? "Requests awaiting payment" : "Request status"}</div>
+          <p className="mt-1 text-sm text-slate-500">{isCashier ? "Record payment before Pharmacy or Laboratory can fulfill a request." : "Track medicine and laboratory requests linked to the patient encounter."}</p>
+        </CardHeader>
+        <CardContent>
+          {requestQueue.isLoading ? <p className="py-6 text-sm text-slate-500">Loading requests…</p> : requestQueue.isError ? <div className="py-6"><p role="alert" className="text-sm text-rose-700">Could not load requests.</p><Button className="mt-3" variant="secondary" onClick={() => void requestQueue.refetch()}>Retry</Button></div> : (requestQueue.data ?? []).filter((request) => !isCashier || request.status === "pending_payment").length ? <div className="space-y-3">
+            {(requestQueue.data ?? []).filter((request) => !isCashier || request.status === "pending_payment").map((request) => <article key={request.request_id} className="rounded-xl border border-slate-200 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div><p className="font-semibold text-slate-900">{request.patient_name}</p><p className="mt-1 text-xs text-slate-500">{request.patient_number} · {request.ward_name ?? "Emergency / outpatient"}</p><p className="mt-2 text-sm capitalize">{request.request_type === "lab" ? "Laboratory" : "Medicine"} request</p></div>
+                <Badge tone={statusTone(request.status)}>{request.status.replaceAll("_", " ")}</Badge>
+              </div>
+              <div className="mt-3 space-y-2">{request.items.map((item) => <div key={item.id} className="flex flex-wrap justify-between gap-3 text-sm"><span>{item.description} × {item.quantity}</span><span>{money(Number(item.unit_price) * item.quantity)}</span></div>)}</div>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="text-sm font-semibold">Total {money(Number(request.total))}{request.bill_paid ? " · Paid" : ""}</p>{isCashier && request.status === "pending_payment" && <Button disabled={payRequest.isPending} onClick={() => void recordPayment(request.request_id, request.patient_name)}><CreditCard size={16}/>{payRequest.isPending ? "Recording…" : "Record payment"}</Button>}</div>
+              {request.lab_result && <div className="mt-3 rounded-lg bg-sky-50 p-3"><p className="text-xs font-semibold text-sky-800">Laboratory result</p><p className="mt-1 whitespace-pre-wrap text-sm text-sky-950">{request.lab_result}</p></div>}
+            </article>)}
+          </div> : <div className="py-8 text-center"><AlertCircle className="mx-auto text-slate-300" size={26}/><p className="mt-2 font-medium">{isCashier ? "No requests awaiting payment" : "No requests yet"}</p><p className="mt-1 text-sm text-slate-500">{isCashier ? "New medicine and laboratory requests will appear here." : "Requests created for this encounter will appear here."}</p></div>}
+        </CardContent>
+      </Card>
     </div>
   );
 }
