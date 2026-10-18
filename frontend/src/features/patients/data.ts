@@ -177,6 +177,9 @@ export function usePendingPatientSubmissions(enabled = true) {
       if (error) throw error;
       return (data ?? []) as PatientRegistrationSubmission[];
     },
+    refetchInterval: enabled ? 5000 : false,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
   });
 }
 export function useReviewPatientSubmission() {
