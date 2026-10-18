@@ -16,6 +16,7 @@ import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import {
   requestError,
+  useAcceptLabRequest,
   useFulfillRequest,
   useInventoryItems,
   useRequestWorkspace,
@@ -45,11 +46,15 @@ function FulfillmentCard({
   isLab,
   busy,
   onFulfill,
+  onAccept,
+  accepting,
 }: {
   request: HmsRequest;
   isLab: boolean;
   busy: boolean;
+  accepting: boolean;
   onFulfill: (id: string, result: string) => Promise<void>;
+  onAccept: (id: string) => Promise<void>;
 }) {
   const [result, setResult] = useState("");
   const [specimenType, setSpecimenType] = useState("");
@@ -114,7 +119,7 @@ function FulfillmentCard({
         ? ["analyte", "measured_value"].every((key) => commonValues[key]?.trim())
         : true;
   const canRelease =
-    request.status === "paid" && (!isLab || resultBody.trim().length > 0) &&
+    (isLab ? request.status === "in_progress" : request.status === "paid") && (!isLab || resultBody.trim().length > 0) &&
     (!isCBC || cbcFields.every((field) => cbcValues[field.key].trim().length > 0)) &&
     (!isLab || (specimenType.trim().length > 0 && specimenStatus === "received_acceptable" && structuredRequired));
   return (
@@ -141,7 +146,7 @@ function FulfillmentCard({
           </div>
         ))}
       </div>
-      {isLab && request.status === "paid" && (
+      {isLab && request.status === "in_progress" && (
         <section className="mt-4 space-y-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
           <div>
             <p className="font-semibold text-slate-900">Laboratory work record</p>
@@ -213,7 +218,13 @@ function FulfillmentCard({
                 ? "Released successfully."
                 : request.status.replaceAll("_", " ")}
         </p>
-        {request.status === "paid" && (
+        {isLab && request.status === "paid" && (
+          <Button disabled={accepting || busy} onClick={() => void onAccept(request.request_id)}>
+            <ClipboardCheck size={16} />
+            {accepting ? "Accepting…" : "Accept request"}
+          </Button>
+        )}
+        {((isLab && request.status === "in_progress") || (!isLab && request.status === "paid")) && (
           <Button
             disabled={busy || !canRelease}
             onClick={() => {
@@ -229,7 +240,7 @@ function FulfillmentCard({
             {busy
               ? "Releasing…"
               : isLab
-                ? "Save result & release"
+                ? "Save & submit result"
                 : "Release medicine"}
           </Button>
         )}
@@ -247,6 +258,7 @@ export function InventoryWorkspace() {
   const requests = useRequestWorkspace();
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
+  const acceptLab = useAcceptLabRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc" ? "requests" : location.pathname === "/lab-results" ? "results" : "stock");
   useEffect(() => {
@@ -320,6 +332,17 @@ export function InventoryWorkspace() {
       setError(requestError(cause));
     }
   };
+  const acceptLabRequest = async (requestId: string) => {
+    setError("");
+    setMessage("");
+    try {
+      await acceptLab.mutateAsync(requestId);
+      setMessage("Request accepted into the laboratory queue. Complete the test, then open the request again to enter and submit results.");
+    } catch (cause) {
+      setError(requestError(cause));
+    }
+  };
+
   const release = async (requestId: string, result: string) => {
     setError("");
     setMessage("");
@@ -620,6 +643,8 @@ export function InventoryWorkspace() {
                   request={request}
                   isLab={type === "lab"}
                   busy={fulfill.isPending}
+                  accepting={acceptLab.isPending}
+                  onAccept={acceptLabRequest}
                   onFulfill={release}
                 />
               ))}
