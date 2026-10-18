@@ -11,6 +11,7 @@ export type HmsModule =
   | "billing"
   | "inventory"
   | "medicine-stock"
+  | "medicine-requests"
   | "profit-inventory"
   | "staff"
   | "audit";
@@ -80,6 +81,11 @@ export const MODULES: Record<
   "profit-inventory": {
     label: "Profit Inventory",
     path: "/profit-inventory",
+    roles: ["pharmacy"],
+  },
+  "medicine-requests": {
+    label: "Medicine Requests",
+    path: "/medicine-requests",
     roles: ["pharmacy"],
   },
   staff: { label: "Staff", path: "/staff", roles: ["admin"] },
