@@ -39,7 +39,7 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileOpen]);
 
-  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && (module !== "triage" || profile.role !== "nurse_station" || profile.wardId === "e073038e-a976-4c7a-88ca-eb5c3418d287"));
+  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module));
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
   const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); return path === location.pathname && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "Overview";
