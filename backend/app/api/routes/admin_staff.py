@@ -31,10 +31,20 @@ class InviteStaffRequest(BaseModel):
 
 
 def _clients() -> tuple[Client, Client]:
-    if not settings.supabase_url or not settings.supabase_anon_key or not settings.supabase_service_role_key:
+    missing = [
+        name
+        for name, value in (
+            ("SUPABASE_URL", settings.supabase_url),
+            ("SUPABASE_ANON_KEY", settings.supabase_anon_key),
+            ("SUPABASE_SERVICE_ROLE_KEY", settings.supabase_service_role_key),
+        )
+        if not value.strip()
+    ]
+    if missing:
+        logger.error("Missing backend environment variables: %s", ", ".join(missing))
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Supabase server configuration is missing.",
+            detail=f"Missing backend environment variables: {', '.join(missing)}. Check backend/.env and restart FastAPI.",
         )
     return (
         create_client(settings.supabase_url, settings.supabase_anon_key),
