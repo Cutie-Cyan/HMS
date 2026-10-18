@@ -403,6 +403,23 @@ export function InventoryWorkspace() {
           {error || message}
         </div>
       )}
+      {profile?.role === "lab" && view === "stock" && <Card>
+        <CardHeader>
+          <div className="font-semibold">Clinical laboratory workspace</div>
+          <p className="mt-1 text-sm text-slate-600">Manage diagnostic services and the specimen-to-result workflow. The laboratory charges for testing services; it does not sell retail products.</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Hematology</p><p className="mt-1 text-sm text-slate-600">CBC and other blood-cell testing.</p></div>
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Clinical chemistry</p><p className="mt-1 text-sm text-slate-600">Chemistry panels, enzymes, hormones, and electrolytes.</p></div>
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Microbiology</p><p className="mt-1 text-sm text-slate-600">Culture, organism identification, and sensitivity testing when configured.</p></div>
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Blood bank / immunohematology</p><p className="mt-1 text-sm text-slate-600">Blood grouping and related compatibility workflows.</p></div>
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Anatomic pathology</p><p className="mt-1 text-sm text-slate-600">Tissue and cell examination; configure these services only when supported by the laboratory.</p></div>
+            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">STAT / emergency testing</p><p className="mt-1 text-sm text-slate-600">Urgent tests should be clearly marked and prioritized by staff.</p></div>
+          </div>
+          <p className="mt-4 text-sm text-slate-600">Workflow: receive and assess specimen → perform the configured test → enter actual findings and approved reference intervals → review and release the result to the patient’s request and ward. Internal consumables are tracked separately and deducted according to approved usage rules.</p>
+        </CardContent>
+      </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "add") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
