@@ -253,7 +253,6 @@ export function InventoryWorkspace() {
   const { profile } = useAuth();
   const location = useLocation();
   const type: RequestType = profile?.role === "lab" ? "lab" : "medicine";
-  const departmentName = type === "lab" ? "Laboratory" : "Pharmacy";
   const inventory = useInventoryItems(type);
   const requests = useRequestWorkspace();
   const save = useSaveInventoryItem();
