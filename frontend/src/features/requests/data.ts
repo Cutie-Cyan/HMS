@@ -92,9 +92,10 @@ export function useRequestWorkspace() {
     },
   });
 }
-export function useRequestableItems(type: RequestType) {
+export function useRequestableItems(type: RequestType, enabled = true) {
   return useQuery({
     queryKey: ["requestable-items", type],
+    enabled,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc(
         "staff_requestable_items",
