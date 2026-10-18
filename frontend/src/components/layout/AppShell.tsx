@@ -1,7 +1,7 @@
 import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
-  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, Bell,
+  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -26,6 +26,8 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [headerSearchOpen, setHeaderSearchOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
@@ -98,13 +100,17 @@ export function AppShell() {
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <button type="button" aria-label="Search modules" title="Search modules" onClick={() => { setExpanded(true); }} className="hidden size-10 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100 sm:grid"><Search size={19}/></button>
-          <span className="hidden size-10 place-items-center rounded-full text-slate-500 sm:grid"><Bell size={18}/></span>
-          <div className="flex items-center gap-2 rounded-full bg-slate-50 py-1.5 pl-1.5 pr-3 ring-1 ring-slate-200/80">
+          {headerSearchOpen ? <div className="relative flex items-center gap-2">
+            <label className="flex h-10 w-[min(48vw,320px)] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100"><Search size={16} className="shrink-0 text-slate-400"/><input autoFocus aria-label="Search modules" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search modules…" className="min-w-0 w-full border-0 bg-transparent text-sm outline-none ring-0 focus:outline-none focus:ring-0"/><button type="button" aria-label="Close search" onClick={()=>{setHeaderSearchOpen(false);setSearch("");}} className="text-slate-400 hover:text-slate-700"><XCircle size={17}/></button></label>
+            {search.trim()&&<div className="absolute right-0 top-12 z-50 w-[min(82vw,320px)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl">{allowed.filter(module=>MODULES[module].label.toLowerCase().includes(search.toLowerCase())).length ? allowed.filter(module=>MODULES[module].label.toLowerCase().includes(search.toLowerCase())).map(module=><NavLink key={module} to={MODULES[module].path} onClick={()=>{setHeaderSearchOpen(false);setSearch("");}} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">{MODULES[module].label}</NavLink>) : <p className="px-3 py-2 text-sm text-slate-500">No matching modules</p>}</div>}
+          </div> : <button type="button" aria-label="Search modules" title="Search modules" onClick={() => setHeaderSearchOpen(true)} className="grid size-10 place-items-center rounded-full text-slate-500 transition hover:bg-slate-100"><Search size={19}/></button>}
+          <button type="button" onClick={()=>setProfileOpen(true)} aria-haspopup="dialog" aria-label="Open staff profile" className="flex items-center gap-2 rounded-full bg-slate-50 py-1.5 pl-1.5 pr-3 ring-1 ring-slate-200/80 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
             <span className="grid size-8 place-items-center rounded-full bg-sky-100 text-xs font-bold text-sky-900">{initials || "H"}</span>
             <span className="hidden max-w-28 truncate text-xs font-semibold text-slate-700 sm:block">{profile?.displayName ?? "Staff"}</span>
-          </div>
+          </button>
         </div>
       </header>
+      {profileOpen&&<div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" onMouseDown={e=>{if(e.target===e.currentTarget)setProfileOpen(false);}} role="presentation"><section role="dialog" aria-modal="true" aria-labelledby="staff-profile-title" className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"><div className="flex items-center justify-between border-b border-slate-100 px-6 py-5"><div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-sky-700">Account</p><h2 id="staff-profile-title" className="mt-1 text-xl font-bold text-slate-900">Staff profile</h2></div><button type="button" aria-label="Close profile" onClick={()=>setProfileOpen(false)} className="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100"><X size={18}/></button></div><div className="p-6"><div className="flex items-center gap-4"><span className="grid size-14 place-items-center rounded-2xl bg-sky-100 text-lg font-bold text-sky-900">{initials||"H"}</span><div className="min-w-0"><p className="truncate text-lg font-semibold text-slate-900">{profile?.displayName??"Staff account"}</p><p className="mt-1 text-sm capitalize text-slate-500">{profile?.role.replaceAll("_"," ")??"Role not assigned"}</p></div></div><dl className="mt-6 space-y-4"><div className="flex items-start gap-3"><Mail size={17} className="mt-0.5 text-slate-400"/><div><dt className="text-xs font-medium text-slate-500">Email address</dt><dd className="mt-1 break-all text-sm font-medium text-slate-800">{profile?.email??"Not available"}</dd></div></div><div className="flex items-start gap-3"><UserRound size={17} className="mt-0.5 text-slate-400"/><div><dt className="text-xs font-medium text-slate-500">Role</dt><dd className="mt-1 text-sm font-medium capitalize text-slate-800">{profile?.role.replaceAll("_"," ")??"Not assigned"}</dd></div></div><div className="flex items-start gap-3"><ShieldCheck size={17} className="mt-0.5 text-slate-400"/><div><dt className="text-xs font-medium text-slate-500">Account status</dt><dd className="mt-1 text-sm font-medium text-emerald-700">{profile?.isActive?"Active":"Unknown"}</dd></div></div>{profile?.wardId&&<div><dt className="text-xs font-medium text-slate-500">Assigned ward</dt><dd className="mt-1 text-sm font-medium text-slate-800">{profile.wardId}</dd></div>}</dl><button type="button" className="mt-6 w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800" onClick={()=>setProfileOpen(false)}>Close</button></div></section></div>}
       <main className="mx-auto min-w-0 max-w-[1680px] p-4 sm:p-6 lg:p-8"><Outlet/></main>
     </div>
   </div>;
