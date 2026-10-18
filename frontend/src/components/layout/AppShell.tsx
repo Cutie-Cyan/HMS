@@ -1,5 +1,5 @@
 import {
-  Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut,
+  Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut, UserRoundCheck,
   ScrollText, Stethoscope, Users, Wallet, Menu, X, ShieldCheck, Search,
   PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
@@ -10,13 +10,13 @@ import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions"
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, encounters: Stethoscope,
-  requests: ClipboardList, wards: BedDouble, billing: Wallet, inventory: Boxes,
+  requests: ClipboardList, "available-doctors": UserRoundCheck, wards: BedDouble, billing: Wallet, inventory: Boxes,
   staff: Users, audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "requests", "billing", "inventory", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "inventory", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
   { title: "Workspace", modules: ["dashboard"] },
-  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "requests", "wards"] },
+  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "available-doctors", "requests", "wards"] },
   { title: "Operations", modules: ["billing", "inventory"] },
   { title: "Administration", modules: ["staff", "audit"] },
 ];
