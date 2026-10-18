@@ -63,7 +63,7 @@ export function PatientWorkspace() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-8">
-      <header className="rounded-2xl border border-[#e3e3e8] bg-white p-5 shadow-sm sm:p-7"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Patient services</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">{isInfoOfficer ? "Patient registration" : "Patient directory"}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{isInfoOfficer ? "Register a patient and maintain doctor records. New registrations begin in Registered status." : "Search registered patients and continue to the Emergency Nurse encounter workflow."}</p></header>
+      
       {(success || error) && <div role={error ? "alert" : "status"} className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{error || success}</div>}
       {isInfoOfficer && <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
         <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><UserPlus size={18} className="text-teal-700" /> Register patient</div><p className="mt-1 text-sm text-slate-500">Patient number is generated securely by the database.</p></CardHeader><CardContent>
