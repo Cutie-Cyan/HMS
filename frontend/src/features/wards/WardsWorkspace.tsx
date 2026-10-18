@@ -35,7 +35,7 @@ type RoomOption = {
   is_active: boolean;
 };
 const field =
-  "mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
+  "mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 const money = (v: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(v ?? 0),
@@ -262,7 +262,7 @@ export function WardsWorkspace() {
         r.ward_id === wardId && (privateOnly ? r.is_private : !r.is_private),
     );
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
@@ -295,7 +295,7 @@ export function WardsWorkspace() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 font-semibold">
-                <BedDouble size={18} className="text-teal-700" /> Bed board
+                <BedDouble size={18} className="text-sky-700" /> Bed board
               </div>
             </div>
             <Button
