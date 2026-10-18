@@ -260,11 +260,12 @@ export function InventoryWorkspace() {
   const fulfill = useFulfillRequest();
   const acceptLab = useAcceptLabRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
-  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc" ? "requests" : location.pathname === "/lab-results" ? "results" : "stock");
+  const [view, setView] = useState<"stock" | "supplies" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc" ? "requests" : location.pathname === "/lab-results" ? "results" : location.pathname === "/lab-supplies" ? "supplies" : "stock");
   useEffect(() => {
     if (location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory") setView("profit");
     else if (location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc") setView("requests");
     else if (location.pathname === "/lab-results") setView("results");
+    else if (location.pathname === "/lab-supplies") setView("supplies");
     else if (location.pathname === "/medicine-stock" || location.pathname === "/lab-inventory" || location.pathname === "/inventory") setView("stock");
   }, [location.pathname]);
   const profit = useQuery({
@@ -328,6 +329,7 @@ export function InventoryWorkspace() {
       });
       setMessage(editing ? "Inventory item updated." : "Inventory item added.");
       reset();
+      if (type === "lab") setView(catalogType === "supply" ? "supplies" : "stock");
     } catch (cause) {
       setError(requestError(cause));
     }
@@ -499,14 +501,9 @@ export function InventoryWorkspace() {
               <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory inventory" : "Medicine stock"}
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile?.role === "lab" && <>
-                <Button onClick={() => { reset(); setCatalogType("requestable"); setView("add"); }}>
-                  <PackagePlus size={15} /> Add Test
-                </Button>
-                <Button variant="secondary" onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}>
-                  <PackagePlus size={15} /> Add Supply
-                </Button>
-              </>}
+              {profile?.role === "lab" && <Button onClick={() => { reset(); setCatalogType("requestable"); setView("add"); }}>
+                <PackagePlus size={15} /> Add Test
+              </Button>}
               {profile?.role === "pharmacy" && <Button onClick={() => { reset(); setView("add"); }}>
                 <PackagePlus size={15} /> Add medicine
               </Button>}
@@ -582,11 +579,13 @@ export function InventoryWorkspace() {
           )}
         </CardContent>
       </Card>}
-      {profile?.role === "lab" && view === "stock" && <Card>
+      {profile?.role === "lab" && view === "supplies" && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><Boxes size={18} className="text-sky-700" /> Supplies & equipment inventory</div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-semibold"><Boxes size={18} className="text-sky-700" /> Laboratory Supplies & Equipment</div>
+            <Button onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}><PackagePlus size={15} /> Add Supply</Button>
+          </div>
           <p className="mt-1 text-sm text-slate-500">Internal stock used to operate the laboratory. These are not patient-facing sale items or diagnostic tests.</p>
-          <div className="mt-3"><Button onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}><PackagePlus size={15} /> Add Supply</Button></div>
         </CardHeader>
         <CardContent>
           {inventory.isLoading ? <p className="py-4 text-sm text-slate-500">Loading supplies and equipment…</p> : inventory.isError ? <p role="alert" className="py-4 text-sm text-rose-700">Could not load supplies and equipment.</p> : (inventory.data ?? []).filter((item) => item.catalog_type === "supply").length ? <div className="space-y-3">
