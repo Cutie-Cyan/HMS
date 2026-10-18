@@ -11,10 +11,10 @@ const fieldClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg
 const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value ?? 0));
 const statusTone = (status: string) => status === "released" || status === "completed" ? "success" as const : status === "paid" || status === "in_progress" ? "info" as const : status === "pending_payment" ? "warning" as const : "neutral" as const;
 
-export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "billing" }) {
+export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "billing" | "cbc" }) {
   const { profile } = useAuth();
   const role = profile?.role;
-  const canCreate = mode === "requests" && (role === "emergency_nurse" || role === "nurse_station");
+  const canCreate = (mode === "requests" || mode === "cbc") && (role === "emergency_nurse" || role === "nurse_station");
   const isCashier = role === "cashier";
   const patients = usePatientDirectory("", canCreate);
   const encounters = useOpenEncounters(canCreate);
@@ -22,13 +22,14 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const requestQueue = useRequestWorkspace();
   const payRequest = usePayRequest();
   const [patientId, setPatientId] = useState("");
-  const [type, setType] = useState<RequestType>("medicine");
+  const [type, setType] = useState<RequestType>(mode === "cbc" ? "lab" : "medicine");
   const [itemId, setItemId] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const items = useRequestableItems(type, canCreate);
-  const selectedItem = (items.data ?? []).find((item) => item.id === itemId);
+  const displayedItems = mode === "cbc" ? (items.data ?? []).filter((item) => item.item_code.toUpperCase() === "LAB-CBC" || item.item_name.toLowerCase().includes("complete blood count")) : (items.data ?? []);
+  const selectedItem = displayedItems.find((item) => item.id === itemId);
   const patientEncounter = (encounters.data ?? []).find((encounter) => encounter.patient_id === patientId && encounter.encounter_status === "open");
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -40,6 +41,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
       return;
     }
     try {
+      if (mode === "cbc" && type !== "lab") throw new Error("CBC must be submitted as a laboratory request.");
       await create.mutateAsync({ patientId, encounterId: patientEncounter.encounter_id, type, itemId, quantity: Number(quantity) });
       setMessage("Request created and sent to Cashier for payment.");
       setItemId("");
@@ -66,7 +68,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
       {(message || error) && <div role={error ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || message}</div>}
       {canCreate && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-sky-700" /> Create request</div>
+          <div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-sky-700" /> {mode === "cbc" ? "Request CBC test" : "Create request"}</div>
         </CardHeader>
         <CardContent>
           {patients.isError || encounters.isError ? <p role="alert" className="text-sm text-rose-700">Patient or consultation records could not be loaded. Refresh and try again.</p> : <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
@@ -77,15 +79,16 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
               </select>
               {patientId && <span role="status" className={`mt-2 block rounded-lg border px-3 py-2 text-sm ${patientEncounter ? "border-sky-200 bg-sky-50 font-medium text-sky-800" : "border-amber-300 bg-amber-50 font-semibold text-amber-900"}`}>{patientEncounter ? "Open consultation linked" : "No open consultation — create or open a consultation before submitting a request."}</span>}
             </label>
-            <label className="text-sm font-medium text-slate-700">Request type
+{mode !== "cbc" && <label className="text-sm font-medium text-slate-700">Request type
               <select value={type} onChange={(event) => { setType(event.target.value as RequestType); setItemId(""); }} className={fieldClass}>
                 <option value="medicine">Medicine · Pharmacy</option><option value="lab">Laboratory · Lab</option>
               </select>
-            </label>
+            </label>}
+            {mode === "cbc" && <div className="text-sm font-medium text-slate-700">Test type<div className="mt-1.5 flex min-h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-3">CBC · Complete Blood Count</div></div>}
             <label className="text-sm font-medium text-slate-700">Inventory item
               <select required value={itemId} onChange={(event) => setItemId(event.target.value)} className={fieldClass}>
                 <option value="">Select item</option>
-                {(items.data ?? []).map((item) => <option key={item.id} value={item.id} disabled={item.quantity_on_hand < 1}>{item.item_name} · {money(Number(item.unit_price))}/{item.unit} · stock {item.quantity_on_hand}</option>)}
+                {displayedItems.map((item) => <option key={item.id} value={item.id} disabled={item.quantity_on_hand < 1}>{item.item_name} · {money(Number(item.unit_price))}/{item.unit} · stock {item.quantity_on_hand}</option>)}
               </select>
               {selectedItem && <span className="mt-1 block text-xs text-slate-500">Available: {selectedItem.quantity_on_hand} {selectedItem.unit}(s). Price is set from the database.</span>}
             </label>
@@ -93,7 +96,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
               <input required type="number" min="1" max={selectedItem?.quantity_on_hand ?? undefined} step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className={fieldClass} />
             </label>
             {items.isError && <p role="alert" className="text-sm text-rose-700 md:col-span-2">Could not load department items. Check inventory setup and retry.</p>}
-            {!items.isLoading && !items.isError && (items.data?.length ?? 0) === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2">No active {type === "medicine" ? "medicine" : "laboratory"} inventory items exist yet. Ask the department to configure stock first.</p>}
+            {!items.isLoading && !items.isError && displayedItems.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2">{mode === "cbc" ? "CBC is not configured in Lab inventory yet. Ask Lab staff to add the CBC Test (Complete Blood Count) item first." : `No active ${type === "medicine" ? "medicine" : "laboratory"} inventory items exist yet. Ask the department to configure stock first.`}</p>}
             <div className="md:col-span-2"><Button type="submit" disabled={create.isPending || patients.isLoading || encounters.isLoading || items.isLoading || !patientId || !patientEncounter || !itemId || Number(quantity) < 1 || Number(quantity) > Number(selectedItem?.quantity_on_hand ?? 0)}>{create.isPending ? "Creating request…" : "Send to Cashier"}</Button></div>
           </form>}
         </CardContent>
@@ -101,12 +104,12 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><ClipboardList size={18} className="text-sky-700" /> {isCashier ? "Requests awaiting payment" : "Request status"}</div>
-          <p className="mt-1 text-sm text-slate-500">{isCashier ? "Record payment before Pharmacy or Laboratory can fulfill a request." : "Track medicine and laboratory requests linked to the patient encounter."}</p>
+          <div className="flex items-center gap-2 font-semibold"><ClipboardList size={18} className="text-sky-700" /> {mode === "cbc" ? "CBC request status" : isCashier ? "Requests awaiting payment" : "Request status"}</div>
+          <p className="mt-1 text-sm text-slate-500">{mode === "cbc" ? "Track CBC requests linked to the patient encounter. Lab processes the test after payment." : isCashier ? "Record payment before Pharmacy or Laboratory can fulfill a request." : "Track medicine and laboratory requests linked to the patient encounter."}</p>
         </CardHeader>
         <CardContent>
-          {requestQueue.isLoading ? <p className="py-6 text-sm text-slate-500">Loading requests…</p> : requestQueue.isError ? <div className="py-6"><p role="alert" className="text-sm text-rose-700">Could not load requests.</p><Button className="mt-3" variant="secondary" onClick={() => void requestQueue.refetch()}>Retry</Button></div> : (requestQueue.data ?? []).filter((request) => !isCashier || request.status === "pending_payment").length ? <div className="space-y-3">
-            {(requestQueue.data ?? []).filter((request) => !isCashier || request.status === "pending_payment").map((request) => <article key={request.request_id} className="rounded-xl border border-slate-200 p-4">
+          {requestQueue.isLoading ? <p className="py-6 text-sm text-slate-500">Loading requests…</p> : requestQueue.isError ? <div className="py-6"><p role="alert" className="text-sm text-rose-700">Could not load requests.</p><Button className="mt-3" variant="secondary" onClick={() => void requestQueue.refetch()}>Retry</Button></div> : (requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).length ? <div className="space-y-3">
+            {(requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).map((request) => <article key={request.request_id} className="rounded-xl border border-slate-200 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><p className="font-semibold text-slate-900">{request.patient_name}</p><p className="mt-1 text-xs text-slate-500">{request.patient_number} · {request.ward_name ?? "Emergency / outpatient"}</p><p className="mt-2 text-sm capitalize">{request.request_type === "lab" ? "Laboratory" : "Medicine"} request</p></div>
                 <Badge tone={statusTone(request.status)}>{request.status.replaceAll("_", " ")}</Badge>
@@ -115,7 +118,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="text-sm font-semibold">Total {money(Number(request.total))}{request.bill_paid ? " · Paid" : ""}</p>{isCashier && request.status === "pending_payment" && <Button disabled={payRequest.isPending} onClick={() => void recordPayment(request.request_id, request.patient_name)}><CreditCard size={16}/>{payRequest.isPending ? "Recording…" : "Record payment"}</Button>}</div>
               {request.lab_result && <div className="mt-3 rounded-lg bg-sky-50 p-3"><p className="text-xs font-semibold text-sky-800">Laboratory result</p><p className="mt-1 whitespace-pre-wrap text-sm text-sky-950">{request.lab_result}</p></div>}
             </article>)}
-          </div> : <div className="py-8 text-center"><AlertCircle className="mx-auto text-slate-300" size={26}/><p className="mt-2 font-medium">{isCashier ? "No requests awaiting payment" : "No requests yet"}</p><p className="mt-1 text-sm text-slate-500">{isCashier ? "New medicine and laboratory requests will appear here." : "Requests created for this encounter will appear here."}</p></div>}
+          </div> : <div className="py-8 text-center"><AlertCircle className="mx-auto text-slate-300" size={26}/><p className="mt-2 font-medium">{mode === "cbc" ? "No CBC requests yet" : isCashier ? "No requests awaiting payment" : "No requests yet"}</p><p className="mt-1 text-sm text-slate-500">{mode === "cbc" ? "CBC requests created for patients will appear here." : isCashier ? "New medicine and laboratory requests will appear here." : "Requests created for this encounter will appear here."}</p></div>}
         </CardContent>
       </Card>
     </div>
