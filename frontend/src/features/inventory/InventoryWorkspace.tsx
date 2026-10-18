@@ -274,63 +274,6 @@ export function InventoryWorkspace() {
   const [catalogType, setCatalogType] = useState<"requestable" | "supply">("requestable");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [recipeServiceId, setRecipeServiceId] = useState("");
-  const [recipeSupplyId, setRecipeSupplyId] = useState("");
-  const [recipeQuantity, setRecipeQuantity] = useState("1");
-  const [recipeBusy, setRecipeBusy] = useState(false);
-  const recipes = useQuery({
-    queryKey: ["lab-consumable-recipes"],
-    enabled: profile?.role === "lab" && view === "stock",
-    queryFn: async () => {
-      const { data, error } = await getSupabaseClient().rpc("staff_inventory_consumable_recipes");
-      if (error) throw error;
-      return (data ?? []) as {
-        id: string; service_item_id: string; service_name: string; service_code: string;
-        supply_item_id: string; supply_name: string; supply_code: string; supply_unit: string;
-        quantity_per_service: number; supply_stock: number;
-      }[];
-    },
-  });
-  const labServices = (inventory.data ?? []).filter((item) => item.catalog_type === "requestable" && item.is_active);
-  const labSupplies = (inventory.data ?? []).filter((item) => item.catalog_type === "supply" && item.is_active);
-  const saveRecipe = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-    setRecipeBusy(true);
-    try {
-      const { error: saveError } = await getSupabaseClient().rpc("inventory_save_consumable_recipe", {
-        p_service_item_id: recipeServiceId,
-        p_supply_item_id: recipeSupplyId,
-        p_quantity_per_service: Number(recipeQuantity),
-      });
-      if (saveError) throw saveError;
-      await Promise.all([
-        recipes.refetch(),
-        inventory.refetch(),
-      ]);
-      setMessage("Consumable recipe saved. This quantity will be deducted for each requested test when it is released.");
-      setRecipeQuantity("1");
-    } catch (cause) {
-      setError(requestError(cause));
-    } finally {
-      setRecipeBusy(false);
-    }
-  };
-  const deleteRecipe = async (recipeId: string) => {
-    if (!window.confirm("Remove this consumable rule? Future releases will no longer deduct this supply for the test.")) return;
-    setError("");
-    setMessage("");
-    try {
-      const { error: deleteError } = await getSupabaseClient().rpc("inventory_delete_consumable_recipe", { p_recipe_id: recipeId });
-      if (deleteError) throw deleteError;
-      await recipes.refetch();
-      setMessage("Consumable recipe removed.");
-    } catch (cause) {
-      setError(requestError(cause));
-    }
-  };
-
   const reset = () => {
     setEditing(null);
     setName("");
@@ -403,23 +346,6 @@ export function InventoryWorkspace() {
           {error || message}
         </div>
       )}
-      {profile?.role === "lab" && view === "stock" && <Card>
-        <CardHeader>
-          <div className="font-semibold">Clinical laboratory workspace</div>
-          <p className="mt-1 text-sm text-slate-600">Manage diagnostic services and the specimen-to-result workflow. The laboratory charges for testing services; it does not sell retail products.</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Hematology</p><p className="mt-1 text-sm text-slate-600">CBC and other blood-cell testing.</p></div>
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Clinical chemistry</p><p className="mt-1 text-sm text-slate-600">Chemistry panels, enzymes, hormones, and electrolytes.</p></div>
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Microbiology</p><p className="mt-1 text-sm text-slate-600">Culture, organism identification, and sensitivity testing when configured.</p></div>
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Blood bank / immunohematology</p><p className="mt-1 text-sm text-slate-600">Blood grouping and related compatibility workflows.</p></div>
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">Anatomic pathology</p><p className="mt-1 text-sm text-slate-600">Tissue and cell examination; configure these services only when supported by the laboratory.</p></div>
-            <div className="rounded-xl border border-slate-200 p-3"><p className="font-medium">STAT / emergency testing</p><p className="mt-1 text-sm text-slate-600">Urgent tests should be clearly marked and prioritized by staff.</p></div>
-          </div>
-          <p className="mt-4 text-sm text-slate-600">Workflow: receive and assess specimen → perform the configured test → enter actual findings and approved reference intervals → review and release the result to the patient’s request and ward. Internal consumables are tracked separately and deducted according to approved usage rules.</p>
-        </CardContent>
-      </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "add") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
@@ -543,64 +469,23 @@ export function InventoryWorkspace() {
         </CardContent>
       </Card>}
 
-      {profile?.role === "lab" && view === "stock" && <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2 font-semibold">
-            <ClipboardCheck size={18} className="text-sky-700" /> Automatic consumable deduction
-          </div>
-          <p className="mt-1 text-sm text-slate-500">
-            Define the actual supply quantities used for each test. When a paid lab request is released, these quantities are deducted atomically with the request. Confirm quantities with your laboratory's approved procedure before configuring them.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={saveRecipe} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="text-sm font-medium text-slate-700">
-              Laboratory test
-              <select required value={recipeServiceId} onChange={(event) => setRecipeServiceId(event.target.value)} className={fieldClass}>
-                <option value="">Choose test</option>
-                {labServices.map((item) => <option key={item.id} value={item.id}>{item.item_name} ({item.item_code})</option>)}
-              </select>
-            </label>
-            <label className="text-sm font-medium text-slate-700">
-              Consumable supply
-              <select required value={recipeSupplyId} onChange={(event) => setRecipeSupplyId(event.target.value)} className={fieldClass}>
-                <option value="">Choose supply</option>
-                {labSupplies.map((item) => <option key={item.id} value={item.id}>{item.item_name} — {item.quantity_on_hand} {item.unit}(s)</option>)}
-              </select>
-            </label>
-            <label className="text-sm font-medium text-slate-700">
-              Quantity per test
-              <input required type="number" min="1" step="1" value={recipeQuantity} onChange={(event) => setRecipeQuantity(event.target.value)} className={fieldClass} />
-            </label>
-            <div className="flex items-end">
-              <Button type="submit" disabled={recipeBusy || !recipeServiceId || !recipeSupplyId || !Number.isInteger(Number(recipeQuantity)) || Number(recipeQuantity) <= 0}>
-                {recipeBusy ? "Saving…" : "Save deduction rule"}
-              </Button>
-            </div>
-          </form>
-          <p className="mt-2 text-xs text-slate-500">Saving the same test and supply again updates its quantity. Rules are configuration only; no supply is deducted until a request is released.</p>
-          <div className="mt-4 space-y-2">
-            {recipes.isLoading ? <p className="text-sm text-slate-500">Loading deduction rules…</p> : recipes.isError ? <p role="alert" className="text-sm text-rose-700">Could not load consumable rules. Refresh and try again.</p> : recipes.data?.length ? recipes.data.map((recipe) => (
-              <div key={recipe.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
-                <div className="text-sm">
-                  <p className="font-medium">{recipe.service_name} <span className="font-mono text-xs text-slate-400">({recipe.service_code})</span></p>
-                  <p className="mt-1 text-slate-600">Deduct {recipe.quantity_per_service} {recipe.supply_unit}(s) of {recipe.supply_name} per test · current stock: {recipe.supply_stock}</p>
-                </div>
-                <Button type="button" variant="secondary" onClick={() => void deleteRecipe(recipe.id)}>Remove rule</Button>
-              </div>
-            )) : <p className="rounded-xl border border-dashed border-slate-200 p-4 text-sm text-slate-500">No deduction rules configured. Add a rule for each supply consumed by a test.</p>}
-          </div>
-        </CardContent>
-      </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "stock") && <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Diagnostic test catalog & internal consumables" : "Medicine stock"}
+              <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory inventory" : "Medicine stock"}
             </div>
             <div className="flex flex-wrap gap-2">
-              {(profile?.role === "pharmacy" || profile?.role === "lab") && <Button onClick={() => { reset(); setView("add"); }}>
-                <PackagePlus size={15} /> {type === "lab" ? "Add test / supply" : "Add medicine"}
+              {profile?.role === "lab" && <>
+                <Button onClick={() => { reset(); setCatalogType("requestable"); setView("add"); }}>
+                  <PackagePlus size={15} /> Add Test
+                </Button>
+                <Button variant="secondary" onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}>
+                  <PackagePlus size={15} /> Add Supply
+                </Button>
+              </>}
+              {profile?.role === "pharmacy" && <Button onClick={() => { reset(); setView("add"); }}>
+                <PackagePlus size={15} /> Add medicine
               </Button>}
               <Button
                 variant="secondary"
