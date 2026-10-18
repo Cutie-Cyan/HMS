@@ -11,13 +11,13 @@ import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions"
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList,
   encounters: Stethoscope, requests: ClipboardList, "available-doctors": UserRoundCheck,
-  wards: BedDouble, billing: Wallet, inventory: Boxes, "medicine-stock": Boxes, "profit-inventory": Wallet, staff: Users, audit: ScrollText,
+  wards: BedDouble, billing: Wallet, inventory: Boxes, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": ClipboardList, staff: Users, audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "medicine-stock", "profit-inventory", "inventory", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
   { title: "Workspace", modules: ["dashboard"] },
   { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "available-doctors", "requests", "wards"] },
-  { title: "Operations", modules: ["billing", "medicine-stock", "profit-inventory", "inventory"] },
+  { title: "Operations", modules: ["billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory"] },
   { title: "Administration", modules: ["staff", "audit"] },
 ];
 
