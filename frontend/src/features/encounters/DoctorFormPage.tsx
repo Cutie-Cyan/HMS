@@ -225,7 +225,7 @@ export function DoctorFormPage() {
         </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setActiveTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => setActiveTab("queue")}>Open patient queue</Button></div></CardContent></Card>
       </div>}
 
-      {activeTab === "triage" && <Card>
+      {activeTab === "triage" && (<Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Triage & Assessment</div>
           <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record initial triage observations, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
@@ -293,7 +293,7 @@ export function DoctorFormPage() {
 
       )}
 
-      {(activeTab === "queue" || activeTab === "clinical") && <Card id="encounter-records-panel">
+      {(activeTab === "queue" || activeTab === "clinical") && (<Card id="encounter-records-panel">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
