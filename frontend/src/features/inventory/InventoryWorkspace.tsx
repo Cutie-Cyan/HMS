@@ -52,8 +52,32 @@ function FulfillmentCard({
   onFulfill: (id: string, result: string) => Promise<void>;
 }) {
   const [result, setResult] = useState("");
+  const [cbcValues, setCbcValues] = useState({
+    wbc: "", rbc: "", hemoglobin: "", hematocrit: "",
+    platelets: "", mcv: "", mch: "", mchc: "",
+  });
+  const isCBC = isLab && request.items.some((item) =>
+    item.description.toLowerCase().includes("cbc") ||
+    item.description.toLowerCase().includes("complete blood count"),
+  );
+  const cbcFields = [
+    { key: "wbc", label: "WBC", unit: "×10⁹/L" },
+    { key: "rbc", label: "RBC", unit: "×10¹²/L" },
+    { key: "hemoglobin", label: "Hemoglobin", unit: "g/dL" },
+    { key: "hematocrit", label: "Hematocrit", unit: "%" },
+    { key: "platelets", label: "Platelets", unit: "×10⁹/L" },
+    { key: "mcv", label: "MCV", unit: "fL" },
+    { key: "mch", label: "MCH", unit: "pg" },
+    { key: "mchc", label: "MCHC", unit: "g/dL" },
+  ] as const;
+  const cbcResult = cbcFields
+    .filter((field) => cbcValues[field.key].trim())
+    .map((field) => `${field.label}: ${cbcValues[field.key].trim()} ${field.unit}`)
+    .join("\\n");
+  const resultToSave = isCBC ? `CBC — Complete Blood Count\\n${cbcResult}`.trim() : result;
   const canRelease =
-    request.status === "paid" && (!isLab || result.trim().length > 0);
+    request.status === "paid" && (!isLab || resultToSave.trim().length > 0) &&
+    (!isCBC || cbcFields.every((field) => cbcValues[field.key].trim().length > 0));
   return (
     <article className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -78,7 +102,29 @@ function FulfillmentCard({
           </div>
         ))}
       </div>
-      {isLab && request.status === "paid" && (
+      {isLab && request.status === "paid" && (isCBC ? (
+        <section className="mt-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
+          <div className="mb-3">
+            <p className="font-semibold text-slate-900">CBC — Complete Blood Count</p>
+            <p className="mt-1 text-xs text-slate-600">Enter all measured values from the laboratory analyzer. Verify values and use your laboratory's approved reference intervals before release; reference ranges are not assumed by this form.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {cbcFields.map((field) => (
+              <label key={field.key} className="text-sm font-medium text-slate-700">
+                {field.label} <span className="font-normal text-slate-500">({field.unit})</span>
+                <input
+                  required
+                  inputMode="decimal"
+                  value={cbcValues[field.key]}
+                  onChange={(event) => setCbcValues((current) => ({ ...current, [field.key]: event.target.value }))}
+                  className={fieldClass}
+                  placeholder="Measured value"
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+      ) : (
         <label className="mt-4 block text-sm font-medium text-slate-700">
           Lab result (required before release)
           <textarea
@@ -89,7 +135,7 @@ function FulfillmentCard({
             placeholder="Enter the verified result for the Nurse Station…"
           />
         </label>
-      )}
+      ))}
       {isLab && request.lab_result && (
         <p className="mt-3 rounded-xl border border-sky-100 bg-sky-50 p-3 text-sm text-sky-900">
           Saved result: {request.lab_result}
@@ -114,7 +160,7 @@ function FulfillmentCard({
                   `Release this ${isLab ? "laboratory result" : "medicine request"} for ${request.patient_name}?`,
                 )
               )
-                void onFulfill(request.request_id, result);
+                void onFulfill(request.request_id, resultToSave);
             }}
           >
             <ClipboardCheck size={16} />
