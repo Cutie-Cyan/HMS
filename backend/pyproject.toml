@@ -1,6 +1,6 @@
 [project]
 name = "hms-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python FastAPI backend for HMS"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -8,6 +8,7 @@ dependencies = [
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.34.0",
   "pydantic-settings>=2.7.0",
+  "pydantic[email]>=2.10.0",
   "supabase>=2.13.0",
 ]
 
