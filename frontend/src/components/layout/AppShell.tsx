@@ -9,14 +9,14 @@ import { useAuth } from "../../features/auth/AuthProvider";
 import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
-  dashboard: LayoutDashboard, patients: Activity, encounters: Stethoscope,
+  dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, encounters: Stethoscope,
   requests: ClipboardList, wards: BedDouble, billing: Wallet, inventory: Boxes,
   staff: Users, audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["dashboard", "patients", "encounters", "requests", "billing", "inventory", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "requests", "billing", "inventory", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
   { title: "Workspace", modules: ["dashboard"] },
-  { title: "Clinical", modules: ["patients", "encounters", "requests", "wards"] },
+  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "requests", "wards"] },
   { title: "Operations", modules: ["billing", "inventory"] },
   { title: "Administration", modules: ["staff", "audit"] },
 ];
