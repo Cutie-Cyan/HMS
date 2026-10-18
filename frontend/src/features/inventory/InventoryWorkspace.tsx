@@ -360,6 +360,8 @@ export function InventoryWorkspace() {
     }
   };
   const queue = (requests.data ?? []).filter((r) => r.request_type === type && (location.pathname !== "/cbc" || r.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count"))));
+  const incomingQueue = type === "lab" ? queue.filter((request) => request.status === "paid") : queue;
+  const acceptedLabQueue = queue.filter((request) => request.status === "in_progress");
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
@@ -634,9 +636,9 @@ export function InventoryWorkspace() {
                 Retry
               </Button>
             </div>
-          ) : queue.length ? (
+          ) : incomingQueue.length ? (
             <div className="space-y-3">
-              {queue.map((request) => (
+              {incomingQueue.map((request) => (
                 <FulfillmentCard
                   key={request.request_id}
                   request={request}
@@ -650,9 +652,26 @@ export function InventoryWorkspace() {
             </div>
           ) : (
             <p className="py-8 text-center text-sm text-slate-500">
-              No {location.pathname === "/cbc" ? "CBC" : "department"} requests yet.
+              {type === "lab" ? "No paid laboratory requests waiting for acceptance." : `No ${location.pathname === "/cbc" ? "CBC" : "department"} requests yet.`}
             </p>
           )}
+        </CardContent>
+      </Card>}
+      {profile?.role === "lab" && view === "requests" && <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2 font-semibold">
+            <ClipboardCheck size={18} className="text-sky-700" /> Laboratory Work Queue
+          </div>
+          <p className="mt-1 text-sm text-slate-500">Requests appear here after you accept them. Complete the test and submit the results from this queue.</p>
+        </CardHeader>
+        <CardContent>
+          {requests.isLoading ? <p className="py-6 text-sm text-slate-500">Loading laboratory work queue…</p> : requests.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load the laboratory work queue.</p> : acceptedLabQueue.length ? (
+            <div className="space-y-3">
+              {acceptedLabQueue.map((request) => (
+                <FulfillmentCard key={request.request_id} request={request} isLab busy={fulfill.isPending} accepting={acceptLab.isPending} onAccept={acceptLabRequest} onFulfill={release} />
+              ))}
+            </div>
+          ) : <p className="py-8 text-center text-sm text-slate-500">No accepted tests in the laboratory queue.</p>}
         </CardContent>
       </Card>}
     </div>
