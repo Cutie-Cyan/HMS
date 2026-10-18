@@ -167,6 +167,7 @@ export function DoctorFormPage() {
                 </select>
               </label>
             </section>
+            <label className="block text-sm font-medium text-slate-700">Initial nurse assessment / observations (optional)<textarea rows={4} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Record initial observations or information gathered by the nurse…" className={inputClass}/></label>
             <section className="rounded-xl border border-dashed border-slate-300 p-4">
               <div className="flex items-start gap-3"><FileText size={19} className="mt-0.5 text-slate-500" /><div><h3 className="text-sm font-semibold">Doctor-only section stays blank</h3><p className="mt-1 text-sm text-slate-500">Findings and recommendations are intentionally not entered in Phase 1. Save this encounter first; printing is available only from its queue row.</p></div></div>
             </section>
