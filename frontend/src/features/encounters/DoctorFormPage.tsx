@@ -42,6 +42,7 @@ export function DoctorFormPage() {
   const recordFindings = useRecordDoctorFindings();
   const [patientId, setPatientId] = useState("");
   const [doctorId, setDoctorId] = useState("");
+  const [nurseAssessment, setNurseAssessment] = useState("");
   const [selectedEncounter, setSelectedEncounter] = useState<EncounterRecord | null>(null);
   const [findings, setFindings] = useState("");
   const [recommendations, setRecommendations] = useState("");
@@ -79,12 +80,13 @@ export function DoctorFormPage() {
       return;
     }
     try {
-      const id = await savePhase1.mutateAsync({ patientId, doctorId: doctorId || null });
+      const id = await savePhase1.mutateAsync({ patientId, doctorId: doctorId || null, nurseAssessment });
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
       setPatientId("");
       setDoctorId("");
+      setNurseAssessment("");
       if (!created) await encounters.refetch();
     } catch (cause) {
       setError(humanizeError(cause));
@@ -194,7 +196,7 @@ export function DoctorFormPage() {
       {printTarget && <section className="print-sheet print-active">
         <div className="border-b-2 border-black pb-4 text-center"><p className="text-xs font-semibold uppercase tracking-widest">Hospital Management System</p><h2 className="mt-2 text-2xl font-bold">Emergency Encounter Form</h2><p className="mt-1 text-xs">Phase 1 · For doctor assessment</p></div>
         <div className="mt-5 grid grid-cols-2 gap-4 border-b border-slate-300 pb-5 md:grid-cols-4"><Info label="Patient name" value={printTarget.patient_name}/><Info label="Patient number" value={printTarget.patient_number}/><Info label="Age" value={age(printPatient?.date_of_birth ?? null)}/><Info label="Sex" value={printPatient?.sex ?? "—"}/><Info label="Assigned doctor" value={printTarget.doctor_name ?? "Not assigned"}/><Info label="Date" value={new Date(printTarget.created_at).toLocaleString()}/></div>
-        <div className="mt-5"><h3 className="font-bold">Initial nurse assessment / observations</h3><div className="mt-2 min-h-24 border border-slate-400 p-3 text-sm">To be completed by the nurse as applicable.</div></div>
+        <div className="mt-5"><h3 className="font-bold">Initial nurse assessment / observations</h3><div className="mt-2 min-h-24 whitespace-pre-wrap border border-slate-400 p-3 text-sm">{printTarget.nurse_assessment || "No initial assessment recorded."}</div></div>
         <div className="mt-5 grid gap-5 md:grid-cols-2"><section className="min-h-56 border border-slate-400 p-4"><h3 className="border-b border-slate-300 pb-2 text-sm font-bold uppercase tracking-wide">Doctor's findings</h3><p className="mt-3 text-sm text-slate-500">For doctor to complete by hand.</p></section><section className="min-h-56 border border-slate-400 p-4"><h3 className="border-b border-slate-300 pb-2 text-sm font-bold uppercase tracking-wide">Doctor's recommendations</h3><p className="mt-3 text-sm text-slate-500">For doctor to complete by hand.</p></section></div>
         <div className="mt-12 grid grid-cols-2 gap-12 text-center text-xs"><div className="border-t border-slate-500 pt-2">Emergency Nurse</div><div className="border-t border-slate-500 pt-2">Doctor</div></div>
         <p className="mt-6 text-center text-xs">After the doctor completes this paper form, return it to the Emergency Nurse for encoding in Phase 2.</p>
