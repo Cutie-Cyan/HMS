@@ -171,6 +171,21 @@ export function usePayRequest() {
     },
   });
 }
+export function useAcceptLabRequest() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const { data, error } = await getSupabaseClient().rpc("lab_accept_hms_request", {
+        p_request_id: requestId,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["requests"] });
+    },
+  });
+}
 export function useFulfillRequest() {
   const client = useQueryClient();
   return useMutation({
