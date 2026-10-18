@@ -608,12 +608,12 @@ export function InventoryWorkspace() {
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "requests") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
-            <ClipboardCheck size={18} className="text-sky-700" /> Paid{" "}
-            {type === "lab" ? "laboratory" : "medicine"} requests
+            <ClipboardCheck size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory request queue" : "Paid medicine requests"}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            Only paid requests can be fulfilled. Lab results are required before
-            release.
+            {type === "lab"
+              ? "Accept paid test requests into the queue, conduct the test, then enter and submit results for the Nurse Station."
+              : "Only paid requests can be fulfilled."}
           </p>
         </CardHeader>
         <CardContent>
