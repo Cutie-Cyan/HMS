@@ -5,6 +5,7 @@ export type HmsModule =
   | "patients"
   | "patient-registration"
   | "encounters"
+  | "triage"
   | "available-doctors"
   | "requests"
   | "wards"
@@ -51,6 +52,11 @@ export const MODULES: Record<
   encounters: {
     label: "Emergency Room",
     path: "/encounters",
+    roles: ["emergency_nurse"],
+  },
+  triage: {
+    label: "Triage & Assessment",
+    path: "/encounters?tab=triage",
     roles: ["emergency_nurse"],
   },
   "available-doctors": {
