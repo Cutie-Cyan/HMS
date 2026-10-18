@@ -226,7 +226,7 @@ export function InventoryWorkspace() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
       {profile?.role === "lab" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
-        {([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"},{id:"add",label:"Add lab item"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
+        {([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
       </div>}
       {(message || error) && (
         <div
