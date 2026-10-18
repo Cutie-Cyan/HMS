@@ -75,25 +75,15 @@ export function NurseStationERPage() {
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
 
-  // Keep browser navigation and the selected workspace tab in sync without
-  // repeatedly replacing the URL on every searchParams object update.
-  useEffect(() => {
-    const requestedTab = searchParams.get("tab");
-    if (requestedTab === "triage" && activeTab !== "triage") {
-      setActiveTab("triage");
-    } else if (requestedTab !== "triage" && activeTab === "triage") {
-      setActiveTab("overview");
-    }
-  }, [searchParams, activeTab]);
-
-  useEffect(() => {
+  const selectTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
-      if (activeTab === "triage") nextParams.set("tab", "triage");
+      if (tab === "triage") nextParams.set("tab", "triage");
       else nextParams.delete("tab");
       return nextParams;
     }, { replace: true });
-  }, [activeTab, setSearchParams]);
+  };
 
   useEffect(() => {
     if (activeTab === "clinical") setEncounterView("saved");
@@ -141,7 +131,7 @@ export function NurseStationERPage() {
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
       setEncounterView("queue");
-      setActiveTab("queue");
+      selectTab("queue");
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
       window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       setPatientId("");
@@ -184,7 +174,7 @@ export function NurseStationERPage() {
         recommendationType,
       });
       setEncounterView("saved");
-      setActiveTab("clinical");
+      selectTab("clinical");
       setSuccess("Doctor's findings and recommendations were recorded. The encounter is now saved.");
       setSelectedEncounter(null);
       await refresh();
@@ -225,7 +215,7 @@ export function NurseStationERPage() {
             { id: "requests", label: "Requests & Results", icon: FlaskConical },
             { id: "beds", label: "Beds & Disposition", icon: BedDouble },
           ] as const).map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" onClick={() => setActiveTab(id)} aria-current={activeTab === id ? "page" : undefined}
+            <button key={id} type="button" onClick={() => selectTab(id)} aria-current={activeTab === id ? "page" : undefined}
               className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition ${activeTab === id ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
               <Icon size={16} />{label}
             </button>
@@ -246,7 +236,7 @@ export function NurseStationERPage() {
             ["2", "Doctor & clinical records", "Print the encounter form, mark it returned, and enter the doctor's findings and recommendations."],
             ["3", "Requests & disposition", "Submit authorized medicine or laboratory requests and coordinate bed assignment or transfer."],
           ].map(([number, title, detail]) => <li key={number} className="rounded-xl border border-slate-200 p-4"><span className="inline-grid size-7 place-items-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800">{number}</span><h3 className="mt-3 font-semibold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-5 text-slate-500">{detail}</p></li>)}
-        </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setActiveTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => setActiveTab("queue")}>Open patient queue</Button></div></CardContent></Card>
+        </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => selectTab("triage")><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => selectTab("queue")>Open patient queue</Button></div></CardContent></Card>
       </div>}
 
       {activeTab === "triage" && (<Card>
@@ -272,7 +262,7 @@ export function NurseStationERPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">Encounter already in queue</p>
                       <p className="mt-1 leading-5">This patient already has an active encounter ({stageLabel(existingEncounter.workflow_stage).toLowerCase()}). Continue the existing record to avoid duplicates.</p>
-                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => { setActiveTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
+                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => { selectTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
                         Go to existing encounter
                       </Button>
                     </div>
