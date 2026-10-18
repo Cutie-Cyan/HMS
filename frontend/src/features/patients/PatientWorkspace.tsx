@@ -1,10 +1,10 @@
-import { useState, type FormEvent, type ReactNode } from "react";
-import { CheckCircle2, Printer, RefreshCw, UserPlus } from "lucide-react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { CheckCircle2, Clipboard, ClipboardCheck, Printer, QrCode, RefreshCw, UserPlus, XCircle } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
-import { humanizeError, usePatientDirectory, useRegisterPatient } from "./data";
+import { humanizeError, usePatientDirectory, usePendingPatientSubmissions, useRegisterPatient, useReviewPatientSubmission } from "./data";
 
 const inputClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3.5 text-sm shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -18,12 +18,18 @@ function ageLabel(date: string | null) {
   if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
   return `${age} yrs`;
 }
+function readableDate(date: string) {
+  return new Date(date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
 export function PatientWorkspace() {
   const { profile } = useAuth();
   const isInfoOfficer = profile?.role === "info_officer";
   const [search, setSearch] = useState("");
   const patients = usePatientDirectory(search);
+  const submissions = usePendingPatientSubmissions(isInfoOfficer);
   const register = useRegisterPatient();
+  const review = useReviewPatientSubmission();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -34,6 +40,21 @@ export function PatientWorkspace() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [pwdOrSenior, setPwdOrSenior] = useState(false);
+  const [printTarget, setPrintTarget] = useState<"blank" | "qr" | null>(null);
+  const publicFormUrl = `${window.location.origin}/patient-registration`;
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(publicFormUrl)}`;
+
+  useEffect(() => {
+    const resetPrint = () => setPrintTarget(null);
+    window.addEventListener("afterprint", resetPrint);
+    return () => window.removeEventListener("afterprint", resetPrint);
+  }, []);
+
+  const print = (target: "blank" | "qr") => {
+    setPrintTarget(target);
+    window.setTimeout(() => window.print(), 80);
+  };
+
   const submitPatient = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); setError(""); setSuccess("");
     try {
@@ -43,14 +64,23 @@ export function PatientWorkspace() {
     } catch (cause) { setError(humanizeError(cause)); }
   };
 
+  const reviewSubmission = async (submissionId: string, approve: boolean) => {
+    setError(""); setSuccess("");
+    try {
+      const result = await review.mutateAsync({ submissionId, approve });
+      setSuccess(approve
+        ? `Submission approved. Patient number: ${result.patient_number ?? "created"}`
+        : "Patient registration submission rejected.");
+    } catch (cause) { setError(humanizeError(cause)); }
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-8">
-      <div className="no-print"><h1 className="text-2xl font-semibold tracking-tight text-slate-900">Patient registration</h1><p className="mt-1 text-sm text-slate-500">Register new patients and manage the patient directory.</p></div>
-      
-      {(success || error) && <div role={error ? "alert" : "status"} className={`rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{error || success}</div>}
-      {isInfoOfficer && <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
-        <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><UserPlus size={18} className="text-teal-700" /> Register patient</div><p className="mt-1 text-sm text-slate-500">Patient number is generated securely by the database.</p></CardHeader><CardContent>
+      <div className="no-print"><h1 className="text-2xl font-semibold tracking-tight text-slate-900">Patients</h1><p className="mt-1 text-sm text-slate-500">Register patients, review QR submissions, and manage the patient directory.</p></div>
+      {(success || error) && <div role={error ? "alert" : "status"} className={`no-print rounded-lg p-3 text-sm ${error ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{error || success}</div>}
+
+      {isInfoOfficer && <div className="no-print grid gap-6 xl:grid-cols-[1.15fr_.85fr]">
+        <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><UserPlus size={18} className="text-teal-700" /> Register patient</div><p className="mt-1 text-sm text-slate-500">Create an official patient record. The patient number is generated by the database.</p></CardHeader><CardContent>
           <form onSubmit={submitPatient} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="First name"><input required maxLength={100} value={firstName} onChange={e=>setFirstName(e.target.value)} className={inputClass} /></Field>
@@ -62,15 +92,56 @@ export function PatientWorkspace() {
             </div>
             <Field label="Address (optional)"><textarea rows={2} maxLength={500} value={address} onChange={e=>setAddress(e.target.value)} className={inputClass} /></Field>
             <label className="flex items-center gap-3 rounded-xl border border-[#e3e3e8] bg-[#f8f8fa] p-3 text-sm text-slate-700"><input type="checkbox" checked={pwdOrSenior} onChange={e=>setPwdOrSenior(e.target.checked)} className="size-4 accent-teal-700" /> Patient is PWD or Senior (discount eligibility)</label>
-            <Button type="submit" disabled={register.isPending}><UserPlus size={16}/>{register.isPending ? "Registering…" : "Register patient"}</Button>
-            <Button type="button" variant="secondary" onClick={() => window.print()}><Printer size={16}/> Print blank form</Button>
+            <div className="flex flex-wrap gap-2"><Button type="submit" disabled={register.isPending}><UserPlus size={16}/>{register.isPending ? "Registering…" : "Register patient"}</Button><Button type="button" variant="secondary" onClick={() => print("blank")}><Printer size={16}/> Print blank form</Button></div>
           </form>
         </CardContent></Card>
 
+        <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><QrCode size={18} className="text-teal-700"/> QR self-registration</div><p className="mt-1 text-sm text-slate-500">Patients scan this code to complete the registration form on their own phone.</p></CardHeader><CardContent>
+          <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+            <img src={qrImageUrl} alt="QR code opening the HMS patient registration form" width={220} height={220} className="h-[220px] w-[220px] rounded-xl bg-white p-2" />
+            <p className="mt-3 break-all text-xs text-slate-500">{publicFormUrl}</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button type="button" variant="secondary" onClick={() => void navigator.clipboard.writeText(publicFormUrl).then(() => setSuccess("Registration link copied."), () => setError("Could not copy the link. Copy the URL shown above."))}><Clipboard size={15}/> Copy link</Button>
+              <Button type="button" onClick={() => print("qr")}><Printer size={15}/> Print QR code</Button>
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500">Use the deployed HMS address when sharing the code. Submissions stay pending until an Information Officer verifies them.</p>
+        </CardContent></Card>
       </div>}
-      <Card><CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">Patient directory</h2><p className="mt-1 text-sm text-slate-500">Search by patient number or name.</p></div><div className="flex gap-2"><input aria-label="Search patients" placeholder="Search patients…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 sm:w-64"/><Button variant="secondary" onClick={()=>void patients.refetch()} disabled={patients.isFetching}><RefreshCw size={15}/></Button></div></div></CardHeader><CardContent>
-        {patients.isLoading ? <p className="py-8 text-center text-sm text-slate-500">Loading patient directory…</p> : patients.isError ? <div className="py-6 text-center"><p role="alert" className="text-sm text-rose-700">Could not load patients. Check access and retry.</p><Button className="mt-3" onClick={()=>void patients.refetch()}>Retry</Button></div> : patients.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-slate-500"><tr><th className="py-3 pr-4">Patient</th><th className="py-3 pr-4">Age</th><th className="py-3 pr-4">Sex</th><th className="py-3 pr-4">Status</th><th className="py-3">Patient number</th></tr></thead><tbody className="divide-y divide-slate-100">{patients.data.map(p=><tr key={p.patient_id} className="transition-colors hover:bg-slate-50/80"><td className="py-3 pr-4 font-medium text-slate-900">{p.first_name} {p.middle_name ? p.middle_name+" " : ""}{p.last_name}</td><td className="py-3 pr-4">{ageLabel(p.date_of_birth)}</td><td className="py-3 pr-4 capitalize">{p.sex}</td><td className="py-3 pr-4"><Badge tone={p.status==="registered"?"info":"neutral"}>{p.status.replaceAll("_"," ")}</Badge></td><td className="py-3 font-mono text-xs">{p.patient_number}</td></tr>)}</tbody></table></div> : <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">No patients found</p><p className="mt-1 text-sm text-slate-500">{search ? "Try a different patient number or name." : "Registered patients will appear here. No sample patients are created."}</p></div>}
+
+      {isInfoOfficer && <Card className="no-print"><CardHeader><div className="flex items-center gap-2 font-semibold"><ClipboardCheck size={18} className="text-teal-700"/> QR submissions</div><p className="mt-1 text-sm text-slate-500">Verify each submission before creating an official patient record.</p></CardHeader><CardContent>
+        {submissions.isLoading ? <p className="py-5 text-sm text-slate-500">Loading submissions…</p> : submissions.isError ? <div className="py-4"><p role="alert" className="text-sm text-rose-700">Could not load QR submissions. Confirm the patient intake migration has been applied.</p><Button className="mt-3" variant="secondary" onClick={() => void submissions.refetch()}>Retry</Button></div> : submissions.data?.length ? <div className="space-y-3">{submissions.data.map(s => <div key={s.submission_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="font-semibold text-slate-900">{s.first_name} {s.middle_name ? `${s.middle_name} ` : ""}{s.last_name}</p><p className="mt-1 text-sm text-slate-500">{readableDate(s.date_of_birth)} · <span className="capitalize">{s.sex}</span> · Submitted {readableDate(s.submitted_at)}</p><p className="mt-2 break-words text-sm text-slate-700">{s.phone || "No phone"}{s.address ? ` · ${s.address}` : ""}</p>{s.pwd_or_senior && <Badge tone="info">PWD / Senior — verify ID</Badge>}</div><div className="flex shrink-0 gap-2"><Button type="button" disabled={review.isPending} onClick={() => void reviewSubmission(s.submission_id, true)}><CheckCircle2 size={15}/> Approve</Button><Button type="button" variant="secondary" disabled={review.isPending} onClick={() => void reviewSubmission(s.submission_id, false)}><XCircle size={15}/> Reject</Button></div></div></div>)}</div> : <div className="py-8 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">No pending submissions</p><p className="mt-1 text-sm text-slate-500">QR registration forms will appear here for review.</p></div>}
+      </CardContent></Card>}
+
+      <Card className="no-print"><CardHeader><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">Patient directory</h2><p className="mt-1 text-sm text-slate-500">Search by patient number or name.</p></div><div className="flex gap-2"><input aria-label="Search patients" placeholder="Search patients…" value={search} onChange={e=>setSearch(e.target.value)} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 sm:w-64"/><Button variant="secondary" onClick={()=>void patients.refetch()} disabled={patients.isFetching}><RefreshCw size={15}/></Button></div></div></CardHeader><CardContent>
+        {patients.isLoading ? <p className="py-8 text-center text-sm text-slate-500">Loading patient directory…</p> : patients.isError ? <div className="py-6 text-center"><p role="alert" className="text-sm text-rose-700">Could not load patients. Check access and retry.</p><Button className="mt-3" onClick={()=>void patients.refetch()}>Retry</Button></div> : patients.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-slate-500"><tr><th className="py-3 pr-4">Patient</th><th className="py-3 pr-4">Age</th><th className="py-3 pr-4">Sex</th><th className="py-3 pr-4">Status</th><th className="py-3">Patient number</th></tr></thead><tbody className="divide-y divide-slate-100">{patients.data.map(p=><tr key={p.patient_id} className="transition-colors hover:bg-slate-50/80"><td className="py-3 pr-4 font-medium text-slate-900">{p.first_name} {p.middle_name ? p.middle_name+" " : ""}{p.last_name}</td><td className="py-3 pr-4">{ageLabel(p.date_of_birth)}</td><td className="py-3 pr-4 capitalize">{p.sex}</td><td className="py-3 pr-4"><Badge tone={p.status==="registered"?"info":"neutral"}>{p.status.replaceAll("_"," ")}</Badge></td><td className="py-3 font-mono text-xs">{p.patient_number}</td></tr>)}</tbody></table></div> : <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">No patients found</p><p className="mt-1 text-sm text-slate-500">{search ? "Try a different patient number or name." : "Registered patients will appear here."}</p></div>}
       </CardContent></Card>
+
+      <section className={`print-sheet ${printTarget === "blank" ? "print-active" : "print-hidden"}`}>
+        <h1 className="text-center text-xl font-bold">HMS — PATIENT REGISTRATION FORM</h1>
+        <p className="mt-2 text-center text-sm">Please write clearly. Hospital staff will verify the information.</p>
+        <div className="mt-8 space-y-7 text-sm">
+          <p>First name: ______________________________________________________________</p>
+          <p>Middle name: _____________________________________________________________</p>
+          <p>Last name: _______________________________________________________________</p>
+          <p>Date of birth: ___________________________  Sex: __________________________</p>
+          <p>Phone number: __________________________________________________________</p>
+          <p>Complete address: _______________________________________________________</p>
+          <p>_________________________________________________________________________</p>
+          <p>Are you a PWD or senior citizen?  ☐ Yes  ☐ No</p>
+          <p className="pt-8">Patient / representative signature: __________________________________________</p>
+          <p className="pt-8">For hospital staff: Patient number __________________  Verified by ______________</p>
+        </div>
+      </section>
+      <section className={`print-sheet ${printTarget === "qr" ? "print-active" : "print-hidden"}`}>
+        <div className="flex min-h-[85vh] flex-col items-center justify-center text-center">
+          <h1 className="text-2xl font-bold">HMS Patient Self-Registration</h1>
+          <p className="mt-3 max-w-md text-sm">Scan this QR code with your phone camera to fill in the patient registration form.</p>
+          <img src={qrImageUrl} alt="QR code for HMS patient registration" width={280} height={280} className="my-8 h-[280px] w-[280px]"/>
+          <p className="max-w-lg break-all text-xs">{publicFormUrl}</p>
+          <p className="mt-8 text-sm">Please ask the Information Officer if you need assistance.</p>
+        </div>
+      </section>
     </div>
   );
 }
