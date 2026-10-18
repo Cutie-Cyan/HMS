@@ -31,3 +31,20 @@
     color: #000 !important;
   }
 }
+
+.print-sheet { display: none; }
+@media print {
+  body * { visibility: hidden !important; }
+  .print-sheet.print-active,
+  .print-sheet.print-active * { visibility: visible !important; }
+  .print-sheet.print-active {
+    display: block !important;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 10mm !important;
+  }
+  .print-sheet.print-hidden { display: none !important; }
+}
