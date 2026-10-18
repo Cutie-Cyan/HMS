@@ -436,7 +436,7 @@ export function InventoryWorkspace() {
             className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
           >
             <label className="text-sm font-medium text-slate-700">
-              {type === "lab" ? "Test / service or supply name" : "Medicine name"}
+              {type === "lab" ? (catalogType === "supply" ? "Consumable supply name" : "Diagnostic test / service name") : "Medicine name"}
               <input
                 required
                 maxLength={150}
@@ -446,7 +446,7 @@ export function InventoryWorkspace() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              {type === "lab" ? "Test / supply code" : "Medicine code"}
+              {type === "lab" ? (catalogType === "supply" ? "Supply code" : "Test / service code") : "Medicine code"}
               <input
                 required
                 maxLength={80}
@@ -469,7 +469,7 @@ export function InventoryWorkspace() {
               Catalog type
               <select
                 value={catalogType}
-                onChange={(e) => setCatalogType(e.target.value as "requestable" | "supply")}
+                onChange={(e) => { const nextType = e.target.value as "requestable" | "supply"; setCatalogType(nextType); if (type === "lab" && nextType === "supply") setPrice("0"); }}
                 className={fieldClass}
               >
                 <option value="requestable">{type === "lab" ? "Diagnostic test / service" : "Medicine / requestable"}</option>
@@ -489,7 +489,7 @@ export function InventoryWorkspace() {
                 className={`${fieldClass} ${editing ? "cursor-not-allowed bg-slate-100 text-slate-500" : ""}`}
               />
             </label>
-            <label className="text-sm font-medium text-slate-700">
+            {(type !== "lab" || catalogType !== "supply") && <label className="text-sm font-medium text-slate-700">
               {type === "lab" ? "Test / service fee (₱)" : "Selling price (₱)"}
               <input
                 required
@@ -500,7 +500,7 @@ export function InventoryWorkspace() {
                 onChange={(e) => setPrice(e.target.value)}
                 className={fieldClass}
               />
-            </label>
+            </label>}
             <label className="text-sm font-medium text-slate-700">
               {type === "lab" ? "Internal cost (₱)" : "Unit cost (₱)"}
               <input
