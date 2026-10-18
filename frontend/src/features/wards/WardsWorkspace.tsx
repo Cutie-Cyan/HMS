@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { BedDouble, CheckCircle2, Plus, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
@@ -205,6 +205,11 @@ export function WardsWorkspace() {
   const [configTab, setConfigTab] = useState<"room" | "bed">("bed");
   const [selectedWardId, setSelectedWardId] = useState("");
   const [boardView, setBoardView] = useState<"beds" | "rooms">("beds");
+  useEffect(() => {
+    if (!message && !error) return;
+    const timeout = window.setTimeout(() => { setMessage(""); setError(""); }, 3500);
+    return () => window.clearTimeout(timeout);
+  }, [message, error]);
   const saveRoom = useMutation({
     mutationFn: async (v: { code: string; wardId: string; isPrivate: boolean }) => {
       const { error } = await getSupabaseClient().rpc("admin_save_room", {
@@ -303,19 +308,14 @@ export function WardsWorkspace() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && (
-        <div
-          role={error ? "alert" : "status"}
-          className={
-            "rounded-lg p-3 text-sm " +
-            (error
-              ? "bg-rose-50 text-rose-800"
-              : "bg-emerald-50 text-emerald-800")
-          }
-        >
-          {error || message}
+        <div className="pointer-events-none fixed bottom-5 right-5 z-[70] w-[min(360px,calc(100vw-2.5rem))]" aria-live="polite">
+          <div role={error ? "alert" : "status"} className={"pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl " + (error ? "border-rose-200 bg-white text-rose-800" : "border-emerald-200 bg-white text-emerald-800")}>
+            <span className={"mt-0.5 grid size-6 shrink-0 place-items-center rounded-full " + (error ? "bg-rose-50" : "bg-emerald-50")}>{error ? <ShieldAlert size={15}/> : <CheckCircle2 size={15}/>}</span>
+            <p className="min-w-0 flex-1 leading-5">{error || message}</p>
+            <button type="button" aria-label="Dismiss notification" onClick={() => { setMessage(""); setError(""); }} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X size={15}/></button>
+          </div>
         </div>
       )}
-      {role === "admin" && <div className="flex justify-end"><Button onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Plus size={16} /> Add room / bed</Button></div>}
       {configOpen && role === "admin" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}>
           <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
@@ -350,13 +350,15 @@ export function WardsWorkspace() {
                 <BedDouble size={18} className="text-sky-700" /> Bed board
               </div>
             </div>
-            <Button
-              variant="secondary"
-              onClick={() => void board.refetch()}
-              disabled={board.isFetching}
-            >
-              <RefreshCw size={15} /> Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              {role === "admin" && <>
+                <Button variant="secondary" onClick={() => { setConfigTab("room"); setConfigOpen(true); }}><Plus size={15}/> Add room</Button>
+                <Button onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Plus size={15}/> Add bed</Button>
+              </>}
+              <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || rooms.isFetching}>
+                <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
