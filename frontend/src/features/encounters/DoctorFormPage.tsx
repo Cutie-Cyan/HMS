@@ -53,6 +53,11 @@ export function DoctorFormPage() {
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
 
+  const selectablePatients = useMemo(
+    () => (patients.data ?? []).filter((item) => (item.status === "registered" || item.status === "in_emergency") && (!item.current_ward_id || item.current_ward_name === "Emergency Room")),
+    [patients.data],
+  );
+
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const normalizedPatientSearch = patientSearch.trim().toLowerCase();
   const matchingTypedPatient = normalizedPatientSearch
@@ -70,10 +75,6 @@ export function DoctorFormPage() {
         .filter(Boolean).some((value) => String(value).toLowerCase().includes(query)),
     ).slice(0, 10);
   }, [selectablePatients, normalizedPatientSearch]);
-  const selectablePatients = useMemo(
-    () => (patients.data ?? []).filter((item) => (item.status === "registered" || item.status === "in_emergency") && (!item.current_ward_id || item.current_ward_name === "Emergency Room")),
-    [patients.data],
-  );
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
