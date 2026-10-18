@@ -224,8 +224,13 @@ export function InventoryWorkspace() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
-      {(profile?.role === "pharmacy" || profile?.role === "lab") && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
-        {(profile.role === "pharmacy" ? ([{id:"stock",label:"Medicine stock"},{id:"profit",label:"Profit records"},{id:"requests",label:"Medicine requests"},{id:"add",label:"Add medicine"}] as const) : ([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"},{id:"add",label:"Add lab item"}] as const)).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
+      {profile?.role === "pharmacy" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
+        <Button variant={view === "requests" ? "primary" : "secondary"} onClick={() => setView(view === "requests" ? "stock" : "requests")}>
+          {view === "requests" ? "Back to medicine stock" : "Medicine requests"}
+        </Button>
+      </div>}
+      {profile?.role === "lab" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
+        {([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"},{id:"add",label:"Add lab item"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
       </div>}
       {(message || error) && (
         <div
