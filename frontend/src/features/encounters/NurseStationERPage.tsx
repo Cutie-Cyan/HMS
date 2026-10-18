@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Activity, BedDouble, CheckCircle2, ClipboardList, ClipboardPen, Eye, FileText, FlaskConical, LayoutDashboard, Printer, RefreshCw, Stethoscope, X } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
@@ -36,6 +37,7 @@ function stageLabel(stage: EncounterRecord["workflow_stage"]) {
 }
 
 export function NurseStationERPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const patients = usePatientDirectory("");
   const doctors = useDoctors();
   const encounters = useOpenEncounters();
@@ -62,7 +64,7 @@ export function NurseStationERPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
-  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">(() => searchParams.get("tab") === "triage" ? "triage" : "overview");
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -72,6 +74,19 @@ export function NurseStationERPage() {
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab === "triage") setActiveTab("triage");
+    else if (requestedTab === null && activeTab === "triage") setActiveTab("overview");
+  }, [searchParams, activeTab]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (activeTab === "triage") nextParams.set("tab", "triage");
+    else nextParams.delete("tab");
+    if (nextParams.toString() !== searchParams.toString()) setSearchParams(nextParams, { replace: true });
+  }, [activeTab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (activeTab === "clinical") setEncounterView("saved");
@@ -119,6 +134,7 @@ export function NurseStationERPage() {
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
       setEncounterView("queue");
+      setActiveTab("queue");
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
       window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       setPatientId("");
@@ -161,6 +177,7 @@ export function NurseStationERPage() {
         recommendationType,
       });
       setEncounterView("saved");
+      setActiveTab("clinical");
       setSuccess("Doctor's findings and recommendations were recorded. The encounter is now saved.");
       setSelectedEncounter(null);
       await refresh();
@@ -225,7 +242,7 @@ export function NurseStationERPage() {
         </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => setActiveTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => setActiveTab("queue")}>Open patient queue</Button></div></CardContent></Card>
       </div>}
 
-      {activeTab === "triage" && <Card>
+      {activeTab === "triage" && (<Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Triage & Assessment</div>
           <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record initial triage observations, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
@@ -248,7 +265,7 @@ export function NurseStationERPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">Encounter already in queue</p>
                       <p className="mt-1 leading-5">This patient already has an active encounter ({stageLabel(existingEncounter.workflow_stage).toLowerCase()}). Continue the existing record to avoid duplicates.</p>
-                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => document.getElementById("saved-encounters-queue")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => { setActiveTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
                         Go to existing encounter
                       </Button>
                     </div>
@@ -293,7 +310,7 @@ export function NurseStationERPage() {
 
       )}
 
-      {(activeTab === "queue" || activeTab === "clinical") && <Card id="encounter-records-panel">
+      {(activeTab === "queue" || activeTab === "clinical") && (<Card id="encounter-records-panel">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
