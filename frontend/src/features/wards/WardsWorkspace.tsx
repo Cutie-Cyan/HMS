@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { BedDouble, CheckCircle2, RefreshCw, ShieldAlert } from "lucide-react";
+import { BedDouble, CheckCircle2, Plus, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
@@ -201,6 +201,9 @@ export function WardsWorkspace() {
   const [roomId, setRoomId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [configOpen, setConfigOpen] = useState(false);
+  const [configTab, setConfigTab] = useState<"room" | "bed">("bed");
+  const [selectedWardId, setSelectedWardId] = useState("");
   const saveRoom = useMutation({
     mutationFn: async (v: { code: string; wardId: string; isPrivate: boolean }) => {
       const { error } = await getSupabaseClient().rpc("admin_save_room", {
@@ -311,8 +314,34 @@ export function WardsWorkspace() {
           {error || message}
         </div>
       )}
-      {role === "admin" && (
-        <Card>
+      {role === "admin" && <div className="flex justify-end"><Button onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Plus size={16} /> Add room / bed</Button></div>}
+      {configOpen && role === "admin" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 id="ward-config-title" className="font-semibold">Configure rooms and beds</h2><p className="mt-1 text-sm text-slate-500">Add a room first for private beds.</p></div><button type="button" aria-label="Close" onClick={() => setConfigOpen(false)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></header>
+            <div className="flex gap-2 border-b border-slate-200 px-5 py-3"><Button type="button" variant={configTab === "bed" ? "primary" : "secondary"} onClick={() => setConfigTab("bed")}>Add bed</Button><Button type="button" variant={configTab === "room" ? "primary" : "secondary"} onClick={() => setConfigTab("room")}>Add room</Button></div>
+            <div className="overflow-y-auto p-5">
+              {configTab === "room" ? (
+                <form onSubmit={async (e) => { await submitRoom(e); if (!saveRoom.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
+                  <label className="block text-sm font-medium">Ward<select required value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+                  <label className="block text-sm font-medium sm:col-span-2">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public / shared</option><option value="private">Private</option></select></label>
+                  <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Saving room…" : "Save room"}</Button></div>
+                </form>
+              ) : (
+                <form onSubmit={async (e) => { await submitBed(e); if (!saveBed.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
+                  <label className="block text-sm font-medium">Bed code<input required value={bedCode} onChange={(e) => setBedCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-01" /></label>
+                  <label className="block text-sm font-medium">Ward<select required value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+                  <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
+                  <label className="block text-sm font-medium">Room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required={bedType === "private"}><option value="">Select room</option>{roomsForWard(bedWard, bedType === "private").map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select></label>
+                  <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding bed…" : "Add bed"}</Button></div>
+                </form>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+      <Card>
           <CardHeader><h2 className="font-semibold">Add room</h2></CardHeader>
           <CardContent>
             <form onSubmit={submitRoom} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -379,8 +408,12 @@ export function WardsWorkspace() {
               <p className="mt-2 font-medium">No active wards found</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {wardList.map((w) => {
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-2" role="tablist" aria-label="Select ward">
+                {wardList.slice(0, 4).map((w) => { const count = (board.data ?? []).filter((b) => b.ward_id === w.id && b.bed_id).length; const active = (selectedWardId || wardList[0]?.id) === w.id; return <button key={w.id} type="button" role="tab" aria-selected={active} onClick={() => setSelectedWardId(w.id)} className={"min-w-0 rounded-xl border px-2 py-3 text-center text-xs font-semibold sm:px-3 sm:text-sm " + (active ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}><span className="block truncate">{w.name}</span><span className="mt-1 block text-[11px] font-normal opacity-75">{count} beds</span></button>; })}
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto overscroll-contain pr-1">
+              {wardList.filter((w) => w.id === (selectedWardId || wardList[0]?.id)).map((w) => {
                 const rows = (board.data ?? []).filter(
                   (b) => b.ward_id === w.id,
                 );
@@ -431,6 +464,7 @@ export function WardsWorkspace() {
                   </section>
                 );
               })}
+              </div>
             </div>
           )}
         </CardContent>
