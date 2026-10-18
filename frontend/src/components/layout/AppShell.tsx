@@ -1,7 +1,7 @@
 import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
-  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail,
+  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -22,7 +22,7 @@ const groups: { title: string; modules: HmsModule[] }[] = [
 ];
 
 export function AppShell() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -78,10 +78,14 @@ export function AppShell() {
         })}
       </div>
       <div className="shrink-0 border-t border-white/10 p-3">
-        <div className={`flex items-center rounded-xl bg-white/[0.06] p-2 ${mobile || expanded ? "gap-3" : "flex-col gap-2"}`}>
-          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sky-100 text-xs font-bold text-sky-900">{initials || <ShieldCheck size={16}/>}</div>
-          {(mobile || expanded) && <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-white">{profile?.displayName ?? "Staff account"}</p><p className="truncate text-[11px] capitalize text-slate-400">{profile?.role.replaceAll("_", " ") ?? "Role not assigned"}</p></div>}
-          
+        <div className={`rounded-xl bg-white/[0.06] p-2 ${mobile || expanded ? "" : "flex flex-col items-center gap-2"}`}>
+          <div className={`flex min-w-0 items-center ${mobile || expanded ? "gap-3" : "justify-center"}`}>
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sky-100 text-xs font-bold text-sky-900 ring-2 ring-white/10">{initials || <UserRound size={16}/>}</div>
+            {(mobile || expanded) && <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-white">{profile?.displayName ?? "Staff account"}</p><p className="truncate text-[11px] capitalize text-slate-400">{profile?.role.replaceAll("_", " ") ?? "Role not assigned"}</p></div>}
+          </div>
+          <button type="button" onClick={() => void signOut()} title="Sign out" aria-label="Sign out" className={`flex h-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-red-500/15 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${mobile || expanded ? "mt-2 w-full gap-2 px-3 text-xs font-medium" : "w-9"}`}>
+            <LogOut size={16}/>{(mobile || expanded) && <span>Sign out</span>}
+          </button>
         </div>
         {(mobile || expanded) && <p className="mt-3 px-1 text-[10px] text-slate-500">Secure staff access</p>}
       </div>
