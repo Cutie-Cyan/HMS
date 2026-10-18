@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Activity, Clock3, RefreshCw, Stethoscope, UserRound } from "lucide-react";
+import { Activity, RefreshCw, Stethoscope, UserRound } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
