@@ -140,10 +140,10 @@ export function InventoryWorkspace() {
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
-  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" ? "requests" : location.pathname === "/lab-results" ? "results" : "stock");
+  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc" ? "requests" : location.pathname === "/lab-results" ? "results" : "stock");
   useEffect(() => {
     if (location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory") setView("profit");
-    else if (location.pathname === "/medicine-requests" || location.pathname === "/lab-requests") setView("requests");
+    else if (location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc") setView("requests");
     else if (location.pathname === "/lab-results") setView("results");
     else if (location.pathname === "/medicine-stock" || location.pathname === "/lab-inventory" || location.pathname === "/inventory") setView("stock");
   }, [location.pathname]);
@@ -226,7 +226,7 @@ export function InventoryWorkspace() {
       setError(requestError(cause));
     }
   };
-  const queue = (requests.data ?? []).filter((r) => r.request_type === type);
+  const queue = (requests.data ?? []).filter((r) => r.request_type === type && (location.pathname !== "/cbc" || r.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count"))));
   const addStarterCatalog = async () => {
     setError("");
     setMessage("");
@@ -497,7 +497,7 @@ export function InventoryWorkspace() {
       {profile?.role === "lab" && view === "results" && <Card><CardHeader><div className="font-semibold">Released laboratory results</div><p className="mt-1 text-sm text-slate-500">Verified results released to the Nurse Station.</p></CardHeader><CardContent>{requests.isLoading ? <p className="py-6 text-sm text-slate-500">Loading lab results…</p> : requests.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load lab results.</p> : (requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).length ? <div className="space-y-3">{(requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).map((r) => <article key={r.request_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{r.patient_name}</p><p className="mt-1 text-xs text-slate-500">{r.patient_number} · {r.ward_name ?? "Emergency / outpatient"}</p></div><Badge tone="success">Released</Badge></div><p className="mt-3 text-sm font-medium">Requested tests</p><p className="text-sm text-slate-600">{r.items.map((item) => item.description).join(", ")}</p><p className="mt-3 text-sm font-medium">Result</p><p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm">{r.lab_result}</p></article>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No released lab results yet.</p>}</CardContent></Card>}
       {(profile?.role === "pharmacy" || profile?.role === "lab") && view === "profit" && <Card>
         <CardHeader><div className="font-semibold">{type === "lab" ? "Laboratory profit records" : "Medicine profit records"}</div><p className="mt-1 text-sm text-slate-500">Revenue, cost, and profit recorded when paid {type === "lab" ? "laboratory requests" : "medicine requests"} are released.</p></CardHeader>
-        <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check {type === "lab" ? "laboratory" : "pharmacy"} read access to profit records.</p> : profit.data?.length ? <div className="space-y-3">{profit.data.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.recorded_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid {type === "lab" ? "laboratory" : "medicine"} requests are released.</p>}</CardContent>
+        <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check {type === "lab" ? "laboratory" : "pharmacy"} read access to profit records.</p> : profit.data?.length ? <div className="space-y-3">{profit.data.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.recorded_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid {location.pathname === "/cbc" ? "CBC" : type === "lab" ? "laboratory" : "medicine"} requests are released.</p>}</CardContent>
       </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "requests") && <Card>
         <CardHeader>
@@ -542,7 +542,7 @@ export function InventoryWorkspace() {
             </div>
           ) : (
             <p className="py-8 text-center text-sm text-slate-500">
-              No department requests yet.
+              No {location.pathname === "/cbc" ? "CBC" : "department"} requests yet.
             </p>
           )}
         </CardContent>
