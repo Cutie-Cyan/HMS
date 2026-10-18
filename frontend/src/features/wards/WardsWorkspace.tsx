@@ -413,6 +413,37 @@ export function WardsWorkspace() {
                         configured
                       </Badge>
                     </div>
+                    {role === "admin" && (
+                      <div className="mb-4">
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <h3 className="text-sm font-semibold text-slate-700">Rooms</h3>
+                          <span className="text-xs text-slate-500">{(rooms.data ?? []).filter((r) => r.ward_id === w.id).length} configured</span>
+                        </div>
+                        {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
+                          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                            {(rooms.data ?? []).filter((r) => r.ward_id === w.id).map((room) => {
+                              const roomBeds = rows.filter((b) => b.room_id === room.id || b.room_code === room.room_code);
+                              const occupied = roomBeds.filter((b) => b.bed_id && b.occupied).length;
+                              const total = roomBeds.filter((b) => b.bed_id).length;
+                              return (
+                                <div key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-semibold text-slate-800">{room.room_code}</p>
+                                      <p className="mt-1 text-xs text-slate-500">{room.is_private ? "Private room" : "Public / shared room"}</p>
+                                    </div>
+                                    <Badge tone={room.is_active ? "success" : "neutral"}>{room.is_active ? "Active" : "Inactive"}</Badge>
+                                  </div>
+                                  <p className="mt-3 text-xs text-slate-600">{total} beds · {occupied} occupied · {Math.max(0, total - occupied)} available</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="rounded-lg border border-dashed border-slate-300 p-3 text-xs text-slate-500">No rooms configured in this ward yet.</p>
+                        )}
+                      </div>
+                    )}
                     {rows.some((b) => b.bed_id) ? (
                       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {rows
