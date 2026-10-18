@@ -1,6 +1,6 @@
 # HMS Python Backend
 
-The HMS backend is built with **Python + FastAPI**. It provides the server-side API layer; the React frontend remains in `../frontend/`, and Supabase Postgres remains the database.
+The HMS API uses Python and FastAPI, with Supabase Auth and Postgres.
 
 ## Setup
 
@@ -8,28 +8,17 @@ From this directory:
 
 ```bash
 uv sync --extra dev
+cp .env.example .env
 uv run uvicorn app.main:app --reload
 ```
 
-API docs: `http://127.0.0.1:8000/docs`
+Open `http://127.0.0.1:8000/docs` for interactive API docs.
 
-## Environment
+Configure `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` in `.env`. Never commit secrets or expose the service-role key to the frontend.
 
-Create `.env` in `backend/` (never commit real secrets):
+## Implemented routes
 
-```env
-HMS_ENV=development
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_server_only_service_role_key
-```
+- `GET /api/health` — health check.
+- `POST /api/admin/staff/invite` — administrator-only staff creation, profile insertion, optional ward assignment, and audit logging.
 
-The service-role key must only be used by the backend and must never be exposed to the browser. The health endpoint does not require Supabase credentials.
-
-## Current API
-
-- `GET /api/health` — process health and runtime metadata.
-- `GET /docs` — interactive OpenAPI documentation in development.
-
-## Architecture notes
-
-The frontend currently contains existing Supabase client workflows. Those workflows are not silently replaced by this scaffold: each feature should be migrated to FastAPI deliberately, preserving role checks, database policies, and audit logging. Do not disable Supabase RLS or trust a role sent by the browser.
+The frontend must set `VITE_HMS_API_URL=http://127.0.0.1:8000` locally. Existing Supabase workflows are migrated incrementally; do not disable RLS or trust roles sent by the browser.
