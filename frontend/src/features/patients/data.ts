@@ -68,6 +68,7 @@ export interface EncounterRecord {
   doctor_form_returned_at: string | null;
   findings_recorded_at: string | null;
   findings_recorded_by: string | null;
+  nurse_assessment: string | null;
 }
 export interface RegisterPatientInput {
   firstName: string;
@@ -301,11 +302,12 @@ export function useSaveEncounter() {
 export function useSaveEncounterPhase1() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; doctorId: string | null; encounterId?: string }) => {
-      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_save_encounter_phase1", {
+    mutationFn: async (input: { patientId: string; doctorId: string | null; nurseAssessment: string; encounterId?: string }) => {
+      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_save_encounter_phase1_with_notes", {
         p_patient_id: input.patientId,
         p_doctor_id: input.doctorId || null,
         p_encounter_id: input.encounterId ?? null,
+        p_nurse_assessment: input.nurseAssessment || null,
       });
       if (error) throw error;
       return data as string;
