@@ -52,7 +52,7 @@ export const MODULES: Record<
   wards: {
     label: "Wards & beds",
     path: "/wards",
-    roles: ["admin", "emergency_nurse", "nurse_station"],
+    roles: ["admin", "nurse_station"],
   },
   billing: {
     label: "Billing & discharge",
