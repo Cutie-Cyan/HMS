@@ -61,7 +61,9 @@ function SessionGate() {
 function RoleGate({ module }: { module: HmsModule }) {
   const { profile } = useAuth();
   if (!profile) return <Navigate to="/login" replace />;
-  if (!canAccessModule(profile.role, module)) return <AccessDeniedPage />;
+  if (!canAccessModule(profile.role, module)) {
+    return <Navigate to={homePathForRole(profile.role)} replace />;
+  }
   if (module === "dashboard") return <DashboardPage />;
   if (module === "patients") return <PatientWorkspace />;
   if (module === "patient-registration") return <PatientRegistrationWorkspace />;
