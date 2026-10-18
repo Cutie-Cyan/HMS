@@ -73,8 +73,8 @@ function FulfillmentCard({
   const cbcResult = cbcFields
     .filter((field) => cbcValues[field.key].trim())
     .map((field) => `${field.label}: ${cbcValues[field.key].trim()} ${field.unit}`)
-    .join("\\n");
-  const resultToSave = isCBC ? `CBC — Complete Blood Count\\n${cbcResult}`.trim() : result;
+    .join("\n");
+  const resultToSave = isCBC ? `CBC — Complete Blood Count\n${cbcResult}`.trim() : result;
   const canRelease =
     request.status === "paid" && (!isLab || resultToSave.trim().length > 0) &&
     (!isCBC || cbcFields.every((field) => cbcValues[field.key].trim().length > 0));
@@ -114,7 +114,10 @@ function FulfillmentCard({
                 {field.label} <span className="font-normal text-slate-500">({field.unit})</span>
                 <input
                   required
-                  inputMode="decimal"
+                  type="number"
+                  min="0"
+                  step="any"
+                  required
                   value={cbcValues[field.key]}
                   onChange={(event) => setCbcValues((current) => ({ ...current, [field.key]: event.target.value }))}
                   className={fieldClass}
