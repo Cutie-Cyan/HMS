@@ -20,11 +20,7 @@ export function AvailableDoctorsWorkspace() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Doctor availability</h2>
-          <p className="mt-1 text-sm text-slate-500">Check who is currently marked on duty and start a consultation with that doctor.</p>
-        </div>
+      <div className="flex justify-end">
         <Button type="button" variant="secondary" onClick={() => void doctors.refetch()} disabled={doctors.isFetching}>
           <RefreshCw size={15} className={doctors.isFetching ? "animate-spin" : ""} />
           Refresh
