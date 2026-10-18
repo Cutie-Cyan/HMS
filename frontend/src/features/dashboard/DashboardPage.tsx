@@ -17,7 +17,7 @@ type InventoryRow = { id: string; item_name: string; quantity_on_hand: number; l
 
 const roleCopy: Record<string, { title: string; description: string }> = {
   admin: { title: "Hospital overview", description: "Monitor system access, ward capacity, and operational setup." },
-  info_officer: { title: "Patient services", description: "Register patients, maintain doctor records, and find existing patient records." },
+  info_officer: { title: "Patient services", description: "Register patients and find existing patient records." },
   emergency_nurse: { title: "Emergency care", description: "Review active encounters, continue consultations, and coordinate admissions." },
   nurse_station: { title: "Ward station", description: "Track your ward's patients, follow request progress, and manage bed transfers." },
   cashier: { title: "Cashier desk", description: "Prioritize unpaid requests and final bills waiting for payment." },
@@ -104,7 +104,8 @@ export function DashboardPage() {
   ] : isInfo ? [
     { label: "Patient records", value: patients.data?.length ?? "—", detail: "Searchable patient directory", icon: Users, to: MODULES.patients.path },
     { label: "Currently active", value: patients.data ? activePatients.length : "—", detail: "Not marked discharged", icon: Activity, to: MODULES.patients.path },
-    { label: "Doctor records", value: "Manage", detail: "Doctor records are not login accounts", icon: Stethoscope, to: MODULES.patients.path },
+    { label: "Registration workspace", value: "Open", detail: "Manual registration and patient QR submissions", icon: ClipboardCheck, to: MODULES["patient-registration"].path },
+    { label: "Self-registration", value: "QR", detail: "Review new patient submissions", icon: UserRoundCheck, to: MODULES["patient-registration"].path },
   ] : isEmergency ? [
     { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Consultations to review or continue", icon: Stethoscope, to: MODULES.encounters.path },
     { label: "Registered / active patients", value: patients.data?.length ?? "—", detail: "Patient directory", icon: Users, to: MODULES.patients.path },
