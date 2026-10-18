@@ -28,7 +28,12 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const items = useRequestableItems(type, canCreate);
-  const displayedItems = mode === "cbc" ? (items.data ?? []).filter((item) => item.item_code.toUpperCase() === "LAB-CBC" || item.item_name.toLowerCase().includes("complete blood count")) : (items.data ?? []);
+  const isCBCItem = (item: { item_code: string; item_name: string }) => item.item_code.toUpperCase() === "LAB-CBC" || item.item_name.toLowerCase().includes("complete blood count");
+  const displayedItems = mode === "cbc"
+    ? (items.data ?? []).filter(isCBCItem)
+    : type === "lab"
+      ? (items.data ?? []).filter((item) => !isCBCItem(item))
+      : (items.data ?? []);
   const selectedItem = displayedItems.find((item) => item.id === itemId);
   const patientEncounter = (encounters.data ?? []).find((encounter) => encounter.patient_id === patientId && encounter.encounter_status === "open");
 
@@ -96,7 +101,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
               <input required type="number" min="1" max={selectedItem?.quantity_on_hand ?? undefined} step="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className={fieldClass} />
             </label>
             {items.isError && <p role="alert" className="text-sm text-rose-700 md:col-span-2">Could not load department items. Check inventory setup and retry.</p>}
-            {!items.isLoading && !items.isError && displayedItems.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2">{mode === "cbc" ? "CBC is not configured in Lab inventory yet. Ask Lab staff to add the CBC Test (Complete Blood Count) item first." : `No active ${type === "medicine" ? "medicine" : "laboratory"} inventory items exist yet. Ask the department to configure stock first.`}</p>}
+            {!items.isLoading && !items.isError && displayedItems.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2">{mode === "cbc" ? "CBC is not configured in Lab inventory yet. Ask Lab staff to add the CBC Test (Complete Blood Count) item first." : `No active ${type === "medicine" ? "medicine" : "laboratory"} items are available here. CBC requests use the dedicated CBC sidebar; ask the department to configure other items if needed.`}</p>}
             <div className="md:col-span-2"><Button type="submit" disabled={create.isPending || patients.isLoading || encounters.isLoading || items.isLoading || !patientId || !patientEncounter || !itemId || Number(quantity) < 1 || Number(quantity) > Number(selectedItem?.quantity_on_hand ?? 0)}>{create.isPending ? "Creating request…" : "Send to Cashier"}</Button></div>
           </form>}
         </CardContent>
