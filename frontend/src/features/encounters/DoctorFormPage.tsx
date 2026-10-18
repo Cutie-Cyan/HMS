@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Printer, Stethoscope } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import {
@@ -32,6 +33,8 @@ export function DoctorFormPage() {
   const doctors = useDoctors();
   const encounters = useOpenEncounters();
   const save = useSaveEncounter();
+  const [searchParams] = useSearchParams();
+  const requestedDoctorId = searchParams.get("doctorId");
   const [patientId, setPatientId] = useState("");
   const [encounterId, setEncounterId] = useState("");
   const [doctorId, setDoctorId] = useState("");
@@ -58,8 +61,11 @@ export function DoctorFormPage() {
     );
     setPatientId(id);
     setEncounterId(existing?.encounter_id ?? "");
+    const requestedDoctor = doctors.data?.find(
+      (doctor) => doctor.id === requestedDoctorId && doctor.is_on_duty,
+    );
     setDoctorId(
-      existing?.doctor_id ?? doctors.data?.find((doctor) => doctor.is_on_duty)?.id ?? "",
+      existing?.doctor_id ?? requestedDoctor?.id ?? doctors.data?.find((doctor) => doctor.is_on_duty)?.id ?? "",
     );
     setFindings(existing?.findings ?? "");
     setRecommendations(existing?.recommendations ?? "");
