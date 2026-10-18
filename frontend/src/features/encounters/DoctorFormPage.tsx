@@ -119,6 +119,7 @@ export function DoctorFormPage() {
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
       setEncounterView("queue");
+      setActiveTab("queue");
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
       window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       setPatientId("");
@@ -161,6 +162,7 @@ export function DoctorFormPage() {
         recommendationType,
       });
       setEncounterView("saved");
+      setActiveTab("clinical");
       setSuccess("Doctor's findings and recommendations were recorded. The encounter is now saved.");
       setSelectedEncounter(null);
       await refresh();
@@ -248,7 +250,7 @@ export function DoctorFormPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">Encounter already in queue</p>
                       <p className="mt-1 leading-5">This patient already has an active encounter ({stageLabel(existingEncounter.workflow_stage).toLowerCase()}). Continue the existing record to avoid duplicates.</p>
-                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => document.getElementById("saved-encounters-queue")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => { setActiveTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
                         Go to existing encounter
                       </Button>
                     </div>
