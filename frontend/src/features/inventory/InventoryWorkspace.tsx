@@ -117,7 +117,6 @@ function FulfillmentCard({
                   type="number"
                   min="0"
                   step="any"
-                  required
                   value={cbcValues[field.key]}
                   onChange={(event) => setCbcValues((current) => ({ ...current, [field.key]: event.target.value }))}
                   className={fieldClass}
