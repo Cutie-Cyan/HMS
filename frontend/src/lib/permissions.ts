@@ -94,9 +94,9 @@ export const MODULES: Record<
     roles: ["lab"],
   },
   "lab-profit-inventory": {
-    label: "Lab Financial Records",
+    label: "Laboratory Profit Inventory",
     path: "/lab-profit-inventory",
-    roles: [],
+    roles: ["lab"],
   },
   cbc: {
     label: "CBC",
