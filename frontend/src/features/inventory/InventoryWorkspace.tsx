@@ -52,14 +52,37 @@ function FulfillmentCard({
   onFulfill: (id: string, result: string) => Promise<void>;
 }) {
   const [result, setResult] = useState("");
+  const [specimenType, setSpecimenType] = useState("");
+  const [specimenStatus, setSpecimenStatus] = useState("received_acceptable");
+  const [conductedAt, setConductedAt] = useState("");
   const [cbcValues, setCbcValues] = useState({
     wbc: "", rbc: "", hemoglobin: "", hematocrit: "",
     platelets: "", mcv: "", mch: "", mchc: "",
   });
-  const isCBC = isLab && request.items.some((item) =>
-    item.description.toLowerCase().includes("cbc") ||
-    item.description.toLowerCase().includes("complete blood count"),
-  );
+  const [commonValues, setCommonValues] = useState<Record<string, string>>({});
+  const requestedTest = request.items.map((item) => item.description).join(" ").toLowerCase();
+  const isCBC = isLab && (requestedTest.includes("cbc") || requestedTest.includes("complete blood count"));
+  const isUrinalysis = isLab && (requestedTest.includes("urinalysis") || requestedTest.includes("urine"));
+  const isPregnancy = isLab && requestedTest.includes("pregnancy");
+  const isBloodTyping = isLab && (requestedTest.includes("blood typing") || requestedTest.includes("blood type"));
+  const testFields = isUrinalysis ? [
+    { key: "color", label: "Color" }, { key: "appearance", label: "Appearance / clarity" },
+    { key: "specific_gravity", label: "Specific gravity" }, { key: "ph", label: "pH" },
+    { key: "protein", label: "Protein" }, { key: "glucose", label: "Glucose" },
+    { key: "ketones", label: "Ketones" }, { key: "blood", label: "Blood" },
+    { key: "nitrite", label: "Nitrite" }, { key: "leukocyte_esterase", label: "Leukocyte esterase" },
+    { key: "microscopy", label: "Microscopy / other findings" },
+  ] : isPregnancy ? [
+    { key: "result", label: "Observed result (as per kit/procedure)" },
+    { key: "method", label: "Method / kit" },
+  ] : isBloodTyping ? [
+    { key: "abo_group", label: "ABO group" }, { key: "rh_type", label: "Rh(D) type" },
+    { key: "method", label: "Method / other findings" },
+  ] : isLab && !isCBC ? [
+    { key: "analyte", label: "Test / analyte name" }, { key: "measured_value", label: "Measured result" },
+    { key: "unit", label: "Unit" }, { key: "reference_interval", label: "Lab-approved reference interval" },
+    { key: "flag", label: "Flag / interpretation (if verified)" }, { key: "additional_findings", label: "Additional findings / notes" },
+  ] : [];
   const cbcFields = [
     { key: "wbc", label: "WBC", unit: "×10⁹/L" },
     { key: "rbc", label: "RBC", unit: "×10¹²/L" },
@@ -74,10 +97,26 @@ function FulfillmentCard({
     .filter((field) => cbcValues[field.key].trim())
     .map((field) => `${field.label}: ${cbcValues[field.key].trim()} ${field.unit}`)
     .join("\n");
-  const resultToSave = isCBC ? `CBC — Complete Blood Count\n${cbcResult}`.trim() : result;
+  const structuredResult = testFields
+    .filter((field) => commonValues[field.key]?.trim())
+    .map((field) => `${field.label}: ${commonValues[field.key].trim()}`)
+    .join("\n");
+  const resultBody = isCBC ? `CBC — Complete Blood Count\n${cbcResult}` : testFields.length ? structuredResult : result;
+  const resultToSave = isLab
+    ? [`Specimen: ${specimenType.trim() || "Not specified"}`, `Specimen status: ${specimenStatus.replaceAll("_", " ")}`, conductedAt.trim() ? `Conducted at: ${conductedAt.trim()}` : "", resultBody.trim()]
+        .filter(Boolean).join("\n")
+    : result;
+  const structuredRequired = isUrinalysis
+    ? ["color", "appearance"].every((key) => commonValues[key]?.trim())
+    : isPregnancy || isBloodTyping
+      ? commonValues[isPregnancy ? "result" : "abo_group"]?.trim().length > 0
+      : isLab && !isCBC && !isUrinalysis && !isPregnancy && !isBloodTyping
+        ? ["analyte", "measured_value"].every((key) => commonValues[key]?.trim())
+        : true;
   const canRelease =
-    request.status === "paid" && (!isLab || resultToSave.trim().length > 0) &&
-    (!isCBC || cbcFields.every((field) => cbcValues[field.key].trim().length > 0));
+    request.status === "paid" && (!isLab || resultBody.trim().length > 0) &&
+    (!isCBC || cbcFields.every((field) => cbcValues[field.key].trim().length > 0)) &&
+    (!isLab || (specimenType.trim().length > 0 && specimenStatus === "received_acceptable" && structuredRequired));
   return (
     <article className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -102,42 +141,63 @@ function FulfillmentCard({
           </div>
         ))}
       </div>
-      {isLab && request.status === "paid" && (isCBC ? (
-        <section className="mt-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
-          <div className="mb-3">
-            <p className="font-semibold text-slate-900">CBC — Complete Blood Count</p>
-            <p className="mt-1 text-xs text-slate-600">Enter all measured values from the laboratory analyzer. Verify values and use your laboratory's approved reference intervals before release; reference ranges are not assumed by this form.</p>
+      {isLab && request.status === "paid" && (
+        <section className="mt-4 space-y-4 rounded-xl border border-sky-100 bg-sky-50/60 p-4">
+          <div>
+            <p className="font-semibold text-slate-900">Laboratory work record</p>
+            <p className="mt-1 text-xs text-slate-600">Record specimen handling and measured findings from the actual procedure. Use the laboratory's approved procedure and reference intervals; do not estimate results.</p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {cbcFields.map((field) => (
-              <label key={field.key} className="text-sm font-medium text-slate-700">
-                {field.label} <span className="font-normal text-slate-500">({field.unit})</span>
-                <input
-                  required
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={cbcValues[field.key]}
-                  onChange={(event) => setCbcValues((current) => ({ ...current, [field.key]: event.target.value }))}
-                  className={fieldClass}
-                  placeholder="Measured value"
-                />
-              </label>
-            ))}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label className="text-sm font-medium text-slate-700">Specimen type
+              <input required value={specimenType} onChange={(event) => setSpecimenType(event.target.value)} className={fieldClass} placeholder={isUrinalysis ? "e.g. urine" : isCBC ? "e.g. EDTA whole blood" : "Actual specimen type"} />
+            </label>
+            <label className="text-sm font-medium text-slate-700">Specimen condition
+              <select required value={specimenStatus} onChange={(event) => setSpecimenStatus(event.target.value)} className={fieldClass}>
+                <option value="received_acceptable">Received — acceptable</option>
+                <option value="rejected">Rejected — do not release result</option>
+              </select>
+            </label>
+            <label className="text-sm font-medium text-slate-700">Conducted date/time
+              <input type="datetime-local" value={conductedAt} onChange={(event) => setConductedAt(event.target.value)} className={fieldClass} />
+            </label>
           </div>
+          {isCBC ? (
+            <>
+              <p className="text-sm font-semibold text-slate-800">CBC measurements</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {cbcFields.map((field) => (
+                  <label key={field.key} className="text-sm font-medium text-slate-700">
+                    {field.label} <span className="font-normal text-slate-500">({field.unit})</span>
+                    <input required type="number" min="0" step="any" value={cbcValues[field.key]} onChange={(event) => setCbcValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Measured value" />
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : testFields.length ? (
+            <>
+              <p className="text-sm font-semibold text-slate-800">{isUrinalysis ? "Urinalysis findings" : isPregnancy ? "Pregnancy test findings" : isBloodTyping ? "Blood typing findings" : "Test measurements and findings"}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {testFields.map((field) => (
+                  <label key={field.key} className="text-sm font-medium text-slate-700">
+                    {field.label}
+                    {field.key === "microscopy" || field.key === "additional_findings" || field.key === "method" ? (
+                      <textarea rows={2} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Enter actual finding" />
+                    ) : (
+                      <input required={["color", "appearance", "result", "abo_group", "analyte", "measured_value"].includes(field.key)} value={commonValues[field.key] ?? ""} onChange={(event) => setCommonValues((current) => ({ ...current, [field.key]: event.target.value }))} className={fieldClass} placeholder="Enter measured / observed result" />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : null}
+          {!isCBC && !testFields.length && (
+            <label className="block text-sm font-medium text-slate-700">Conducted test and verified result
+              <textarea rows={4} required value={result} onChange={(event) => setResult(event.target.value)} className={fieldClass} placeholder="Record the test actually performed, findings, units, and lab-approved reference interval where applicable." />
+            </label>
+          )}
+          {specimenStatus === "rejected" && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">This specimen is rejected. Do not release a result; request a suitable replacement specimen.</p>}
         </section>
-      ) : (
-        <label className="mt-4 block text-sm font-medium text-slate-700">
-          Lab result (required before release)
-          <textarea
-            rows={3}
-            value={result}
-            onChange={(e) => setResult(e.target.value)}
-            className={fieldClass}
-            placeholder="Enter the verified result for the Nurse Station…"
-          />
-        </label>
-      ))}
+      )}
       {isLab && request.lab_result && (
         <p className="mt-3 rounded-xl border border-sky-100 bg-sky-50 p-3 text-sm text-sky-900">
           Saved result: {request.lab_result}
@@ -332,53 +392,6 @@ export function InventoryWorkspace() {
     }
   };
   const queue = (requests.data ?? []).filter((r) => r.request_type === type && (location.pathname !== "/cbc" || r.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count"))));
-  const addStarterCatalog = async () => {
-    setError("");
-    setMessage("");
-    const catalog = [
-      { name: "CBC Test (Complete Blood Count)", code: "LAB-CBC", unit: "test", stock: 100, price: 350, cost: 150, lowStock: 10, catalogType: "requestable" as const },
-      { name: "Urinalysis", code: "LAB-UA", unit: "test", stock: 100, price: 180, cost: 65, lowStock: 10, catalogType: "requestable" as const },
-      { name: "Blood Chemistry Panel", code: "LAB-CHEM", unit: "test", stock: 100, price: 450, cost: 220, lowStock: 10, catalogType: "requestable" as const },
-      { name: "Pregnancy Test", code: "LAB-PREG", unit: "test", stock: 100, price: 200, cost: 75, lowStock: 10, catalogType: "requestable" as const },
-      { name: "Blood Typing", code: "LAB-BT", unit: "test", stock: 100, price: 250, cost: 110, lowStock: 10, catalogType: "requestable" as const },
-      { name: "CBC Reagent", code: "SUP-CBC-REAGENT", unit: "bottle", stock: 10, price: 0, cost: 1800, lowStock: 2, catalogType: "supply" as const },
-      { name: "Blood Collection Tubes", code: "SUP-BLOOD-TUBE", unit: "piece", stock: 200, price: 0, cost: 8, lowStock: 30, catalogType: "supply" as const },
-      { name: "Syringes and Needles", code: "SUP-SYRINGE", unit: "piece", stock: 200, price: 0, cost: 5, lowStock: 30, catalogType: "supply" as const },
-      { name: "Gloves", code: "SUP-GLOVES", unit: "pair", stock: 100, price: 0, cost: 4, lowStock: 20, catalogType: "supply" as const },
-      { name: "Urine Specimen Containers", code: "SUP-URINE-CUP", unit: "piece", stock: 100, price: 0, cost: 7, lowStock: 20, catalogType: "supply" as const },
-      { name: "Urine Test Strips", code: "SUP-URINE-STRIP", unit: "strip", stock: 100, price: 0, cost: 12, lowStock: 20, catalogType: "supply" as const },
-      { name: "Pregnancy Test Kits", code: "SUP-PREG-KIT", unit: "kit", stock: 50, price: 0, cost: 35, lowStock: 10, catalogType: "supply" as const },
-      { name: "Microscope Slides", code: "SUP-SLIDE", unit: "piece", stock: 100, price: 0, cost: 3, lowStock: 20, catalogType: "supply" as const },
-      { name: "Pipette Tips", code: "SUP-PIPETTE-TIP", unit: "piece", stock: 500, price: 0, cost: 1, lowStock: 50, catalogType: "supply" as const },
-      { name: "Laboratory Disinfectant", code: "SUP-DISINFECTANT", unit: "bottle", stock: 12, price: 0, cost: 250, lowStock: 3, catalogType: "supply" as const },
-    ];
-    const existing = new Set((inventory.data ?? []).map((item) => item.item_code.toUpperCase()));
-    const missing = catalog.filter((item) => !existing.has(item.code));
-    if (!missing.length) {
-      setMessage("The starter laboratory catalog is already present. Review and update its sample prices and costs as needed.");
-      return;
-    }
-    try {
-      for (const item of missing) {
-        await save.mutateAsync({
-          type: "lab",
-          name: item.name,
-          code: item.code,
-          unit: item.unit,
-          stock: item.stock,
-          price: item.price,
-          cost: item.cost,
-          lowStock: item.lowStock,
-          expectedStock: null,
-          catalogType: item.catalogType,
-        });
-      }
-      setMessage(`Added ${missing.length} starter laboratory items. Sample prices and costs are editable; confirm them against your hospital's actual rates.`);
-    } catch (cause) {
-      setError(requestError(cause));
-    }
-  };
-
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
@@ -571,9 +584,6 @@ export function InventoryWorkspace() {
             <div className="flex flex-wrap gap-2">
               {(profile?.role === "pharmacy" || profile?.role === "lab") && <Button onClick={() => { reset(); setView("add"); }}>
                 <PackagePlus size={15} /> {type === "lab" ? "Add lab item" : "Add medicine"}
-              </Button>}
-              {profile?.role === "lab" && <Button variant="secondary" onClick={() => void addStarterCatalog()} disabled={save.isPending || inventory.isLoading}>
-                <PackagePlus size={15} /> Add starter catalog
               </Button>}
               <Button
                 variant="secondary"
