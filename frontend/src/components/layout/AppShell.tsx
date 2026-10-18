@@ -3,6 +3,7 @@ import {
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
   ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
   FlaskConical, PackageOpen, FileCheck2, ChartBar, ListTodo, Package,
+  UserRoundSearch, UserPlus, HeartPulse, ClipboardCheck, Receipt, Pill, ChartNoAxesCombined, TestTube, Microscope, FileClock, Syringe,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -10,9 +11,26 @@ import { useAuth } from "../../features/auth/AuthProvider";
 import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
-  dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, cbc: Activity,
-  encounters: Stethoscope, triage: Activity, requests: ClipboardList, "available-doctors": UserRoundCheck,
-  wards: BedDouble, billing: Wallet, inventory: FlaskConical, "lab-supplies": PackageOpen, "lab-requests": ListTodo, "lab-results": FileCheck2, "lab-profit-inventory": ChartBar, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": Package, staff: Users, audit: ScrollText,
+  dashboard: LayoutDashboard,
+  patients: UserRoundSearch,
+  "patient-registration": UserPlus,
+  encounters: Stethoscope,
+  triage: HeartPulse,
+  "available-doctors": UserRoundCheck,
+  requests: ClipboardCheck,
+  wards: BedDouble,
+  billing: Receipt,
+  inventory: FlaskConical,
+  "lab-supplies": PackageOpen,
+  "lab-requests": FileClock,
+  "lab-results": TestTube,
+  "lab-profit-inventory": ChartNoAxesCombined,
+  cbc: Microscope,
+  "medicine-stock": Boxes,
+  "medicine-requests": Syringe,
+  "profit-inventory": Wallet,
+  staff: Users,
+  audit: ScrollText,
 };
 const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
