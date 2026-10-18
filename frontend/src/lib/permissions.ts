@@ -12,6 +12,7 @@ export type HmsModule =
   | "inventory"
   | "lab-requests"
   | "lab-results"
+  | "lab-profit-inventory"
   | "medicine-stock"
   | "medicine-requests"
   | "profit-inventory"
@@ -83,6 +84,11 @@ export const MODULES: Record<
   "lab-results": {
     label: "Lab Results",
     path: "/lab-results",
+    roles: ["lab"],
+  },
+  "lab-profit-inventory": {
+    label: "Lab Profit Inventory",
+    path: "/lab-profit-inventory",
     roles: ["lab"],
   },
   "medicine-stock": {
