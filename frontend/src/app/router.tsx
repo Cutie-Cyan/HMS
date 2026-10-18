@@ -29,7 +29,7 @@ import {
 } from "../lib/permissions";
 
 function SessionGate() {
-  const { session, profile, loading, configured, error } = useAuth();
+  const { session, profile, loading, profileLoading, configured, error } = useAuth();
   const location = useLocation();
   if (loading)
     return (
@@ -46,6 +46,15 @@ function SessionGate() {
     );
   if (!session)
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (profileLoading)
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600 shadow-sm">
+          <span className="size-5 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600" aria-hidden="true" />
+          Verifying your staff access…
+        </div>
+      </div>
+    );
   if (!profile)
     return (
       <AccessDeniedPage
