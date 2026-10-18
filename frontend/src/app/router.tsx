@@ -11,6 +11,7 @@ import { SetupPasswordPage } from "../features/auth/SetupPasswordPage";
 import { useAuth } from "../features/auth/AuthProvider";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { PatientWorkspace } from "../features/patients/PatientWorkspace";
+import { PublicPatientRegistrationPage } from "../features/patients/PublicPatientRegistrationPage";
 import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
 import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
 import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
@@ -80,6 +81,7 @@ function RoleHomeRedirect() {
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/patient-registration", element: <PublicPatientRegistrationPage /> },
   { path: "/setup-password", element: <SetupPasswordPage /> },
   {
     element: <SessionGate />,
