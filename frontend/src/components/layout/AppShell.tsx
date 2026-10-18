@@ -1,9 +1,9 @@
 import {
-  Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard,
+  BedDouble, Boxes, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
   ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
-  FlaskConical, PackageOpen, FileCheck2, ChartBar, ListTodo, Package,
-  UserRoundSearch, UserPlus, HeartPulse, ClipboardCheck, Receipt, Pill, ChartNoAxesCombined, TestTube, Microscope, FileClock, Syringe,
+  FlaskConical, PackageOpen,
+  UserRoundSearch, UserPlus, HeartPulse, ClipboardCheck, Receipt, ChartNoAxesCombined, TestTube, Microscope, FileClock, Syringe,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
