@@ -132,6 +132,8 @@ begin
     end if;
   end loop;
 
+  if r.type='lab' and exists (select 1 from public.request_items ri where ri.request_id=p_request_id and not exists (select 1 from public.inventory_consumable_recipes rec where rec.service_item_id=ri.inventory_item_id)) then raise exception using errcode='22023',message='Consumable deduction rules are missing for one or more tests. Configure the test recipe before releasing this request.'; end if;
+
   -- Lock and validate each distinct consumable, aggregating demand across all tests in the request.
   if r.type='lab' then
     for recipe in
@@ -184,4 +186,5 @@ end;
 $function$;
 revoke all on function public.fulfill_hms_request(uuid,text) from public,anon;
 grant execute on function public.fulfill_hms_request(uuid,text) to authenticated;
+create index if not exists inventory_consumable_recipes_supply_item_idx on public.inventory_consumable_recipes(supply_item_id);
 commit;
