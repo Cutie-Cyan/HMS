@@ -90,16 +90,6 @@ export function DoctorFormPage() {
   const printablePatient: PatientRecord | undefined = patient;
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <header className="no-print">
-        <p className="text-sm font-medium text-teal-700">Emergency Nurse</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
-          Doctor form & encounters
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          Record the doctor’s findings and recommendation. Doctors do not sign
-          in; the Emergency Nurse records the consultation.
-        </p>
-      </header>
       {(error || success) && (
         <div
           role={error ? "alert" : "status"}
