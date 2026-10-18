@@ -101,7 +101,7 @@ export const MODULES: Record<
   cbc: {
     label: "CBC",
     path: "/cbc",
-    roles: ["nurse_station", "emergency_nurse", "lab"],
+    roles: ["nurse_station", "emergency_nurse"],
   },
   "medicine-stock": {
     label: "Medicine Stock",
