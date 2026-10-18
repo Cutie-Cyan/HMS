@@ -3,6 +3,7 @@ import type { StaffRole } from "./roles";
 export type HmsModule =
   | "dashboard"
   | "patients"
+  | "patient-registration"
   | "encounters"
   | "requests"
   | "wards"
@@ -29,9 +30,14 @@ export const MODULES: Record<
     ],
   },
   patients: {
-    label: "Patients",
+    label: "Patient Records",
     path: "/patients",
     roles: ["info_officer", "emergency_nurse", "nurse_station"],
+  },
+  "patient-registration": {
+    label: "Patient Registration",
+    path: "/patient-registration-workspace",
+    roles: ["info_officer"],
   },
   encounters: {
     label: "Encounters",
