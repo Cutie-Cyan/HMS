@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Activity, ArrowRight, Eye, EyeOff, ShieldCheck, LockKeyhole, HeartPulse } from "lucide-react";
-import { Link, Navigate } from "react-router-dom";
+import { Eye, EyeOff, LockKeyhole, HeartPulse } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { getSupabaseClient } from "../../lib/supabase";
 import { useAuth } from "./AuthProvider";
 import { Button } from "../../components/ui/Button";
@@ -78,14 +78,11 @@ export function LoginPage() {
         <section className="flex min-w-0 flex-col justify-center px-6 py-8 sm:px-10 sm:py-10 lg:px-16">
           <div className="mb-9 flex items-center justify-between md:hidden">
             <div className="flex items-center gap-3"><HmsMark className="size-11"/><div><p className="text-sm font-bold">HMS</p><p className="text-[11px] text-slate-500">Hospital Management</p></div></div>
-            <span className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500"><ShieldCheck size={14}/> Secure access</span>
           </div>
 
           <div className="mx-auto w-full max-w-[390px]">
             <div className="mb-7 hidden size-11 place-items-center rounded-2xl bg-slate-100 text-slate-800 ring-1 ring-slate-200 md:grid"><LockKeyhole size={20}/></div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.17em] text-sky-700">Staff portal</p>
-            <h2 className="mt-2 text-[30px] font-bold tracking-[-0.045em] text-slate-950 sm:text-[34px]">Welcome back</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-500">Sign in with the staff account issued by your HMS administrator.</p>
+            <h2 className="text-[30px] font-bold tracking-[-0.045em] text-slate-950 sm:text-[34px]">Welcome back</h2>
 
             {!configured && <p role="alert" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs leading-5 text-amber-900">Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.</p>}
             {message && <p role="alert" className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs leading-5 text-rose-700">{message}</p>}
@@ -100,17 +97,8 @@ export function LoginPage() {
                   <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl text-slate-400 transition hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500">{showPassword ? <EyeOff size={17}/> : <Eye size={17}/>}</button>
                 </span>
               </label>
-              <Button type="submit" disabled={!configured || submitting} className="mt-2 h-12 w-full rounded-xl bg-[#17191d] text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Signing in…" : <>Sign in securely <ArrowRight size={16}/></>}</Button>
+              <Button type="submit" disabled={!configured || submitting} className="mt-2 h-12 w-full rounded-xl bg-[#17191d] text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{submitting ? "Signing in…" : "Sign in"}</Button>
             </form>
-
-            <div className="mt-6 flex items-start gap-2.5 rounded-xl bg-slate-50 p-3.5 text-[11px] leading-5 text-slate-500 ring-1 ring-slate-100">
-              <ShieldCheck size={16} className="mt-0.5 shrink-0 text-slate-600"/>
-              <p>Access is limited to active staff accounts. If you need access, contact your HMS administrator.</p>
-            </div>
-            <div className="mt-7 flex items-center justify-between border-t border-slate-200 pt-5 text-[10px] text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Activity size={13}/> Protected staff access</span>
-              <Link to="/" className="font-semibold text-slate-600 transition hover:text-sky-700">Return to workspace</Link>
-            </div>
           </div>
         </section>
       </div>
