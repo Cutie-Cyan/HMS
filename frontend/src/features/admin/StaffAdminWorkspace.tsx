@@ -152,7 +152,7 @@ export function StaffAdminWorkspace() {
   return (
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Administration</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">Staff access</h1></div>
+        <div><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">Staff access</h1></div>
         <Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button>
       </header>
       {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
