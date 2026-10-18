@@ -96,6 +96,7 @@ export function homePathForRole(role: StaffRole): string {
   if (role === "emergency_nurse") return "/encounters";
   if (role === "nurse_station") return "/wards";
   if (role === "cashier") return "/billing";
-  if (role === "pharmacy" || role === "lab") return "/inventory";
+  if (role === "pharmacy") return "/medicine-stock";
+  if (role === "lab") return "/inventory";
   return "/";
 }
