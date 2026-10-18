@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Activity, Clock3, RefreshCw, Stethoscope, UserRound } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -10,6 +10,7 @@ const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 2 }).format(Number(value ?? 0));
 
 export function AvailableDoctorsWorkspace() {
+  const navigate = useNavigate();
   const doctors = useDoctors();
   const orderedDoctors = useMemo(
     () => [...(doctors.data ?? [])].sort((a, b) => Number(b.is_on_duty) - Number(a.is_on_duty) || a.full_name.localeCompare(b.full_name)),
@@ -94,7 +95,7 @@ export function AvailableDoctorsWorkspace() {
                     </div>
                   </div>
                   {doctor.is_on_duty ? (
-                    <Button type="button" onClick={() => { window.location.href = `/encounters?doctorId=${encodeURIComponent(doctor.id)}`; }}>
+                    <Button type="button" onClick={() => { navigate(`/encounters?doctorId=${encodeURIComponent(doctor.id)}`); }}>
                       Select doctor
                     </Button>
                   ) : (
