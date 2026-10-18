@@ -43,23 +43,17 @@ export function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
-      <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10 sm:py-10">
-        <div className="mb-8 flex items-center gap-3">
-          <HmsMark className="size-10 rounded-xl bg-black text-white shadow-sm ring-0" />
-          <div>
-            <p className="text-sm font-bold text-slate-950">HMS</p>
-            <p className="mt-0.5 text-xs text-slate-500">Hospital Management</p>
-          </div>
+    <main className="flex min-h-screen items-center justify-center bg-slate-100/70 px-4 py-10 text-slate-900">
+      <section className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+        <div className="mb-7 flex items-center gap-3">
+          <HmsMark className="size-9 rounded-lg bg-slate-900 text-white ring-0" />
+          <h1 className="text-xl font-semibold tracking-tight text-slate-950">Sign in</h1>
         </div>
-
-        <h1 className="text-2xl font-bold tracking-tight text-slate-950">Welcome back</h1>
-        <p className="mt-2 text-sm text-slate-500">Sign in to your staff account.</p>
 
         {!configured && <p role="alert" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs leading-5 text-amber-900">Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.</p>}
         {message && <p role="alert" className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs leading-5 text-rose-700">{message}</p>}
 
-        <form onSubmit={submit} className="mt-7 space-y-5">
+        <form onSubmit={submit} className="space-y-5">
           <label className="block text-sm font-medium text-slate-700">Email address
             <input autoComplete="username" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@hospital.com" className="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-normal text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"/>
           </label>
