@@ -15,6 +15,7 @@ import { PatientRegistrationWorkspace } from "../features/patients/PatientRegist
 import { PublicPatientRegistrationPage } from "../features/patients/PublicPatientRegistrationPage";
 import { PatientPortalPage } from "../features/patients/PatientPortalPage";
 import { DoctorFormPage } from "../features/encounters/DoctorFormPage";
+import { NurseStationERPage } from "../features/encounters/NurseStationERPage";
 import { AvailableDoctorsWorkspace } from "../features/encounters/AvailableDoctorsWorkspace";
 import { RequestsWorkspace } from "../features/requests/RequestsWorkspace";
 import { InventoryWorkspace } from "../features/inventory/InventoryWorkspace";
@@ -78,6 +79,12 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "patients") return <PatientWorkspace />;
   if (module === "patient-registration") return <PatientRegistrationWorkspace />;
   if (module === "encounters") return <DoctorFormPage />;
+  if (module === "triage") {
+    if (profile.role !== "nurse_station" || profile.wardId !== "e073038e-a976-4c7a-88ca-eb5c3418d287") {
+      return <Navigate to={homePathForRole(profile.role)} replace />;
+    }
+    return <NurseStationERPage />;
+  }
   if (module === "available-doctors") return <AvailableDoctorsWorkspace />;
   if (module === "requests") return <RequestsWorkspace />;
   if (module === "cbc") return <RequestsWorkspace mode="cbc" />;
@@ -113,6 +120,7 @@ export const router = createBrowserRouter([
           { path: "patients", element: <RoleGate module="patients" /> },
           { path: "patient-registration-workspace", element: <RoleGate module="patient-registration" /> },
           { path: "encounters", element: <RoleGate module="encounters" /> },
+          { path: "nurse-station-er", element: <RoleGate module="triage" /> },
           { path: "available-doctors", element: <RoleGate module="available-doctors" /> },
           { path: "requests", element: <RoleGate module="requests" /> },
           { path: "cbc", element: <RoleGate module="cbc" /> },
