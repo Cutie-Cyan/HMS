@@ -504,9 +504,9 @@ export function InventoryWorkspace() {
             <p role="alert" className="py-6 text-sm text-rose-700">
               Could not load department inventory.
             </p>
-          ) : inventory.data?.length ? (
+          ) : inventory.data?.filter((item) => type !== "lab" || (item.catalog_type ?? "requestable") === "requestable").length ? (
             <div className="space-y-3">
-              {inventory.data.map((item) => (
+              {inventory.data.filter((item) => type !== "lab" || (item.catalog_type ?? "requestable") === "requestable").map((item) => (
                 <div
                   key={item.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3"
@@ -551,12 +551,31 @@ export function InventoryWorkspace() {
           ) : (
             <div className="py-8 text-center">
               <CheckCircle2 className="mx-auto text-slate-300" size={28} />
-              <p className="mt-2 font-medium">{type === "lab" ? "No tests or consumables configured" : "No medicines configured"}</p>
+              <p className="mt-2 font-medium">{type === "lab" ? "No diagnostic tests configured" : "No medicines configured"}</p>
               <p className="mt-1 text-sm text-slate-500">
-                {type === "lab" ? "Add diagnostic tests/services and configure actual consumables used by each test." : "Add real pharmacy stock above before accepting requests."}
+                {type === "lab" ? "Add a diagnostic test or service using Add Test." : "Add real pharmacy stock above before accepting requests."}
               </p>
             </div>
           )}
+        </CardContent>
+      </Card>}
+      {profile?.role === "lab" && view === "stock" && <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2 font-semibold"><Boxes size={18} className="text-sky-700" /> Supplies & equipment inventory</div>
+          <p className="mt-1 text-sm text-slate-500">Internal stock used to operate the laboratory. These are not patient-facing sale items or diagnostic tests.</p>
+          <div className="mt-3"><Button onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}><PackagePlus size={15} /> Add Supply</Button></div>
+        </CardHeader>
+        <CardContent>
+          {inventory.isLoading ? <p className="py-4 text-sm text-slate-500">Loading supplies and equipment…</p> : inventory.isError ? <p role="alert" className="py-4 text-sm text-rose-700">Could not load supplies and equipment.</p> : (inventory.data ?? []).filter((item) => item.catalog_type === "supply").length ? <div className="space-y-3">
+            {(inventory.data ?? []).filter((item) => item.catalog_type === "supply").map((item) => <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3">
+              <div className="min-w-0">
+                <p className="font-medium">{item.item_name} <Badge tone="neutral">Internal stock</Badge> <span className="font-mono text-xs text-slate-400">{item.item_code}</span></p>
+                <p className="mt-1 text-sm text-slate-500">Internal cost {money(Number(item.unit_cost))} / {item.unit} · low-stock threshold {item.low_stock_threshold}</p>
+                <div className="mt-2 flex flex-wrap gap-2"><Badge tone={item.quantity_on_hand <= item.low_stock_threshold ? "warning" : "success"}>{item.quantity_on_hand} {item.unit}(s) in stock</Badge>{!item.is_active && <Badge tone="neutral">Inactive</Badge>}{item.quantity_on_hand <= item.low_stock_threshold && <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-800"><AlertTriangle size={13} /> Low stock</span>}</div>
+              </div>
+              <Button variant="secondary" onClick={() => { edit(item); setView("add"); }}>Update details</Button>
+            </div>)}
+          </div> : <p className="py-6 text-center text-sm text-slate-500">No supplies or equipment added yet. Add internal stock here, separately from diagnostic tests.</p>}
         </CardContent>
       </Card>}
       {profile?.role === "lab" && view === "results" && <Card><CardHeader><div className="font-semibold">Released laboratory results</div><p className="mt-1 text-sm text-slate-500">Verified results released to the Nurse Station.</p></CardHeader><CardContent>{requests.isLoading ? <p className="py-6 text-sm text-slate-500">Loading lab results…</p> : requests.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load lab results.</p> : (requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).length ? <div className="space-y-3">{(requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).map((r) => <article key={r.request_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{r.patient_name}</p><p className="mt-1 text-xs text-slate-500">{r.patient_number} · {r.ward_name ?? "Emergency / outpatient"}</p></div><Badge tone="success">Released</Badge></div><p className="mt-3 text-sm font-medium">Requested tests</p><p className="text-sm text-slate-600">{r.items.map((item) => item.description).join(", ")}</p><p className="mt-3 text-sm font-medium">Result</p><p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm">{r.lab_result}</p></article>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No released lab results yet.</p>}</CardContent></Card>}
