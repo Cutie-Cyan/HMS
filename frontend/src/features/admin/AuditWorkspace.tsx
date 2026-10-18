@@ -3,7 +3,6 @@ import { RefreshCw, ScrollText } from "lucide-react";
 import { getSupabaseClient } from "../../lib/supabase";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 
 type AuditRow = { id: number; actor_name: string; actor_email: string | null; action: string; entity_type: string; entity_id: string | null; details: Record<string, unknown>; created_at: string };
 const when = (value: string) => new Date(value).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
