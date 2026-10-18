@@ -11,13 +11,13 @@ import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions"
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, cbc: Activity,
-  encounters: Stethoscope, requests: ClipboardList, "available-doctors": UserRoundCheck,
+  encounters: Stethoscope, triage: Activity, requests: ClipboardList, "available-doctors": UserRoundCheck,
   wards: BedDouble, billing: Wallet, inventory: FlaskConical, "lab-supplies": PackageOpen, "lab-requests": ListTodo, "lab-results": FileCheck2, "lab-profit-inventory": ChartBar, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": Package, staff: Users, audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
   { title: "Workspace", modules: ["dashboard"] },
-  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "available-doctors", "requests", "cbc", "wards"] },
+  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "cbc", "wards"] },
   { title: "Operations", modules: ["billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory"] },
   { title: "Administration", modules: ["staff", "audit"] },
 ];
@@ -41,7 +41,7 @@ export function AppShell() {
 
   const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module));
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
-  const current = allowed.find((module) => MODULES[module].path === location.pathname);
+  const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); return path === location.pathname && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "Overview";
   const initials = (profile?.displayName ?? "Staff").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
@@ -69,10 +69,10 @@ export function AppShell() {
             {(mobile || expanded) && <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{group.title}</p>}
             <div className="space-y-1">{items.map(module => {
               const Icon = icons[module]; const item = MODULES[module];
-              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={() => `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${location.pathname === item.path ? "bg-white text-slate-950 shadow-md" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
-                <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${location.pathname === item.path ? "text-sky-700" : ""}`}/>
+              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={() => { const [path, query] = item.path.split("?"); const active = location.pathname === path && (!query || location.search.slice(1) === query); return `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-white text-slate-950 shadow-md" : "text-slate-400 hover:bg-white/10 hover:text-white"}`; }}>
+                <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${(location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1])) ? "text-sky-700" : ""}`}/>
                 {(mobile || expanded) && <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{item.label}</span>}
-                {location.pathname === item.path && <span className={`absolute right-1.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-sky-600 ${mobile || expanded ? "" : "hidden"}`}/>}
+                {location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1]) && <span className={`absolute right-1.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-sky-600 ${mobile || expanded ? "" : "hidden"}`}/>}
               </NavLink>;
             })}</div>
           </section>;
