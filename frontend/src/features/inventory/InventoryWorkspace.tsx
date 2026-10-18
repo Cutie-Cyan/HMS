@@ -354,8 +354,8 @@ export function InventoryWorkspace() {
               <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Lab inventory" : "Medicine stock"}
             </div>
             <div className="flex flex-wrap gap-2">
-              {profile?.role === "pharmacy" && <Button onClick={() => { reset(); setView("add"); }}>
-                <PackagePlus size={15} /> Add medicine
+              {(profile?.role === "pharmacy" || profile?.role === "lab") && <Button onClick={() => { reset(); setView("add"); }}>
+                <PackagePlus size={15} /> {type === "lab" ? "Add lab item" : "Add medicine"}
               </Button>}
               <Button
                 variant="secondary"
