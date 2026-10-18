@@ -50,6 +50,7 @@ export function DoctorFormPage() {
   const [printTarget, setPrintTarget] = useState<EncounterRecord | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -88,7 +89,9 @@ export function DoctorFormPage() {
       const id = await savePhase1.mutateAsync({ patientId, doctorId: doctorId || null, nurseAssessment });
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
+      setEncounterView("queue");
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
+      window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       setPatientId("");
       setDoctorId("");
       setNurseAssessment("");
@@ -119,9 +122,11 @@ export function DoctorFormPage() {
         recommendations,
         recommendationType,
       });
+      setEncounterView("saved");
       setSuccess("Doctor's findings and recommendations were recorded. The encounter is now saved.");
       setSelectedEncounter(null);
       await refresh();
+      window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     } catch (cause) {
       setError(humanizeError(cause));
     }
@@ -194,17 +199,28 @@ export function DoctorFormPage() {
         </CardContent>
       </Card>
 
-      <Card id="saved-encounters-queue">
+      <Card id="encounter-records-panel">
         <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold tracking-tight text-slate-900">Saved Encounters</h2><p className="mt-1 text-sm text-slate-500">Print a saved form, then update it when the doctor returns it.</p></div><Button variant="secondary" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} /> Refresh</Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">Encounter Records</h2><p className="mt-1 text-sm text-slate-500">Choose which records to view.</p></div>
+            <Button variant="secondary" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} /> Refresh</Button>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-3" role="group" aria-label="Encounter record views">
+            <Button type="button" variant={encounterView === "queue" ? "primary" : "secondary"} onClick={() => setEncounterView("queue")}>Queue <span className="ml-1 rounded-full bg-black/10 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></Button>
+            <Button type="button" variant={encounterView === "saved" ? "primary" : "secondary"} onClick={() => setEncounterView("saved")}>Saved Encounters <span className="ml-1 rounded-full bg-black/10 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></Button>
+          </div>
         </CardHeader>
         <CardContent>
-          {encounters.isLoading ? <p className="py-8 text-center text-sm text-slate-500">Loading encounter queue…</p> : encounters.isError ? <div className="py-6 text-center"><p className="text-sm text-rose-700">Could not load the queue.</p><Button className="mt-3" onClick={() => void encounters.refetch()}>Retry</Button></div> : activeEncounters.length === 0 ? <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">No active encounters</p><p className="mt-1 text-sm text-slate-500">Saved forms will appear here.</p></div> : <div className="space-y-3">{activeEncounters.map((item) => <article key={item.encounter_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-slate-900">{item.patient_name}</h3><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.patient_number}</span><StagePill stage={item.workflow_stage}/></div><p className="mt-1 text-sm text-slate-500">Doctor: {item.doctor_name ?? "Not assigned"} · Saved {new Date(item.created_at).toLocaleString()}</p>{item.findings_recorded_at && <p className="mt-1 text-xs text-slate-500">Doctor form encoded {new Date(item.findings_recorded_at).toLocaleString()}</p>}</div><div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => setPrintTarget(item)}><Printer size={14}/> Print form</Button>
-            {item.workflow_stage === "pending_doctor" && <Button size="sm" onClick={() => void handleReturned(item)} disabled={markReturned.isPending}>Mark form returned</Button>}
-            {item.workflow_stage === "for_encoding" && <Button size="sm" onClick={() => startEncoding(item)}><ClipboardPen size={14}/> Enter findings</Button>}
-            {item.workflow_stage === "recorded" && <Button size="sm" variant="secondary" onClick={() => startEncoding(item)}><Eye size={14}/> View</Button>}
-          </div></div></article>)}</div>}
+          {encounters.isLoading ? <p className="py-8 text-center text-sm text-slate-500">Loading encounter records…</p> : encounters.isError ? <div className="py-6 text-center"><p className="text-sm text-rose-700">Could not load encounter records.</p><Button className="mt-3" onClick={() => void encounters.refetch()}>Retry</Button></div> : (() => {
+            const visibleEncounters = activeEncounters.filter((item) => encounterView === "queue" ? item.workflow_stage !== "recorded" : item.workflow_stage === "recorded");
+            if (visibleEncounters.length === 0) return <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">{encounterView === "queue" ? "Queue is empty" : "No saved encounters yet"}</p><p className="mt-1 text-sm text-slate-500">{encounterView === "queue" ? "New encounters and forms awaiting encoding will appear here." : "Completed encounters appear here after the doctor’s findings and recommendations are saved."}</p></div>;
+            return <div className="space-y-3">{visibleEncounters.map((item) => <article key={item.encounter_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-slate-900">{item.patient_name}</h3><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.patient_number}</span><StagePill stage={item.workflow_stage}/></div><p className="mt-1 text-sm text-slate-500">Doctor: {item.doctor_name ?? "Not assigned"} · Saved {new Date(item.created_at).toLocaleString()}</p>{item.findings_recorded_at && <p className="mt-1 text-xs text-slate-500">Doctor form encoded {new Date(item.findings_recorded_at).toLocaleString()}</p>}</div><div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setPrintTarget(item)}><Printer size={14}/> Print form</Button>
+              {item.workflow_stage === "pending_doctor" && <Button size="sm" onClick={() => void handleReturned(item)} disabled={markReturned.isPending}>Mark form returned</Button>}
+              {item.workflow_stage === "for_encoding" && <Button size="sm" onClick={() => startEncoding(item)}><ClipboardPen size={14}/> Enter findings</Button>}
+              {item.workflow_stage === "recorded" && <Button size="sm" variant="secondary" onClick={() => startEncoding(item)}><Eye size={14}/> View</Button>}
+            </div></div></article>)}</div>;
+          })()}
         </CardContent>
       </Card>
 
