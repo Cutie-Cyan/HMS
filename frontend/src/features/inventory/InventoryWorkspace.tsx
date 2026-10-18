@@ -140,11 +140,12 @@ export function InventoryWorkspace() {
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
-  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" ? "profit" : location.pathname === "/medicine-requests" ? "requests" : "stock");
+  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" ? "requests" : location.pathname === "/lab-results" ? "results" : "stock");
   useEffect(() => {
     if (location.pathname === "/profit-inventory") setView("profit");
-    else if (location.pathname === "/medicine-requests") setView("requests");
-    else if (location.pathname === "/medicine-stock" || location.pathname === "/inventory") setView("stock");
+    else if (location.pathname === "/medicine-requests" || location.pathname === "/lab-requests") setView("requests");
+    else if (location.pathname === "/lab-results") setView("results");
+    else if (location.pathname === "/medicine-stock" || location.pathname === "/lab-inventory" || location.pathname === "/inventory") setView("stock");
   }, [location.pathname]);
   const profit = useQuery({
     queryKey: ["profit-inventory", type],
@@ -225,9 +226,6 @@ export function InventoryWorkspace() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
-      {profile?.role === "lab" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
-        {([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
-      </div>}
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
