@@ -54,7 +54,7 @@ export function DoctorFormPage() {
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
-    () => (patients.data ?? []).filter((item) => item.status === "registered" || item.status === "in_emergency"),
+    () => (patients.data ?? []).filter((item) => (item.status === "registered" || item.status === "in_emergency") && (!item.current_ward_id || item.current_ward_name === "Emergency Room")),
     [patients.data],
   );
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
@@ -151,7 +151,7 @@ export function DoctorFormPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Start encounter</div>
-          <p className="mt-1 text-sm text-slate-500">Complete the patient details, save, then print for the doctor.</p>
+          <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record initial triage observations, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
         </CardHeader>
         <CardContent>
           {patients.isError || doctors.isError || encounters.isError ? <div role="alert" className="mb-4 text-sm text-rose-700">Unable to load encounter information. Refresh and try again.</div> : null}
@@ -191,7 +191,7 @@ export function DoctorFormPage() {
                 </select>
               </label>
             </section>
-            <label className="block text-sm font-medium text-slate-700">Nurse assessment<textarea rows={3} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Initial observations (optional)" className={inputClass}/></label>
+            <div><label className="block text-sm font-medium text-slate-700">Triage and initial nurse assessment<textarea rows={4} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Triage priority, chief complaint, vital signs, allergies, pain score, and initial observations" className={inputClass}/></label><p className="mt-1.5 text-xs leading-5 text-slate-500">Record the available clinical observations and reassess when needed. This note will be included on the printed encounter form.</p></div>
             <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
             </Button>
@@ -202,7 +202,7 @@ export function DoctorFormPage() {
       <Card id="encounter-records-panel">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">Encounter Records</h2><p className="mt-1 text-sm text-slate-500">Choose which records to view.</p></div>
+            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
             <Button variant="secondary" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} /> Refresh</Button>
           </div>
           <div className="flex flex-wrap gap-2 pt-3" role="group" aria-label="Encounter record views">
