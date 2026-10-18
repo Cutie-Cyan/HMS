@@ -419,7 +419,8 @@ export function WardsWorkspace() {
                       <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"rounded-lg border px-4 py-2 text-sm font-semibold " + (boardView === "rooms" ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
                     </div>
                     {boardView === "rooms" ? (
-                            {role === "admin" && (
+                      <>
+                        {role === "admin" && (
                               <div className="mb-4">
                                 <div className="mb-2 flex items-center justify-between gap-2">
                                   <h3 className="text-sm font-semibold text-slate-700">Rooms</h3>
@@ -450,8 +451,10 @@ export function WardsWorkspace() {
                                 )}
                               </div>
                             )}
+                      </>
                     ) : (
-                            {rows.some((b) => b.bed_id) ? (
+                      <>
+                        {rows.some((b) => b.bed_id) ? (
                               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                                 {rows
                                   .filter((b) => b.bed_id)
@@ -472,6 +475,7 @@ export function WardsWorkspace() {
                                 No beds configured in this ward yet.
                               </p>
                             )}
+                      </>
                     )}
                   </section>
                 );
