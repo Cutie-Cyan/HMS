@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Boxes,
@@ -8,6 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { getSupabaseClient } from "../../lib/supabase";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
@@ -136,6 +138,16 @@ export function InventoryWorkspace() {
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
+  const [view, setView] = useState<"stock" | "profit" | "requests" | "add">("stock");
+  const profit = useQuery({
+    queryKey: ["profit-inventory", type],
+    enabled: profile?.role === "pharmacy" && view === "profit",
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient().from("profit_inventory").select("id, request_id, department, quantity, revenue, cost, profit, created_at").eq("department", "medicine").order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; request_id: string; department: string; quantity: number; revenue: number; cost: number; profit: number; created_at: string }[];
+    },
+  });
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [unit, setUnit] = useState("unit");
@@ -206,6 +218,9 @@ export function InventoryWorkspace() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      {profile?.role === "pharmacy" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
+        {([{id:"stock",label:"Medicine stock"},{id:"profit",label:"Profit records"},{id:"requests",label:"Medicine requests"},{id:"add",label:"Add medicine"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
+      </div>}
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
@@ -214,7 +229,7 @@ export function InventoryWorkspace() {
           {error || message}
         </div>
       )}
-      <Card>
+      {(profile?.role !== "pharmacy" || view === "add") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
             <PackagePlus size={18} className="text-teal-700" />
@@ -324,8 +339,8 @@ export function InventoryWorkspace() {
             </div>
           </form>
         </CardContent>
-      </Card>
-      <Card>
+      </Card>}
+      {(profile?.role !== "pharmacy" || view === "stock") && <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
@@ -403,8 +418,12 @@ export function InventoryWorkspace() {
             </div>
           )}
         </CardContent>
-      </Card>
-      <Card>
+      </Card>}
+      {profile?.role === "pharmacy" && view === "profit" && <Card>
+        <CardHeader><div className="font-semibold">Medicine profit records</div><p className="mt-1 text-sm text-slate-500">Revenue, cost, and profit recorded when paid medicine requests are released.</p></CardHeader>
+        <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check pharmacy read access to profit records.</p> : profit.data?.length ? <div className="space-y-3">{profit.data.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.created_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid medicine requests are released.</p>}</CardContent>
+      </Card>}
+      {(profile?.role !== "pharmacy" || view === "requests") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
             <ClipboardCheck size={18} className="text-teal-700" /> Paid{" "}
@@ -451,7 +470,7 @@ export function InventoryWorkspace() {
             </p>
           )}
         </CardContent>
-      </Card>
+      </Card>}
     </div>
   );
 }
