@@ -14,6 +14,7 @@ export interface PatientRecord {
   pwd_or_senior: boolean;
   status: string;
   current_ward_id: string | null;
+  current_ward_name?: string | null;
   created_at: string;
 }
 export interface PatientRegistrationSubmission {
@@ -96,21 +97,11 @@ export interface EncounterInput {
   encounterId?: string;
 }
 export function humanizeError(error: unknown): string {
-  const message =
-    error instanceof Error
-      ? error.message
-      : "The request could not be completed.";
-  if (message.includes("42501") || message.toLowerCase().includes("permission"))
-    return "Your staff role is not allowed to perform this action.";
-  if (
-    message.includes("23505") ||
-    message.toLowerCase().includes("already has an open encounter")
-  )
-    return "This patient already has an open encounter. Select it from the queue to update the form.";
-  if (message.includes("P0002") || message.toLowerCase().includes("not found"))
-    return "The selected record could not be found. Refresh the list and try again.";
-  if (message.includes("22023"))
-    return message.replace(/^.*?message:\s*/i, "").replace(/^\[.*?\]\s*/, "");
+  const message = error instanceof Error ? error.message : "The request could not be completed.";
+  if (message.includes("42501") || message.toLowerCase().includes("permission")) return "Your staff role is not allowed to perform this action.";
+  if (message.includes("23505") || message.toLowerCase().includes("already has an open encounter")) return "This patient already has an open encounter. Select it from the queue to update the form.";
+  if (message.includes("P0002") || message.toLowerCase().includes("not found")) return "The selected record could not be found. Refresh the list and try again.";
+  if (message.includes("22023")) return message.replace(/^.*?message:\s*/i, "").replace(/^\[.*?\]\s*/, "");
   return message;
 }
 export function usePatientDirectory(search = "", enabled = true) {
@@ -118,10 +109,7 @@ export function usePatientDirectory(search = "", enabled = true) {
     enabled,
     queryKey: ["patients", "directory", search],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "staff_patient_directory",
-        { p_search: search.trim() || null },
-      );
+      const { data, error } = await getSupabaseClient().rpc("staff_patient_directory", { p_search: search.trim() || null });
       if (error) throw error;
       return (data ?? []) as PatientRecord[];
     },
@@ -132,11 +120,7 @@ export function useDoctors(enabled = true) {
     enabled,
     queryKey: ["doctors", "active"],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient()
-        .from("doctors")
-        .select("id,full_name,specialty,is_on_duty,fixed_fee,is_active")
-        .eq("is_active", true)
-        .order("full_name");
+      const { data, error } = await getSupabaseClient().from("doctors").select("id,full_name,specialty,is_on_duty,fixed_fee,is_active").eq("is_active", true).order("full_name");
       if (error) throw error;
       return (data ?? []) as DoctorRecord[];
     },
@@ -147,38 +131,29 @@ export function usePatientHistory(patientId: string | null, enabled = true) {
     enabled: enabled && Boolean(patientId),
     queryKey: ["patients", "history", patientId],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient().rpc("info_officer_patient_history", {
-        p_patient_id: patientId,
-      });
+      const { data, error } = await getSupabaseClient().rpc("info_officer_patient_history", { p_patient_id: patientId });
       if (error) throw error;
       return (data ?? []) as PatientHistoryRecord[];
     },
   });
 }
-
 export function useOpenEncounters(enabled = true) {
   return useQuery({
     enabled,
     queryKey: ["encounters", "open"],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "staff_encounter_queue",
-        { p_status: "open" },
-      );
+      const { data, error } = await getSupabaseClient().rpc("staff_encounter_queue", { p_status: "open" });
       if (error) throw error;
       return (data ?? []) as EncounterRecord[];
     },
   });
 }
-
 export function usePendingPatientSubmissions(enabled = true) {
   return useQuery({
     enabled,
     queryKey: ["patients", "registration-submissions", "pending"],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "info_officer_pending_patient_submissions",
-      );
+      const { data, error } = await getSupabaseClient().rpc("info_officer_pending_patient_submissions");
       if (error) throw error;
       return (data ?? []) as PatientRegistrationSubmission[];
     },
@@ -191,44 +166,27 @@ export function useReviewPatientSubmission() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { submissionId: string; approve: boolean }) => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "info_officer_review_patient_submission",
-        { p_submission_id: input.submissionId, p_approve: input.approve },
-      );
+      const { data, error } = await getSupabaseClient().rpc("info_officer_review_patient_submission", { p_submission_id: input.submissionId, p_approve: input.approve });
       if (error) throw error;
       const rows = data as { submission_id: string; submission_status: string; patient_id: string | null; patient_number: string | null }[] | null;
       if (!rows?.[0]) throw new Error("The submission review did not return a result.");
       return rows[0];
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["patients"] });
-    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
-
 export function useRegisterPatient() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: RegisterPatientInput) => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "info_officer_register_patient",
-        {
-          p_first_name: input.firstName,
-          p_middle_name: input.middleName || null,
-          p_last_name: input.lastName,
-          p_date_of_birth: input.dateOfBirth,
-          p_sex: input.sex,
-          p_phone: input.phone || null,
-          p_address: input.address || null,
-          p_pwd_or_senior: input.pwdOrSenior,
-        },
-      );
+      const { data, error } = await getSupabaseClient().rpc("info_officer_register_patient", {
+        p_first_name: input.firstName, p_middle_name: input.middleName || null, p_last_name: input.lastName,
+        p_date_of_birth: input.dateOfBirth, p_sex: input.sex, p_phone: input.phone || null,
+        p_address: input.address || null, p_pwd_or_senior: input.pwdOrSenior,
+      });
       if (error) throw error;
-      const rows = data as
-        | { patient_id: string; patient_number: string }[]
-        | null;
-      if (!rows?.[0])
-        throw new Error("Registration did not return a patient number.");
+      const rows = data as { patient_id: string; patient_number: string }[] | null;
+      if (!rows?.[0]) throw new Error("Registration did not return a patient number.");
       return rows[0];
     },
     onSuccess: () => client.invalidateQueries({ queryKey: ["patients"] }),
@@ -238,36 +196,21 @@ export function useUpdatePatientDetails() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { patientId: string; dateOfBirth: string; phone: string; address: string }) => {
-      const { error } = await getSupabaseClient().rpc(
-        "info_officer_update_patient_details",
-        {
-          p_patient_id: input.patientId,
-          p_date_of_birth: input.dateOfBirth,
-          p_phone: input.phone.trim() || null,
-          p_address: input.address.trim() || null,
-        },
-      );
+      const { error } = await getSupabaseClient().rpc("info_officer_update_patient_details", {
+        p_patient_id: input.patientId, p_date_of_birth: input.dateOfBirth, p_phone: input.phone.trim() || null, p_address: input.address.trim() || null,
+      });
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["patients"] });
-    },
+    onSuccess: async () => { await client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
 export function useSaveDoctor() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: DoctorInput) => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "info_officer_save_doctor",
-        {
-          p_full_name: input.fullName,
-          p_specialty: input.specialty || null,
-          p_is_on_duty: input.isOnDuty,
-          p_fixed_fee: input.fixedFee,
-          p_doctor_id: input.doctorId ?? null,
-        },
-      );
+      const { data, error } = await getSupabaseClient().rpc("info_officer_save_doctor", {
+        p_full_name: input.fullName, p_specialty: input.specialty || null, p_is_on_duty: input.isOnDuty, p_fixed_fee: input.fixedFee, p_doctor_id: input.doctorId ?? null,
+      });
       if (error) throw error;
       return data as string;
     },
@@ -278,76 +221,48 @@ export function useSaveEncounter() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: EncounterInput) => {
-      const { data, error } = await getSupabaseClient().rpc(
-        "emergency_nurse_save_encounter",
-        {
-          p_patient_id: input.patientId,
-          p_findings: input.findings || null,
-          p_recommendations: input.recommendations || null,
-          p_recommendation_type: input.recommendationType || null,
-          p_doctor_id: input.doctorId || null,
-          p_encounter_id: input.encounterId ?? null,
-        },
-      );
+      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_save_encounter", {
+        p_patient_id: input.patientId, p_findings: input.findings || null, p_recommendations: input.recommendations || null,
+        p_recommendation_type: input.recommendationType || null, p_doctor_id: input.doctorId || null, p_encounter_id: input.encounterId ?? null,
+      });
       if (error) throw error;
       return data as string;
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["encounters"] });
-      client.invalidateQueries({ queryKey: ["patients"] });
-    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["encounters"] }); client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
-
 export function useSaveEncounterPhase1() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { patientId: string; doctorId: string | null; nurseAssessment: string; encounterId?: string }) => {
       const { data, error } = await getSupabaseClient().rpc("emergency_nurse_save_encounter_phase1_with_notes", {
-        p_patient_id: input.patientId,
-        p_doctor_id: input.doctorId || null,
-        p_encounter_id: input.encounterId ?? null,
-        p_nurse_assessment: input.nurseAssessment || null,
+        p_patient_id: input.patientId, p_doctor_id: input.doctorId, p_encounter_id: input.encounterId ?? null, p_nurse_assessment: input.nurseAssessment || null,
       });
       if (error) throw error;
       return data as string;
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["encounters"] });
-      client.invalidateQueries({ queryKey: ["patients"] });
-    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["encounters"] }); client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
-
 export function useMarkDoctorFormReturned() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (encounterId: string) => {
-      const { error } = await getSupabaseClient().rpc("emergency_nurse_mark_form_returned", {
-        p_encounter_id: encounterId,
-      });
+      const { error } = await getSupabaseClient().rpc("emergency_nurse_mark_form_returned", { p_encounter_id: encounterId });
       if (error) throw error;
     },
     onSuccess: () => client.invalidateQueries({ queryKey: ["encounters"] }),
   });
 }
-
 export function useRecordDoctorFindings() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (input: { encounterId: string; findings: string; recommendations: string; recommendationType: string }) => {
-      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_record_doctor_findings", {
-        p_encounter_id: input.encounterId,
-        p_findings: input.findings,
-        p_recommendations: input.recommendations,
-        p_recommendation_type: input.recommendationType || null,
+      const { error } = await getSupabaseClient().rpc("emergency_nurse_record_doctor_findings", {
+        p_encounter_id: input.encounterId, p_findings: input.findings, p_recommendations: input.recommendations, p_recommendation_type: input.recommendationType || null,
       });
       if (error) throw error;
-      return data as string;
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["encounters"] });
-      client.invalidateQueries({ queryKey: ["patients"] });
-    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ["encounters"] }); client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
