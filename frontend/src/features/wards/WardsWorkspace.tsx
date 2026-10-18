@@ -192,12 +192,30 @@ export function WardsWorkspace() {
     role === "emergency_nurse" || role === "nurse_station",
   );
   const client = useQueryClient();
+  const [roomCode, setRoomCode] = useState("");
+  const [roomWard, setRoomWard] = useState("");
+  const [roomPrivate, setRoomPrivate] = useState(false);
   const [bedCode, setBedCode] = useState("");
   const [bedWard, setBedWard] = useState("");
   const [bedType, setBedType] = useState<"public" | "private">("public");
   const [roomId, setRoomId] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const saveRoom = useMutation({
+    mutationFn: async (v: { code: string; wardId: string; isPrivate: boolean }) => {
+      const { error } = await getSupabaseClient().rpc("admin_save_room", {
+        p_room_code: v.code,
+        p_ward_id: v.wardId,
+        p_is_private: v.isPrivate,
+        p_is_active: true,
+        p_room_id: null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ["wards"] });
+    },
+  });
   const action = useMutation({
     mutationFn: async (v: { encounterId: string; bedId: string }) => {
       const fn =
@@ -238,6 +256,23 @@ export function WardsWorkspace() {
       setError(requestError(e));
     }
   };
+  const submitRoom = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    try {
+      await saveRoom.mutateAsync({
+        code: roomCode.trim(),
+        wardId: roomWard,
+        isPrivate: roomPrivate,
+      });
+      setRoomCode("");
+      setRoomId("");
+      setMessage("Room saved. It is now available when adding a matching bed in this ward.");
+    } catch (err) {
+      setError(requestError(err));
+    }
+  };
   const submitBed = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -275,6 +310,20 @@ export function WardsWorkspace() {
         >
           {error || message}
         </div>
+      )}
+      {role === "admin" && (
+        <Card>
+          <CardHeader><h2 className="font-semibold">Add room</h2></CardHeader>
+          <CardContent>
+            <form onSubmit={submitRoom} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
+              <label className="block text-sm font-medium">Ward<select required value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+              <label className="block text-sm font-medium">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public / shared</option><option value="private">Private</option></select></label>
+              <div className="sm:col-span-2 xl:col-span-4"><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Saving room…" : "Save room"}</Button></div>
+            </form>
+            {rooms.isError && <p role="alert" className="mt-3 text-sm text-rose-700">Could not load saved rooms. Refresh the page or retry after checking the room permissions.</p>}
+          </CardContent>
+        </Card>
       )}
       {role === "admin" && (
         <Card>
