@@ -64,6 +64,10 @@ export interface EncounterRecord {
   patient_status: string;
   current_ward_id: string | null;
   created_at: string;
+  workflow_stage: "pending_doctor" | "for_encoding" | "recorded";
+  doctor_form_returned_at: string | null;
+  findings_recorded_at: string | null;
+  findings_recorded_by: string | null;
 }
 export interface RegisterPatientInput {
   firstName: string;
@@ -284,6 +288,58 @@ export function useSaveEncounter() {
           p_encounter_id: input.encounterId ?? null,
         },
       );
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["encounters"] });
+      client.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+}
+
+export function useSaveEncounterPhase1() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { patientId: string; doctorId: string | null; encounterId?: string }) => {
+      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_save_encounter_phase1", {
+        p_patient_id: input.patientId,
+        p_doctor_id: input.doctorId || null,
+        p_encounter_id: input.encounterId ?? null,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["encounters"] });
+      client.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+}
+
+export function useMarkDoctorFormReturned() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (encounterId: string) => {
+      const { error } = await getSupabaseClient().rpc("emergency_nurse_mark_form_returned", {
+        p_encounter_id: encounterId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: ["encounters"] }),
+  });
+}
+
+export function useRecordDoctorFindings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { encounterId: string; findings: string; recommendations: string; recommendationType: string }) => {
+      const { data, error } = await getSupabaseClient().rpc("emergency_nurse_record_doctor_findings", {
+        p_encounter_id: input.encounterId,
+        p_findings: input.findings,
+        p_recommendations: input.recommendations,
+        p_recommendation_type: input.recommendationType || null,
+      });
       if (error) throw error;
       return data as string;
     },
