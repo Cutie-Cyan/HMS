@@ -77,6 +77,16 @@ function useBillingQueue() {
     },
     onSuccess: () => client.invalidateQueries({ queryKey: ["billing"] }),
   });
+  const recordDischargeOrder = useMutation({
+    mutationFn: async (v: { encounterId: string; note: string }) => {
+      const { error } = await getSupabaseClient().rpc("nurse_station_record_discharge_order", {
+        p_encounter_id: v.encounterId,
+        p_order_note: v.note,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: ["billing"] }),
+  });
   const discharge = useMutation({
     mutationFn: async (encounterId: string) => {
       const { error } = await getSupabaseClient().rpc(
@@ -104,9 +114,10 @@ export function BillingWorkspace() {
   const [philhealthByEncounter, setPhilhealthByEncounter] = useState<
     Record<string, boolean>
   >({});
+  const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const busy = prepare.isPending || pay.isPending || discharge.isPending;
+  const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending;
   const act = async (operation: () => Promise<unknown>, success: string) => {
     setError("");
     setMessage("");
@@ -290,7 +301,7 @@ export function BillingWorkspace() {
                             Record payment
                           </Button>
                         )}
-                        {canDischarge && (
+                        {role === "nurse_station" && row.paid_at && (\n                          <div className="w-full space-y-2 border-t border-slate-200 pt-3">\n                            <label className="block text-sm font-medium text-slate-700">Doctor discharge order (record the written order)\n                              <textarea rows={2} value={dischargeOrderNotes[row.encounter_id] ?? ""} onChange={(event) => setDischargeOrderNotes((current) => ({ ...current, [row.encounter_id]: event.target.value }))} placeholder="Enter the doctor’s discharge order and relevant details" className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white p-3 text-sm" />\n                            </label>\n                            <Button variant="secondary" disabled={busy || !(dischargeOrderNotes[row.encounter_id] ?? "").trim()} onClick={() => void act(() => recordDischargeOrder.mutateAsync({ encounterId: row.encounter_id, note: dischargeOrderNotes[row.encounter_id].trim() }), "Doctor discharge order recorded. You can now discharge this patient.")}>Record doctor order</Button>\n                            <p className="text-xs text-slate-500">Only record an order that has actually been authorized by the doctor. The system will block discharge until an order is recorded.</p>\n                          </div>\n                        )}\n                        {canDischarge && (
                           <Button
                             disabled={busy}
                             onClick={() => {
