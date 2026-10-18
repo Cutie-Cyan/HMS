@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { Activity, Clock3, RefreshCw, Stethoscope, UserRound } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -10,7 +9,6 @@ const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 2 }).format(Number(value ?? 0));
 
 export function AvailableDoctorsWorkspace() {
-  const navigate = useNavigate();
   const doctors = useDoctors();
   const orderedDoctors = useMemo(
     () => [...(doctors.data ?? [])].sort((a, b) => Number(b.is_on_duty) - Number(a.is_on_duty) || a.full_name.localeCompare(b.full_name)),
@@ -90,20 +88,13 @@ export function AvailableDoctorsWorkspace() {
                       <p className="mt-2 text-xs text-slate-500">Consultation fee: {money(doctor.fixed_fee)}</p>
                     </div>
                   </div>
-                  {doctor.is_on_duty ? (
-                    <Button type="button" onClick={() => { navigate(`/encounters?doctorId=${encodeURIComponent(doctor.id)}`); }}>
-                      Select doctor
-                    </Button>
-                  ) : (
-                    <Button type="button" variant="secondary" disabled>Unavailable</Button>
-                  )}
+
                 </article>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-      <p className="text-xs text-slate-500">Availability reflects the doctor’s current on-duty setting in HMS; confirm with staff for urgent cases.</p>
     </div>
   );
 }
