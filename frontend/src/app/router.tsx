@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import { AppShell } from "../components/layout/AppShell";
 import { AccessDeniedPage } from "../components/feedback/AccessDeniedPage";
-import { RouteErrorPage } from "../components/feedback/RouteErrorPage";
 import { LoginPage } from "../features/auth/LoginPage";
 import { SetupPasswordPage } from "../features/auth/SetupPasswordPage";
 import { useAuth } from "../features/auth/AuthProvider";
@@ -87,17 +86,15 @@ function RoleHomeRedirect() {
 }
 
 export const router = createBrowserRouter([
-  { path: "/login", element: <LoginPage />, errorElement: <RouteErrorPage /> },
+  { path: "/login", element: <LoginPage /> },
   { path: "/patient-registration", element: <PublicPatientRegistrationPage />, errorElement: <RouteErrorPage /> },
   { path: "/setup-password", element: <SetupPasswordPage />, errorElement: <RouteErrorPage /> },
   {
     element: <SessionGate />,
-    errorElement: <RouteErrorPage />,
     children: [
       {
         path: "/",
         element: <AppShell />,
-        errorElement: <RouteErrorPage />,
         children: [
           { index: true, element: <RoleHomeRedirect /> },
           { path: "overview", element: <RoleGate module="dashboard" /> },
