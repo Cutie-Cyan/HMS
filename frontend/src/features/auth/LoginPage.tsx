@@ -1,20 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { Activity, ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { getSupabaseClient } from "../../lib/supabase";
 import { useAuth } from "./AuthProvider";
 import { Button } from "../../components/ui/Button";
+import { homePathForRole } from "../../lib/permissions";
 
 export function LoginPage() {
   const { session, profile, loading, configured, refreshProfile } = useAuth();
-  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   if (!loading && session && profile)
-    return <Navigate to={(location.state as { from?: string } | null)?.from ?? "/"} replace />;
+    return <Navigate to={homePathForRole(profile.role)} replace />;
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
