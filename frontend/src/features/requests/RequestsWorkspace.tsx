@@ -45,12 +45,12 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && <div role={error ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || message}</div>}
       {canCreate && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-teal-700" /> Create request</div>
-          <p className="mt-1 text-sm text-slate-500">Choose a patient and an item from the appropriate department inventory. The request will be linked automatically to the patient's open encounter.</p>
+          <div className="flex items-center gap-2 font-semibold"><Send size={18} className="text-sky-700" /> Create request</div>
+          
         </CardHeader>
         <CardContent>
           {patients.isError || encounters.isError ? <p role="alert" className="text-sm text-rose-700">Patient or consultation records could not be loaded. Refresh and try again.</p> : <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
