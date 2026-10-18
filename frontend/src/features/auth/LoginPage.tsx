@@ -6,9 +6,9 @@ import { useAuth } from "./AuthProvider";
 import { Button } from "../../components/ui/Button";
 import { homePathForRole } from "../../lib/permissions";
 
-function HmsMark({ className = "size-10" }: { className?: string }) {
+function HmsMark({ className = "size-10 rounded-2xl bg-black text-white shadow-sm ring-1 ring-black/10" }: { className?: string }) {
   return (
-    <span className={`grid shrink-0 place-items-center rounded-2xl bg-black text-white shadow-sm ring-1 ring-black/10 ${className}`}>
+    <span className={`grid shrink-0 place-items-center ${className}`}>
       <svg viewBox="0 0 48 48" className="size-[70%]" role="img" aria-label="HMS logo">
         <path d="M11 9 L20 14 L31 31 Q34 36 39 32 Q43 28 39 22 L34 14 Q31 10 27 13 L23 16 L28 21 L31 18 L35 25 Q37 29 34 30 Q32 31 30 28 L19 11 Q15 6 11 9Z" fill="currentColor"/>
         <path d="M37 39 L28 34 L17 17 Q14 12 9 16 Q5 20 9 26 L14 34 Q17 38 21 35 L25 32 L20 27 L17 30 L13 23 Q11 19 14 18 Q16 17 18 20 L29 37 Q33 42 37 39Z" fill="currentColor"/>
@@ -55,7 +55,7 @@ export function LoginPage() {
           <div aria-hidden="true" className="absolute -right-10 top-44 size-44 rounded-full border border-white/[0.08]"/>
           <div aria-hidden="true" className="absolute -bottom-24 -left-20 size-72 rounded-full bg-sky-500/10 blur-3xl"/>
           <div className="relative flex items-center gap-3">
-            <HmsMark className="size-12 rounded-2xl bg-[#fff9e7] text-black ring-0"/>
+            <HmsMark className="size-12 rounded-2xl bg-[#fff9e7] text-black shadow-lg ring-0"/>
             <div><p className="text-base font-bold tracking-wide">HMS</p><p className="mt-0.5 text-[11px] text-slate-400">Hospital Management</p></div>
           </div>
 
