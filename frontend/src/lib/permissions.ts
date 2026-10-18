@@ -57,7 +57,7 @@ export const MODULES: Record<
   triage: {
     label: "Triage & Assessment",
     path: "/encounters?tab=triage",
-    roles: ["emergency_nurse"],
+    roles: ["emergency_nurse", "nurse_station"],
   },
   "available-doctors": {
     label: "Available Doctors",
