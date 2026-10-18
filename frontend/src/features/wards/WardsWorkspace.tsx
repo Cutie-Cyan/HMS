@@ -89,24 +89,27 @@ function useWardBoard(canConfigure: boolean) {
 function BedCard({
   bed,
   role,
+  assignedWardId,
   encounters,
   onAction,
   busy,
 }: {
   bed: BedRow;
   role: string;
+  assignedWardId: string | null;
   encounters: EncounterRecord[];
   onAction: (encounterId: string, bedId: string) => Promise<void>;
   busy: boolean;
 }) {
   const [encounterId, setEncounterId] = useState("");
-  const canAssign = role === "emergency_nurse" || role === "nurse_station";
+  const canAssign =
+    role === "emergency_nurse" ||
+    (role === "nurse_station" && assignedWardId === bed.ward_id);
   const activeEncounters = encounters.filter(
     (e) =>
       e.encounter_status === "open" &&
       (role !== "nurse_station" ||
-        e.current_ward_id === bed.ward_id ||
-        e.bed_id !== null),
+        (e.current_ward_id === assignedWardId && e.current_ward_id === bed.ward_id)),
   );
   return (
     <div
@@ -183,6 +186,7 @@ function BedCard({
 export function WardsWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
+  const assignedWardId = profile?.wardId ?? null;
   const { board, rooms, saveBed } = useWardBoard(role === "admin");
   const encounters = useOpenEncounters(
     role === "emergency_nurse" || role === "nurse_station",
@@ -363,6 +367,7 @@ export function WardsWorkspace() {
                               key={b.bed_id}
                               bed={b}
                               role={role}
+                              assignedWardId={assignedWardId}
                               encounters={encounters.data ?? []}
                               onAction={doAction}
                               busy={action.isPending}
