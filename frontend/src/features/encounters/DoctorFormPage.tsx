@@ -41,6 +41,7 @@ export function DoctorFormPage() {
   const markReturned = useMarkDoctorFormReturned();
   const recordFindings = useRecordDoctorFindings();
   const [patientId, setPatientId] = useState("");
+  const [patientSearch, setPatientSearch] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [nurseAssessment, setNurseAssessment] = useState("");
   const [selectedEncounter, setSelectedEncounter] = useState<EncounterRecord | null>(null);
@@ -53,6 +54,22 @@ export function DoctorFormPage() {
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
+  const normalizedPatientSearch = patientSearch.trim().toLowerCase();
+  const matchingTypedPatient = normalizedPatientSearch
+    ? (patients.data ?? []).find((item) =>
+        [item.patient_number, item.first_name, item.middle_name, item.last_name, nameOf(item)]
+          .filter(Boolean).some((value) => String(value).toLowerCase() === normalizedPatientSearch),
+      )
+    : undefined;
+  const filteredPatients = useMemo(() => {
+    const query = normalizedPatientSearch;
+    const list = selectablePatients;
+    if (!query) return list.slice(0, 8);
+    return list.filter((item) =>
+      [item.patient_number, item.first_name, item.middle_name, item.last_name, nameOf(item)]
+        .filter(Boolean).some((value) => String(value).toLowerCase().includes(query)),
+    ).slice(0, 10);
+  }, [selectablePatients, normalizedPatientSearch]);
   const selectablePatients = useMemo(
     () => (patients.data ?? []).filter((item) => (item.status === "registered" || item.status === "in_emergency") && (!item.current_ward_id || item.current_ward_name === "Emergency Room")),
     [patients.data],
@@ -151,19 +168,65 @@ export function DoctorFormPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Start encounter</div>
-          <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record initial triage observations, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
+          <p className="mt-1 text-sm text-slate-500">Register the ER encounter, record the nurse assessment, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
         </CardHeader>
         <CardContent>
           {patients.isError || doctors.isError || encounters.isError ? <div role="alert" className="mb-4 text-sm text-rose-700">Unable to load encounter information. Refresh and try again.</div> : null}
           <form onSubmit={saveInitialForm} className="space-y-5">
             <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <h2 className="mb-3 text-base font-semibold tracking-tight text-slate-900">Patient Information</h2>
-              <label className="block text-sm font-medium text-slate-700">Select patient
-                <select required value={patientId} onChange={(event) => setPatientId(event.target.value)} className={inputClass}>
-                  <option value="">Select registered or emergency patient…</option>
-                  {selectablePatients.map((item) => <option key={item.patient_id} value={item.patient_id}>{item.patient_number} — {nameOf(item)}</option>)}
-                </select>
-              </label>
+              <div className="relative">
+                <label htmlFor="er-patient-search" className="block text-sm font-medium text-slate-700">Find patient</label>
+                <input
+                  id="er-patient-search"
+                  required
+                  autoComplete="off"
+                  value={patientSearch || (patient ? `${patient.patient_number} — ${nameOf(patient)}` : "")}
+                  onChange={(event) => {
+                    setPatientSearch(event.target.value);
+                    setPatientId("");
+                  }}
+                  onFocus={() => {
+                    if (patient && !patientSearch) setPatientSearch(`${patient.patient_number} — ${nameOf(patient)}`);
+                  }}
+                  placeholder="Type patient name or patient number…"
+                  className={inputClass}
+                  role="combobox"
+                  aria-expanded={Boolean(patientSearch)}
+                  aria-controls="er-patient-options"
+                  aria-autocomplete="list"
+                />
+                {patientSearch && (
+                  <div id="er-patient-options" role="listbox" className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+                    {filteredPatients.length ? filteredPatients.map((item) => {
+                      const queued = activeEncounters.find((encounter) => encounter.patient_id === item.patient_id);
+                      return (
+                        <button
+                          key={item.patient_id}
+                          type="button"
+                          role="option"
+                          aria-selected={patientId === item.patient_id}
+                          onClick={() => {
+                            setPatientId(item.patient_id);
+                            setPatientSearch("");
+                          }}
+                          className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-slate-900">{item.patient_number} — {nameOf(item)}</span>
+                            <span className="block text-xs text-slate-500">{item.status === "in_emergency" ? "Emergency patient" : "Registered patient"}</span>
+                          </span>
+                          {queued && <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Already in queue</span>}
+                        </button>
+                      );
+                    }) : <p className="px-3 py-4 text-sm text-slate-500">No matching registered or emergency patients.</p>}
+                  </div>
+                )}
+                {patient && <button type="button" className="mt-2 text-xs font-medium text-teal-700 underline" onClick={() => { setPatientId(""); setPatientSearch(""); }}>Change patient</button>}
+                {matchingTypedPatient && !patientId && activeEncounters.some((item) => item.patient_id === matchingTypedPatient.patient_id) && (
+                  <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Already in queue: {nameOf(matchingTypedPatient)}</p>
+                )}
+              </div>
               {existingEncounter && (
                 <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
                   <div className="flex items-start gap-3">
@@ -191,7 +254,7 @@ export function DoctorFormPage() {
                 </select>
               </label>
             </section>
-            <div><label className="block text-sm font-medium text-slate-700">Triage and initial nurse assessment<textarea rows={4} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Triage priority, chief complaint, vital signs, allergies, pain score, and initial observations" className={inputClass}/></label><p className="mt-1.5 text-xs leading-5 text-slate-500">Record the available clinical observations and reassess when needed. This note will be included on the printed encounter form.</p></div>
+            <div><label className="block text-sm font-medium text-slate-700">Nurse assessment<textarea rows={4} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Chief complaint, vital signs, allergies, pain score, and initial observations" className={inputClass}/></label><p className="mt-1.5 text-xs leading-5 text-slate-500">Record the available clinical observations and reassess when needed. This note will be included on the printed encounter form.</p></div>
             <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
             </Button>
