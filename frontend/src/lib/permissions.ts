@@ -49,7 +49,7 @@ export const MODULES: Record<
     roles: ["info_officer"],
   },
   encounters: {
-    label: "Encounters",
+    label: "Emergency Room",
     path: "/encounters",
     roles: ["emergency_nurse"],
   },
