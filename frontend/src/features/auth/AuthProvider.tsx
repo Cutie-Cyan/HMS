@@ -16,6 +16,7 @@ interface AuthState {
   session: Session | null;
   profile: StaffProfile | null;
   loading: boolean;
+  profileLoading: boolean;
   configured: boolean;
   error: string | null;
   refreshProfile: () => Promise<void>;
@@ -39,12 +40,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [configured, setConfigured] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const profileRequestId = useRef(0);
 
   const loadProfile = useCallback(async (userId: string) => {
     const requestId = ++profileRequestId.current;
+    setProfileLoading(true);
     try {
       const { data, error: profileError } = await getSupabaseClient()
         .from("staff_profiles")
@@ -77,6 +80,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
           ? cause.message
           : "Unable to verify staff access.",
       );
+    } finally {
+      if (requestId === profileRequestId.current) setProfileLoading(false);
     }
   }, []);
 
@@ -90,6 +95,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setSession(currentSession);
       if (!currentSession?.user) {
         setProfile(null);
+        setProfileLoading(false);
         setError(null);
         return;
       }
@@ -120,6 +126,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           if (!nextSession?.user) {
             profileRequestId.current += 1;
             setProfile(null);
+            setProfileLoading(false);
             setError(null);
             return;
           }
@@ -143,6 +150,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       profileRequestId.current += 1;
       setSession(null);
       setProfile(null);
+      setProfileLoading(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Sign out failed.");
     }
@@ -153,12 +161,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
       session,
       profile,
       loading,
+      profileLoading,
       configured,
       error,
       refreshProfile,
       signOut,
     }),
-    [session, profile, loading, configured, error, refreshProfile, signOut],
+    [session, profile, loading, profileLoading, configured, error, refreshProfile, signOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
