@@ -129,21 +129,24 @@ export function StaffAdminWorkspace() {
   const removeStaff = useMutation({
     mutationFn: async () => {
       if (!deleteTarget) throw new Error("Select a staff account first.");
-      const { data, error } = await getSupabaseClient().functions.invoke("admin-delete-staff", {
-        body: { userId: deleteTarget.user_id },
+      const { error } = await getSupabaseClient().rpc("admin_update_staff_profile", {
+        p_user_id: deleteTarget.user_id,
+        p_display_name: deleteTarget.display_name,
+        p_role: deleteTarget.role,
+        p_ward_id: deleteTarget.ward_id,
+        p_is_active: false,
       });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
     },
     onSuccess: async () => {
-      const deletedName = deleteTarget?.display_name ?? "Staff account";
+      const deactivatedName = deleteTarget?.display_name ?? "Staff account";
       setDeleteTarget(null);
-      setMessage(deletedName + " was permanently deleted.");
+      setMessage(deactivatedName + " was deactivated. The login and audit history were retained.");
       setErrorMessage("");
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: (cause) => {
-      setErrorMessage(cause instanceof Error ? cause.message : "Unable to delete staff account.");
+      setErrorMessage(cause instanceof Error ? cause.message : "Unable to deactivate staff account.");
       setMessage("");
     },
   });
@@ -175,7 +178,7 @@ export function StaffAdminWorkspace() {
       </section></div>}
       <div className="grid gap-5">
         <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><Users size={18} className="text-teal-700"/> Staff profiles</div></CardHeader><CardContent>
-          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Actions</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button><Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Select Add staff to create the first staff account.</p></div>}
+          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Actions</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Deactivate</Button>}</div></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Select Add staff to create the first staff account.</p></div>}
         </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
@@ -193,10 +196,10 @@ export function StaffAdminWorkspace() {
       {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !removeStaff.isPending) setDeleteTarget(null); }}>
         <section role="alertdialog" aria-modal="true" aria-labelledby="delete-staff-title" aria-describedby="delete-staff-description" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
           <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-rose-100 text-rose-700"><Trash2 size={20}/></div>
-          <h2 id="delete-staff-title" className="text-lg font-semibold text-slate-900">Permanently delete staff account?</h2>
-          <p id="delete-staff-description" className="mt-2 text-sm leading-6 text-slate-600">This permanently removes <strong>{deleteTarget.display_name}</strong> ({deleteTarget.email}) from staff access and deletes the linked login identity. This cannot be undone. To retain their record and history, cancel and deactivate the account from Edit instead.</p>
+          <h2 id="delete-staff-title" className="text-lg font-semibold text-slate-900">Deactivate staff account?</h2>
+          <p id="delete-staff-description" className="mt-2 text-sm leading-6 text-slate-600"><strong>{deleteTarget.display_name}</strong> ({deleteTarget.email}) will lose HMS access. Their login identity and audit history will be retained, and an administrator can reactivate the account later.</p>
           {errorMessage && <p role="alert" className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
-          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={removeStaff.isPending}>Cancel</Button><Button type="button" variant="danger" onClick={() => removeStaff.mutate()} disabled={removeStaff.isPending}>{removeStaff.isPending ? "Deleting…" : "Delete permanently"}</Button></div>
+          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={removeStaff.isPending}>Cancel</Button><Button type="button" variant="danger" onClick={() => removeStaff.mutate()} disabled={removeStaff.isPending}>{removeStaff.isPending ? "Deactivating…" : "Deactivate account"}</Button></div>
         </section>
       </div>}
       </div>
