@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Activity, ArrowRight, ArrowUpRight, BedDouble, Boxes, ClipboardCheck,
   ClipboardList, FileText, PackageCheck, ScrollText, ShieldCheck, Stethoscope,
-  Users, Wallet,
+  UserRoundCheck, Users, Wallet,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -19,6 +19,7 @@ type InventoryRow = { id: string; item_name: string; quantity_on_hand: number; l
 const iconByModule: Record<HmsModule, typeof Users> = {
   dashboard: Activity, patients: Users, encounters: Stethoscope, requests: ClipboardList,
   wards: BedDouble, billing: Wallet, inventory: Boxes, staff: ShieldCheck, audit: ScrollText,
+  "available-doctors": UserRoundCheck,
 };
 const roleCopy: Record<string, { title: string; description: string }> = {
   admin: { title: "Hospital overview", description: "Monitor system access, ward capacity, and operational setup." },
