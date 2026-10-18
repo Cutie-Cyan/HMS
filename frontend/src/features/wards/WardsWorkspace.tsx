@@ -342,33 +342,6 @@ export function WardsWorkspace() {
         </div>
       )}
       <Card>
-          <CardHeader><h2 className="font-semibold">Add room</h2></CardHeader>
-          <CardContent>
-            <form onSubmit={submitRoom} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
-              <label className="block text-sm font-medium">Ward<select required value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
-              <label className="block text-sm font-medium">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public / shared</option><option value="private">Private</option></select></label>
-              <div className="sm:col-span-2 xl:col-span-4"><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Saving room…" : "Save room"}</Button></div>
-            </form>
-            {rooms.isError && <p role="alert" className="mt-3 text-sm text-rose-700">Could not load saved rooms. Refresh the page or retry after checking the room permissions.</p>}
-          </CardContent>
-        </Card>
-      )}
-      {role === "admin" && (
-        <Card>
-          <CardHeader><h2 className="font-semibold">Add bed</h2></CardHeader>
-          <CardContent>
-            <form onSubmit={submitBed} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <label className="block text-sm font-medium">Bed code<input required value={bedCode} onChange={(e) => setBedCode(e.target.value)} className={field} maxLength={60}/></label>
-              <label className="block text-sm font-medium">Ward<select required value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
-              <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
-              <label className="block text-sm font-medium">Room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required={bedType === "private"}><option value="">No room / select private room</option>{roomsForWard(bedWard, bedType === "private").map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select></label>
-              <div className="sm:col-span-2 xl:col-span-4"><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding bed…" : "Add bed"}</Button></div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-      <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
