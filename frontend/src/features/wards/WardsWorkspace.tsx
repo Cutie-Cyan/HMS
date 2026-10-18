@@ -204,6 +204,7 @@ export function WardsWorkspace() {
   const [configOpen, setConfigOpen] = useState(false);
   const [configTab, setConfigTab] = useState<"room" | "bed">("bed");
   const [selectedWardId, setSelectedWardId] = useState("");
+  const [boardView, setBoardView] = useState<"beds" | "rooms">("beds");
   const saveRoom = useMutation({
     mutationFn: async (v: { code: string; wardId: string; isPrivate: boolean }) => {
       const { error } = await getSupabaseClient().rpc("admin_save_room", {
@@ -333,7 +334,7 @@ export function WardsWorkspace() {
                   <label className="block text-sm font-medium">Bed code<input required value={bedCode} onChange={(e) => setBedCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-01" /></label>
                   <label className="block text-sm font-medium">Ward<select required value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">Select ward</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
-                  <label className="block text-sm font-medium">Room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required={bedType === "private"}><option value="">Select room</option>{roomsForWard(bedWard, bedType === "private").map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select></label>
+                  {bedType === "private" && <label className="block text-sm font-medium">Private room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required><option value="">Select private room</option>{roomsForWard(bedWard, true).map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select>{bedWard && roomsForWard(bedWard, true).length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active private rooms in this ward. Add a private room first.</span>}</label>}
                   <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding bed…" : "Add bed"}</Button></div>
                 </form>
               )}
@@ -413,57 +414,64 @@ export function WardsWorkspace() {
                         configured
                       </Badge>
                     </div>
-                    {role === "admin" && (
-                      <div className="mb-4">
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                          <h3 className="text-sm font-semibold text-slate-700">Rooms</h3>
-                          <span className="text-xs text-slate-500">{(rooms.data ?? []).filter((r) => r.ward_id === w.id).length} configured</span>
-                        </div>
-                        {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
-                          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                            {(rooms.data ?? []).filter((r) => r.ward_id === w.id).map((room) => {
-                              const roomBeds = rows.filter((b) => b.room_id === room.id || b.room_code === room.room_code);
-                              const occupied = roomBeds.filter((b) => b.bed_id && b.occupied).length;
-                              const total = roomBeds.filter((b) => b.bed_id).length;
-                              return (
-                                <div key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div className="min-w-0">
-                                      <p className="truncate text-sm font-semibold text-slate-800">{room.room_code}</p>
-                                      <p className="mt-1 text-xs text-slate-500">{room.is_private ? "Private room" : "Public / shared room"}</p>
-                                    </div>
-                                    <Badge tone={room.is_active ? "success" : "neutral"}>{room.is_active ? "Active" : "Inactive"}</Badge>
-                                  </div>
-                                  <p className="mt-3 text-xs text-slate-600">{total} beds · {occupied} occupied · {Math.max(0, total - occupied)} available</p>
+                    <div className="mb-4 flex gap-2" role="tablist" aria-label="Choose rooms or beds">
+                      <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"rounded-lg border px-4 py-2 text-sm font-semibold " + (boardView === "beds" ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
+                      <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"rounded-lg border px-4 py-2 text-sm font-semibold " + (boardView === "rooms" ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
+                    </div>
+                    {boardView === "rooms" ? (
+                            {role === "admin" && (
+                              <div className="mb-4">
+                                <div className="mb-2 flex items-center justify-between gap-2">
+                                  <h3 className="text-sm font-semibold text-slate-700">Rooms</h3>
+                                  <span className="text-xs text-slate-500">{(rooms.data ?? []).filter((r) => r.ward_id === w.id).length} configured</span>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="rounded-lg border border-dashed border-slate-300 p-3 text-xs text-slate-500">No rooms configured in this ward yet.</p>
-                        )}
-                      </div>
-                    )}
-                    {rows.some((b) => b.bed_id) ? (
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {rows
-                          .filter((b) => b.bed_id)
-                          .map((b) => (
-                            <BedCard
-                              key={b.bed_id}
-                              bed={b}
-                              role={role}
-                              assignedWardId={assignedWardId}
-                              encounters={encounters.data ?? []}
-                              onAction={doAction}
-                              busy={action.isPending}
-                            />
-                          ))}
-                      </div>
+                                {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
+                                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                                    {(rooms.data ?? []).filter((r) => r.ward_id === w.id).map((room) => {
+                                      const roomBeds = rows.filter((b) => b.room_id === room.id || b.room_code === room.room_code);
+                                      const occupied = roomBeds.filter((b) => b.bed_id && b.occupied).length;
+                                      const total = roomBeds.filter((b) => b.bed_id).length;
+                                      return (
+                                        <div key={room.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <p className="truncate text-sm font-semibold text-slate-800">{room.room_code}</p>
+                                              <p className="mt-1 text-xs text-slate-500">{room.is_private ? "Private room" : "Public / shared room"}</p>
+                                            </div>
+                                            <Badge tone={room.is_active ? "success" : "neutral"}>{room.is_active ? "Active" : "Inactive"}</Badge>
+                                          </div>
+                                          <p className="mt-3 text-xs text-slate-600">{total} beds · {occupied} occupied · {Math.max(0, total - occupied)} available</p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                ) : (
+                                  <p className="rounded-lg border border-dashed border-slate-300 p-3 text-xs text-slate-500">No rooms configured in this ward yet.</p>
+                                )}
+                              </div>
+                            )}
                     ) : (
-                      <p className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500">
-                        No beds configured in this ward yet.
-                      </p>
+                            {rows.some((b) => b.bed_id) ? (
+                              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {rows
+                                  .filter((b) => b.bed_id)
+                                  .map((b) => (
+                                    <BedCard
+                                      key={b.bed_id}
+                                      bed={b}
+                                      role={role}
+                                      assignedWardId={assignedWardId}
+                                      encounters={encounters.data ?? []}
+                                      onAction={doAction}
+                                      busy={action.isPending}
+                                    />
+                                  ))}
+                              </div>
+                            ) : (
+                              <p className="rounded-lg border border-dashed border-slate-300 p-5 text-sm text-slate-500">
+                                No beds configured in this ward yet.
+                              </p>
+                            )}
                     )}
                   </section>
                 );
