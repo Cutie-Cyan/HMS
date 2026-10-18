@@ -206,20 +206,6 @@ export function InventoryWorkspace() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <header>
-        <p className="text-sm font-medium text-teal-700">
-          Department operations
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">
-          {departmentName} inventory
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
-          {type === "lab"
-            ? "Manage laboratory supplies and record results before release."
-            : "Manage medicine stock and release only requests already paid by Cashier."}{" "}
-          All stock changes are validated by the database.
-        </p>
-      </header>
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
