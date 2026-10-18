@@ -10,6 +10,8 @@ export type HmsModule =
   | "wards"
   | "billing"
   | "inventory"
+  | "lab-requests"
+  | "lab-results"
   | "medicine-stock"
   | "medicine-requests"
   | "profit-inventory"
@@ -70,7 +72,17 @@ export const MODULES: Record<
   },
   inventory: {
     label: "Lab Inventory",
-    path: "/inventory",
+    path: "/lab-inventory",
+    roles: ["lab"],
+  },
+  "lab-requests": {
+    label: "Lab Requests",
+    path: "/lab-requests",
+    roles: ["lab"],
+  },
+  "lab-results": {
+    label: "Lab Results",
+    path: "/lab-results",
     roles: ["lab"],
   },
   "medicine-stock": {
