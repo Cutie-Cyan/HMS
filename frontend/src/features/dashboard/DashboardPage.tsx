@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck, ClipboardList,
-  FileText, PackageCheck, Stethoscope,
-  UserRoundCheck, Users, Wallet,
+  FileText, PackageCheck, Users, Wallet,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
