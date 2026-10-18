@@ -140,9 +140,10 @@ export function InventoryWorkspace() {
   const save = useSaveInventoryItem();
   const fulfill = useFulfillRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
-  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" ? "profit" : "stock");
+  const [view, setView] = useState<"stock" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" ? "profit" : location.pathname === "/medicine-requests" ? "requests" : "stock");
   useEffect(() => {
     if (location.pathname === "/profit-inventory") setView("profit");
+    else if (location.pathname === "/medicine-requests") setView("requests");
     else if (location.pathname === "/medicine-stock" || location.pathname === "/inventory") setView("stock");
   }, [location.pathname]);
   const profit = useQuery({
@@ -224,11 +225,6 @@ export function InventoryWorkspace() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
-      {profile?.role === "pharmacy" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
-        <Button variant={view === "requests" ? "primary" : "secondary"} onClick={() => setView(view === "requests" ? "stock" : "requests")}>
-          {view === "requests" ? "Back to medicine stock" : "Medicine requests"}
-        </Button>
-      </div>}
       {profile?.role === "lab" && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
         {([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"},{id:"add",label:"Add lab item"}] as const).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
       </div>}
@@ -247,7 +243,7 @@ export function InventoryWorkspace() {
             {editing ? (type === "lab" ? "Edit lab item" : "Edit medicine") : (type === "lab" ? "Add lab item" : "Add medicine")}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            
+            {editing ? "Update the item details and pricing here. Stock quantity is controlled by request fulfillment." : "Add a medicine or lab item. Opening stock is set once; later stock changes happen through approved requests and fulfillment."}
           </p>
         </CardHeader>
         <CardContent>
@@ -286,15 +282,16 @@ export function InventoryWorkspace() {
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
-              Opening / current stock
+              {editing ? "Current stock (managed by requests)" : "Opening stock"}
               <input
                 required
                 type="number"
                 min="0"
                 step="1"
                 value={stock}
+                readOnly={Boolean(editing)}
                 onChange={(e) => setStock(e.target.value)}
-                className={fieldClass}
+                className={`${fieldClass} ${editing ? "cursor-not-allowed bg-slate-100 text-slate-500" : ""}`}
               />
             </label>
             <label className="text-sm font-medium text-slate-700">
@@ -416,8 +413,8 @@ export function InventoryWorkspace() {
                       )}
                     </div>
                   </div>
-                  <Button variant="secondary" onClick={() => edit(item)}>
-                    Edit item
+                  <Button variant="secondary" onClick={() => { edit(item); setView("add"); }}>
+                    Update details
                   </Button>
                 </div>
               ))}
