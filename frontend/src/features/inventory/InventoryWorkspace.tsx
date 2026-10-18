@@ -25,7 +25,7 @@ import {
 } from "../requests/data";
 
 const fieldClass =
-  "mt-1.5 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100";
+  "mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(value ?? 0),
@@ -217,7 +217,7 @@ export function InventoryWorkspace() {
   const queue = (requests.data ?? []).filter((r) => r.request_type === type);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       {(profile?.role === "pharmacy" || profile?.role === "lab") && <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2">
         {(profile.role === "pharmacy" ? ([{id:"stock",label:"Medicine stock"},{id:"profit",label:"Profit records"},{id:"requests",label:"Medicine requests"},{id:"add",label:"Add medicine"}] as const) : ([{id:"stock",label:"Lab inventory"},{id:"requests",label:"Lab requests"},{id:"results",label:"Lab results"},{id:"add",label:"Add lab item"}] as const)).map((tab) => <Button key={tab.id} variant={view === tab.id ? "primary" : "secondary"} onClick={() => setView(tab.id)}>{tab.label}</Button>)}
       </div>}
@@ -232,12 +232,11 @@ export function InventoryWorkspace() {
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "add") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
-            <PackagePlus size={18} className="text-teal-700" />
+            <PackagePlus size={18} className="text-sky-700" />
             {editing ? (type === "lab" ? "Edit lab item" : "Edit medicine") : (type === "lab" ? "Add lab item" : "Add medicine")}
           </div>
           <p className="mt-1 text-sm text-slate-500">
-            Enter actual stock and pricing supplied by the hospital; no sample
-            items are created.
+            
           </p>
         </CardHeader>
         <CardContent>
@@ -344,7 +343,7 @@ export function InventoryWorkspace() {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Boxes size={18} className="text-teal-700" /> Stock list
+              <Boxes size={18} className="text-sky-700" /> Stock list
             </div>
             <Button
               variant="secondary"
@@ -426,7 +425,7 @@ export function InventoryWorkspace() {
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "requests") && <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold">
-            <ClipboardCheck size={18} className="text-teal-700" /> Paid{" "}
+            <ClipboardCheck size={18} className="text-sky-700" /> Paid{" "}
             {type === "lab" ? "laboratory" : "medicine"} requests
           </div>
           <p className="mt-1 text-sm text-slate-500">
