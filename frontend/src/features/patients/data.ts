@@ -201,6 +201,25 @@ export function useRegisterPatient() {
     onSuccess: () => client.invalidateQueries({ queryKey: ["patients"] }),
   });
 }
+export function useUpdatePatientDetails() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { patientId: string; dateOfBirth: string; address: string }) => {
+      const { error } = await getSupabaseClient().rpc(
+        "info_officer_update_patient_details",
+        {
+          p_patient_id: input.patientId,
+          p_date_of_birth: input.dateOfBirth,
+          p_address: input.address.trim() || null,
+        },
+      );
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["patients"] });
+    },
+  });
+}
 export function useSaveDoctor() {
   const client = useQueryClient();
   return useMutation({
