@@ -1,13 +1,12 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Activity, ArrowRight, ArrowUpRight, BedDouble, Boxes, ClipboardCheck,
-  ClipboardList, FileText, PackageCheck, ScrollText, ShieldCheck, Stethoscope,
+  Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck,
+  FileText, PackageCheck, ScrollText, ShieldCheck, Stethoscope,
   UserRoundCheck, Users, Wallet,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
-import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
+import { MODULES } from "../../lib/permissions";
 import { getSupabaseClient } from "../../lib/supabase";
 
 type Metric = { label: string; value: number | string; detail: string; icon: typeof Users; to: string };
@@ -16,11 +15,6 @@ type EncounterRow = { encounter_id: string; encounter_status: string; patient_st
 type RequestRow = { request_id: string; request_type: "medicine" | "lab"; status: string; total: number; bill_paid: boolean };
 type InventoryRow = { id: string; item_name: string; quantity_on_hand: number; low_stock_threshold: number };
 
-const iconByModule: Record<HmsModule, typeof Users> = {
-  dashboard: Activity, patients: Users, encounters: Stethoscope, requests: ClipboardList,
-  wards: BedDouble, billing: Wallet, inventory: Boxes, staff: ShieldCheck, audit: ScrollText,
-  "available-doctors": UserRoundCheck,
-};
 const roleCopy: Record<string, { title: string; description: string }> = {
   admin: { title: "Hospital overview", description: "Monitor system access, ward capacity, and operational setup." },
   info_officer: { title: "Patient services", description: "Register patients, maintain doctor records, and find existing patient records." },
@@ -98,10 +92,6 @@ export function DashboardPage() {
     },
   });
 
-  const availableModules = useMemo(() => (Object.keys(MODULES) as HmsModule[]).filter(
-    (module) => module !== "dashboard" && profile && canAccessModule(profile.role, module),
-  ), [profile]);
-  const roleName = role.replaceAll("_", " ") || "Staff";
   const copy = roleCopy[role] ?? { title: "HMS overview", description: "Your role-based workspace and current operational priorities." };
   const pendingRequests = (requests.data ?? []).filter((row) => row.status === "pending_payment");
   const readyRequests = (requests.data ?? []).filter((row) => row.status === "paid");
@@ -133,33 +123,6 @@ export function DashboardPage() {
     { label: "Low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below configured threshold", icon: Boxes, to: MODULES.inventory.path },
   ] : [];
 
-  const quickActions: { label: string; description: string; to: string; icon: typeof Users }[] =
-    isAdmin ? [
-      { label: "Staff administration", description: "Invite staff and manage role access", to: MODULES.staff.path, icon: ShieldCheck },
-      { label: "Ward & bed setup", description: "Review capacity and configured beds", to: MODULES.wards.path, icon: BedDouble },
-      { label: "Audit log", description: "Review sensitive administrative activity", to: MODULES.audit.path, icon: ScrollText },
-    ] : isInfo ? [
-      { label: "Register a patient", description: "Create a new patient record", to: MODULES.patients.path, icon: Users },
-      { label: "Patient directory", description: "Find records by name or patient number", to: MODULES.patients.path, icon: FileText },
-    ] : isEmergency ? [
-      { label: "Open encounter queue", description: "Record findings and recommendations", to: MODULES.encounters.path, icon: Stethoscope },
-      { label: "Review patients", description: "Find a registered patient", to: MODULES.patients.path, icon: Users },
-      { label: "Bed board", description: "Check availability and admit patients", to: MODULES.wards.path, icon: BedDouble },
-    ] : isStation ? [
-      { label: "Ward bed board", description: "Review occupied beds and transfer patients", to: MODULES.wards.path, icon: BedDouble },
-      { label: "Request status", description: "Track medicines and lab requests", to: MODULES.requests.path, icon: ClipboardList },
-      { label: "Billing & discharge", description: "Check patient closeout status", to: MODULES.billing.path, icon: Wallet },
-    ] : isCashier ? [
-      { label: "Payment queue", description: "Collect payment for pending requests", to: MODULES.requests.path, icon: Wallet },
-      { label: "Final bills", description: "Prepare bills and record final payment", to: MODULES.billing.path, icon: FileText },
-    ] : isPharmacy ? [
-      { label: "Medicine requests", description: "Release paid medicine orders", to: MODULES.inventory.path, icon: PackageCheck },
-      { label: "Medicine stock", description: "Review stock and low-stock alerts", to: MODULES.inventory.path, icon: Boxes },
-    ] : isLab ? [
-      { label: "Lab request queue", description: "Enter verified results and release paid tests", to: MODULES.inventory.path, icon: ClipboardCheck },
-      { label: "Laboratory stock", description: "Review supplies and low-stock alerts", to: MODULES.inventory.path, icon: Boxes },
-    ] : [];
-
   const hasDataError = [staff, beds, patients, encounters, requests, inventory].some((query) => query.isError);
   if (isEmergency) return <div className="mx-auto max-w-[1440px] space-y-6 pb-8">
     <header className="rounded-2xl border border-border bg-card p-6 sm:p-8">
@@ -187,47 +150,9 @@ export function DashboardPage() {
   </div>;
   return <div className="mx-auto max-w-[1440px] space-y-7 pb-8">
     {hasDataError && <div role="status" className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">Some live dashboard data could not be loaded. Open the relevant workspace to retry; metrics are not being replaced with sample data.</div>}
+    <header className="rounded-2xl border border-border bg-card p-6"><p className="text-sm font-medium text-primary">HMS · {copy.title}</p><h2 className="mt-2 text-2xl font-semibold tracking-tight">Overview</h2></header>
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm">
-        <div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div>
-        <p className="mt-5 text-3xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div>
-      </Link>)}
+      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm"><div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div><p className="mt-5 text-3xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div></Link>)}
     </section>
-    <section className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
-      <div className="rounded-2xl border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4"><div><h2 className="font-semibold">Priority queue</h2><p className="mt-1 text-xs text-muted-foreground">Live operational items relevant to your role</p></div><ClipboardList size={18} className="text-muted-foreground"/></div>
-        <div className="divide-y divide-border">
-          {(isAdmin ? [
-            { title: "Staff access", detail: staff.isLoading ? "Loading staff directory…" : staff.isError ? "Staff directory unavailable" : staff.data?.total ? `${staff.data.active} active staff account(s)` : "No staff profiles yet", to: MODULES.staff.path, icon: Users },
-            { title: "Ward capacity", detail: beds.isLoading ? "Loading bed board…" : beds.isError ? "Bed board unavailable" : beds.data?.total ? `${beds.data.available} available of ${beds.data.total} configured beds` : "No beds configured yet", to: MODULES.wards.path, icon: BedDouble },
-            { title: "Audit trail", detail: "Review staff and administrative changes", to: MODULES.audit.path, icon: ScrollText },
-          ] : isInfo ? [
-            { title: "Patient registration", detail: "New patients can be registered from Patient Services", to: MODULES.patients.path, icon: Users },
-            { title: "Doctor records", detail: "Maintain real doctor details; doctors do not sign in", to: MODULES.patients.path, icon: Stethoscope },
-          ] : isEmergency ? [
-            { title: "Open encounters", detail: encounters.isLoading ? "Loading encounter queue…" : encounters.isError ? "Encounter queue unavailable" : `${encounters.data?.length ?? 0} open encounter(s) to review`, to: MODULES.encounters.path, icon: Stethoscope },
-            { title: "Bed availability", detail: beds.isLoading ? "Loading ward capacity…" : beds.isError ? "Bed board unavailable" : `${beds.data?.available ?? 0} available bed(s)`, to: MODULES.wards.path, icon: BedDouble },
-            { title: "Patient records", detail: patients.isLoading ? "Loading patient directory…" : patients.isError ? "Patient directory unavailable" : `${patients.data?.length ?? 0} record(s) searchable`, to: MODULES.patients.path, icon: Users },
-          ] : isStation ? [
-            { title: "Requests needing follow-up", detail: requests.isLoading ? "Loading request workspace…" : requests.isError ? "Request queue unavailable" : `${(requests.data ?? []).filter((r) => ["paid", "in_progress", "completed"].includes(r.status)).length} paid or processing request(s)`, to: MODULES.requests.path, icon: ClipboardList },
-            { title: "Ward bed board", detail: beds.isLoading ? "Loading bed board…" : beds.isError ? "Bed board unavailable" : `${beds.data?.occupied ?? 0} occupied · ${beds.data?.available ?? 0} available`, to: MODULES.wards.path, icon: BedDouble },
-            { title: "Discharge closeout", detail: "Check request clearance and final bill status", to: MODULES.billing.path, icon: Wallet },
-          ] : isCashier ? [
-            { title: "Pending request payments", detail: requests.isLoading ? "Loading payments…" : requests.isError ? "Request queue unavailable" : `${pendingRequests.length} request(s) awaiting payment`, to: MODULES.requests.path, icon: Wallet },
-            { title: "Final bills", detail: "Review eligible admissions and record final payment", to: MODULES.billing.path, icon: FileText },
-          ] : (isPharmacy || isLab) ? [
-            { title: "Paid requests ready", detail: requests.isLoading ? "Loading department queue…" : requests.isError ? "Request queue unavailable" : `${readyRequests.filter((r) => r.request_type === department).length} paid ${department === "lab" ? "lab" : "medicine"} request(s)`, to: MODULES.inventory.path, icon: PackageCheck },
-            { title: "Low stock", detail: inventory.isLoading ? "Loading stock levels…" : inventory.isError ? "Inventory unavailable" : `${lowStock.length} item(s) at or below threshold`, to: MODULES.inventory.path, icon: Boxes },
-          ] : []).map(({ title, detail, to, icon: Icon }) => <Link key={title} to={to} className="flex items-center gap-3 px-5 py-4 transition hover:bg-muted/40"><span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-background"><Icon size={17}/></span><span className="min-w-0 flex-1"><span className="block text-sm font-medium">{title}</span><span className="mt-1 block text-xs text-muted-foreground">{detail}</span></span><ArrowRight size={16} className="shrink-0 text-muted-foreground"/></Link>)}
-        </div>
-      </div>
-      <div className="rounded-2xl border border-border bg-card">
-        <div className="border-b border-border px-5 py-4"><h2 className="font-semibold">Quick actions</h2><p className="mt-1 text-xs text-muted-foreground">Shortcuts available to your staff role</p></div>
-        <div className="space-y-2 p-3">
-          {quickActions.map(({ label, description, to, icon: Icon }) => <Link key={label} to={to} className="flex items-center gap-3 rounded-xl p-3 transition hover:bg-muted/50"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-muted"><Icon size={18}/></span><span className="min-w-0 flex-1"><span className="block text-sm font-medium">{label}</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">{description}</span></span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground"/></Link>)}
-        </div>
-      </div>
-    </section>
-    <section><div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">Your modules</h2><span className="text-xs text-muted-foreground">{availableModules.length} available</span></div><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{availableModules.map((module) => { const Icon = iconByModule[module]; return <Link key={module} to={MODULES[module].path} className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-primary/40"><span className="grid size-10 place-items-center rounded-xl bg-muted"><Icon size={18}/></span><span className="flex-1 text-sm font-medium">{MODULES[module].label}</span><ArrowUpRight size={16} className="text-muted-foreground group-hover:text-foreground"/></Link>; })}</div></section>
   </div>;
 }
