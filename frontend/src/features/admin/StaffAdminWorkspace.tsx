@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, RefreshCw, ShieldCheck, Users, Trash2, X } from "lucide-react";
+import { Pencil, Plus, RefreshCw, ShieldCheck, Users, Trash2, X } from "lucide-react";
 import { getSupabaseClient } from "../../lib/supabase";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
@@ -64,6 +64,7 @@ export function StaffAdminWorkspace() {
   const [inviteRole, setInviteRole] = useState<StaffRole>("info_officer");
   const [inviteWardId, setInviteWardId] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
+  const [showInvite, setShowInvite] = useState(false);
   const staff = useQuery({
     queryKey: ["admin", "staff-directory"],
     queryFn: async () => {
@@ -114,7 +115,7 @@ export function StaffAdminWorkspace() {
     },
     onSuccess: async () => {
       setMessage("Staff account created for " + inviteEmail.trim() + ". Give the initial password to the staff member securely."); setErrorMessage("");
-      setInviteEmail(""); setInviteName(""); setInvitePassword(""); setInviteRole("info_officer"); setInviteWardId("");
+      setInviteEmail(""); setInviteName(""); setInvitePassword(""); setInviteRole("info_officer"); setInviteWardId(""); setShowInvite(false);
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
@@ -153,10 +154,10 @@ export function StaffAdminWorkspace() {
     <div className="mx-auto max-w-6xl space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">Staff access</h1></div>
-        <Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button>
+        <div className="flex gap-2"><Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button><Button onClick={() => { setShowInvite(true); setMessage(""); setErrorMessage(""); }}><Plus size={16}/> Add staff</Button></div>
       </header>
       {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
-      <Card><CardHeader><h2 className="font-semibold">Add staff</h2></CardHeader><CardContent>
+      {showInvite && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !invite.isPending) setShowInvite(false); }}><section role="dialog" aria-modal="true" aria-labelledby="add-staff-title" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="add-staff-title" className="text-lg font-semibold">Add staff account</h2><p className="mt-1 text-sm text-slate-500">Create login access and assign a role.</p></div><button type="button" aria-label="Close add staff dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setShowInvite(false)} disabled={invite.isPending}><X size={18}/></button></div>
         <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
           <label className="block text-sm font-medium">Full name<input required maxLength={150} value={inviteName} onChange={(event) => setInviteName(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
@@ -165,10 +166,10 @@ export function StaffAdminWorkspace() {
           {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Ward / nurse station<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
           <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
         </form>
-      </CardContent></Card>
+      </section></div>}
       <div className="grid gap-5">
         <Card><CardHeader><div className="flex items-center gap-2 font-semibold"><Users size={18} className="text-teal-700"/> Staff profiles</div></CardHeader><CardContent>
-          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Actions</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button><Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Use the form above to create the first staff account.</p></div>}
+          {staff.isLoading ? <p className="py-8 text-sm text-muted-foreground">Loading staff profiles…</p> : staff.isError ? <div className="py-8 text-center"><p role="alert" className="text-sm text-rose-700">Could not load staff profiles.</p><Button className="mt-3" variant="secondary" onClick={() => void staff.refetch()}>Retry</Button></div> : staff.data?.length ? <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="py-3 pr-3">Staff</th><th className="py-3 pr-3">Role</th><th className="py-3 pr-3">Status</th><th className="py-3">Actions</th></tr></thead><tbody className="divide-y divide-border">{staff.data.map((row) => <tr key={row.user_id} className="hover:bg-muted/40"><td className="py-3 pr-3"><p className="font-medium">{row.display_name}</p><p className="text-xs text-muted-foreground">{row.email}</p></td><td className="py-3 pr-3">{roleLabel(row.role)}{row.role === "nurse_station" && <p className="text-xs text-muted-foreground">{wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? "Ward not available"}</p>}</td><td className="py-3 pr-3"><Badge tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</Badge></td><td className="py-3"><div className="flex items-center gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button><Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <div className="py-8 text-center"><ShieldCheck className="mx-auto text-slate-300" size={28}/><p className="mt-2 font-medium">No staff profiles</p><p className="mt-1 text-sm text-muted-foreground">Select Add staff to create the first staff account.</p></div>}
         </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
