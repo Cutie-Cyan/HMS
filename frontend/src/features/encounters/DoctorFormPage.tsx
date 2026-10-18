@@ -43,6 +43,15 @@ export function DoctorFormPage() {
   const [patientId, setPatientId] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [nurseAssessment, setNurseAssessment] = useState("");
+  const [triagePriority, setTriagePriority] = useState("");
+  const [chiefComplaint, setChiefComplaint] = useState("");
+  const [bloodPressure, setBloodPressure] = useState("");
+  const [heartRate, setHeartRate] = useState("");
+  const [respiratoryRate, setRespiratoryRate] = useState("");
+  const [temperatureC, setTemperatureC] = useState("");
+  const [oxygenSaturation, setOxygenSaturation] = useState("");
+  const [painScore, setPainScore] = useState("");
+  const [allergies, setAllergies] = useState("");
   const [selectedEncounter, setSelectedEncounter] = useState<EncounterRecord | null>(null);
   const [findings, setFindings] = useState("");
   const [recommendations, setRecommendations] = useState("");
@@ -86,7 +95,19 @@ export function DoctorFormPage() {
       return;
     }
     try {
-      const id = await savePhase1.mutateAsync({ patientId, doctorId: doctorId || null, nurseAssessment });
+      const triageAssessment = [
+        `Triage priority: ${triagePriority.replaceAll("_", " ")}`,
+        `Chief complaint: ${chiefComplaint.trim()}`,
+        bloodPressure.trim() ? `Blood pressure: ${bloodPressure.trim()} mmHg` : "",
+        heartRate ? `Heart rate: ${heartRate} bpm` : "",
+        respiratoryRate ? `Respiratory rate: ${respiratoryRate} /min` : "",
+        temperatureC ? `Temperature: ${temperatureC} °C` : "",
+        oxygenSaturation ? `Oxygen saturation: ${oxygenSaturation}%` : "",
+        painScore !== "" ? `Pain score: ${painScore}/10` : "",
+        `Known allergies: ${allergies.trim() || "Not recorded"}`,
+        nurseAssessment.trim() ? `Initial observations: ${nurseAssessment.trim()}` : "",
+      ].filter(Boolean).join("\n");
+      const id = await savePhase1.mutateAsync({ patientId, doctorId: doctorId || null, nurseAssessment: triageAssessment });
       await refresh();
       const created = encounters.data?.find((item) => item.encounter_id === id);
       setEncounterView("queue");
@@ -95,6 +116,15 @@ export function DoctorFormPage() {
       setPatientId("");
       setDoctorId("");
       setNurseAssessment("");
+      setTriagePriority("");
+      setChiefComplaint("");
+      setBloodPressure("");
+      setHeartRate("");
+      setRespiratoryRate("");
+      setTemperatureC("");
+      setOxygenSaturation("");
+      setPainScore("");
+      setAllergies("");
       if (!created) await encounters.refetch();
     } catch (cause) {
       setError(humanizeError(cause));
@@ -191,7 +221,22 @@ export function DoctorFormPage() {
                 </select>
               </label>
             </section>
-            <div><label className="block text-sm font-medium text-slate-700">Triage and initial nurse assessment<textarea rows={4} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Triage priority, chief complaint, vital signs, allergies, pain score, and initial observations" className={inputClass}/></label><p className="mt-1.5 text-xs leading-5 text-slate-500">Record the available clinical observations and reassess when needed. This note will be included on the printed encounter form.</p></div>
+            <section className="space-y-4 rounded-xl border border-slate-200 p-4">
+              <div><h2 className="font-semibold text-slate-900">Triage and initial nurse assessment</h2><p className="mt-1 text-sm text-slate-500">Record the presenting concern, urgency, and available observations. Reassess as needed.</p></div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm font-medium text-slate-700">Triage priority<select required value={triagePriority} onChange={(event) => setTriagePriority(event.target.value)} className={inputClass}><option value="">Select priority</option><option value="immediate">Immediate</option><option value="very_urgent">Very urgent</option><option value="urgent">Urgent</option><option value="standard">Standard</option><option value="non_urgent">Non-urgent</option></select></label>
+                <label className="block text-sm font-medium text-slate-700">Chief complaint<input required maxLength={500} value={chiefComplaint} onChange={(event) => setChiefComplaint(event.target.value)} placeholder="Reason for the ER visit" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Blood pressure (mmHg)<input value={bloodPressure} onChange={(event) => setBloodPressure(event.target.value)} maxLength={20} placeholder="e.g. 120/80" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Heart rate (bpm)<input type="number" min={0} max={300} value={heartRate} onChange={(event) => setHeartRate(event.target.value)} placeholder="Beats per minute" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Respiratory rate (/min)<input type="number" min={0} max={100} value={respiratoryRate} onChange={(event) => setRespiratoryRate(event.target.value)} placeholder="Breaths per minute" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Temperature (°C)<input type="number" min={25} max={45} step={0.1} value={temperatureC} onChange={(event) => setTemperatureC(event.target.value)} placeholder="Body temperature" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Oxygen saturation (%)<input type="number" min={0} max={100} value={oxygenSaturation} onChange={(event) => setOxygenSaturation(event.target.value)} placeholder="SpO₂" className={inputClass}/></label>
+                <label className="block text-sm font-medium text-slate-700">Pain score (0–10)<input type="number" min={0} max={10} value={painScore} onChange={(event) => setPainScore(event.target.value)} placeholder="Patient-reported pain" className={inputClass}/></label>
+              </div>
+              <label className="block text-sm font-medium text-slate-700">Known allergies<textarea rows={2} maxLength={1000} value={allergies} onChange={(event) => setAllergies(event.target.value)} placeholder="Known allergies or enter none reported" className={inputClass}/></label>
+              <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
+              <p className="text-xs leading-5 text-slate-500">These details are saved with the encounter and included on the printable doctor form. Enter only observations that have actually been assessed.</p>
+            </section>
             <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
             </Button>
