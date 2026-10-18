@@ -11,7 +11,7 @@ import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions"
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, cbc: Activity,
   encounters: Stethoscope, requests: ClipboardList, "available-doctors": UserRoundCheck,
-  wards: BedDouble, billing: Wallet, inventory: Boxes, "lab-requests": ClipboardList, "lab-results": Activity, "lab-profit-inventory": Wallet, cbc: Activity, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": ClipboardList, staff: Users, audit: ScrollText,
+  wards: BedDouble, billing: Wallet, inventory: Boxes, "lab-requests": ClipboardList, "lab-results": Activity, "lab-profit-inventory": Wallet, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": ClipboardList, staff: Users, audit: ScrollText,
 };
 const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
