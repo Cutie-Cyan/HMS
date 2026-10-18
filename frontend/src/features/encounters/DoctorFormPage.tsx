@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Activity, BedDouble, CheckCircle2, ClipboardList, ClipboardPen, Eye, FileText, FlaskConical, LayoutDashboard, Printer, RefreshCw, Stethoscope, X } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
@@ -36,6 +37,7 @@ function stageLabel(stage: EncounterRecord["workflow_stage"]) {
 }
 
 export function DoctorFormPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const patients = usePatientDirectory("");
   const doctors = useDoctors();
   const encounters = useOpenEncounters();
@@ -62,7 +64,7 @@ export function DoctorFormPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
-  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">(() => searchParams.get("tab") === "triage" ? "triage" : "overview");
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -72,6 +74,19 @@ export function DoctorFormPage() {
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
   const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab === "triage") setActiveTab("triage");
+    else if (requestedTab === null && activeTab === "triage") setActiveTab("overview");
+  }, [searchParams, activeTab]);
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (activeTab === "triage") nextParams.set("tab", "triage");
+    else nextParams.delete("tab");
+    if (nextParams.toString() !== searchParams.toString()) setSearchParams(nextParams, { replace: true });
+  }, [activeTab, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (activeTab === "clinical") setEncounterView("saved");
