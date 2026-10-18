@@ -27,7 +27,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const [quantity, setQuantity] = useState("1");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const items = useRequestableItems(type);
+  const items = useRequestableItems(type, canCreate);
   const selectedItem = (items.data ?? []).find((item) => item.id === itemId);
   const patientEncounter = (encounters.data ?? []).find((encounter) => encounter.patient_id === patientId && encounter.encounter_status === "open");
 
