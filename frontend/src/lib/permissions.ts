@@ -53,12 +53,12 @@ export const MODULES: Record<
   requests: {
     label: "Requests",
     path: "/requests",
-    roles: ["emergency_nurse", "cashier", "pharmacy", "lab", "nurse_station"],
+    roles: ["emergency_nurse", "cashier", "nurse_station"],
   },
   wards: {
     label: "Wards & beds",
     path: "/wards",
-    roles: ["admin", "nurse_station"],
+    roles: ["admin", "emergency_nurse", "nurse_station"],
   },
   billing: {
     label: "Billing & discharge",
