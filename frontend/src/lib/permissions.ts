@@ -73,7 +73,7 @@ export const MODULES: Record<
     roles: ["cashier", "nurse_station"],
   },
   inventory: {
-    label: "Lab Inventory",
+    label: "Lab Tests & Consumables",
     path: "/lab-inventory",
     roles: ["lab"],
   },
@@ -88,9 +88,9 @@ export const MODULES: Record<
     roles: ["lab"],
   },
   "lab-profit-inventory": {
-    label: "Lab Profit Inventory",
+    label: "Lab Financial Records",
     path: "/lab-profit-inventory",
-    roles: ["lab"],
+    roles: [],
   },
   cbc: {
     label: "CBC",
