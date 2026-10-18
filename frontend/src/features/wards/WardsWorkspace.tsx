@@ -63,6 +63,15 @@ function useWardBoard(canConfigure: boolean) {
       return (data ?? []) as RoomOption[];
     },
   });
+  const saveRates = useMutation({
+    mutationFn: async (v: { wardId: string; publicRate: number; privateRate: number }) => {
+      const { error } = await getSupabaseClient().rpc("admin_update_ward_rates", {
+        p_ward_id: v.wardId, p_public_daily_rate: v.publicRate, p_private_daily_rate: v.privateRate,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => { await client.invalidateQueries({ queryKey: ["wards"] }); setMessage("Ward prices updated successfully."); },
+  });
   const saveBed = useMutation({
     mutationFn: async (v: {
       code: string;
@@ -205,6 +214,9 @@ export function WardsWorkspace() {
   const [configTab, setConfigTab] = useState<"room" | "bed">("bed");
   const [selectedWardId, setSelectedWardId] = useState("");
   const [boardView, setBoardView] = useState<"beds" | "rooms">("beds");
+  const [editingRatesWard, setEditingRatesWard] = useState<string | null>(null);
+  const [publicRate, setPublicRate] = useState("");
+  const [privateRate, setPrivateRate] = useState("");
   useEffect(() => {
     if (!message && !error) return;
     const timeout = window.setTimeout(() => { setMessage(""); setError(""); }, 3500);
@@ -416,6 +428,28 @@ export function WardsWorkspace() {
                         configured
                       </Badge>
                     </div>
+                    {role === "admin" && (
+                      <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+                        {editingRatesWard === w.id ? (
+                          <form onSubmit={async (e) => {
+                            e.preventDefault(); setError(""); setMessage("");
+                            const pub = Number(publicRate); const priv = Number(privateRate);
+                            if (!Number.isFinite(pub) || !Number.isFinite(priv) || pub < 0 || priv < 0) { setError("Enter valid prices of zero or greater."); return; }
+                            try { await saveRates.mutateAsync({ wardId: w.id, publicRate: pub, privateRate: priv }); setEditingRatesWard(null); }
+                            catch (err) { setError(requestError(err)); }
+                          }}>
+                            <div className="mb-3 flex items-center justify-between gap-2"><h3 className="text-sm font-semibold text-slate-800">Edit ward prices</h3><span className="text-xs text-slate-500">Per 24 hours</span></div>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <label className="block text-sm font-medium text-slate-700">Public bed price (₱)<input className={field} type="number" min="0" step="0.01" required value={publicRate} onChange={(e) => setPublicRate(e.target.value)} /></label>
+                              <label className="block text-sm font-medium text-slate-700">Private room price (₱)<input className={field} type="number" min="0" step="0.01" required value={privateRate} onChange={(e) => setPrivateRate(e.target.value)} /></label>
+                            </div>
+                            <div className="mt-3 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setEditingRatesWard(null)}>Cancel</Button><Button type="submit" disabled={saveRates.isPending}>{saveRates.isPending ? "Saving…" : "Save prices"}</Button></div>
+                          </form>
+                        ) : (
+                          <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-semibold text-slate-800">Ward prices</h3><p className="mt-1 text-xs text-slate-500">Public {money(Number(first?.public_daily_rate ?? 0))} / 24 hours · Private {money(Number(first?.private_daily_rate ?? 0))} / 24 hours</p></div><Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? 0)); setPrivateRate(String(first?.private_daily_rate ?? 0)); setEditingRatesWard(w.id); }}>Edit prices</Button></div>
+                        )}
+                      </div>
+                    )}
                     <div className="mb-4 flex gap-2" role="tablist" aria-label="Choose rooms or beds">
                       <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"rounded-lg border px-4 py-2 text-sm font-semibold " + (boardView === "beds" ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
                       <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"rounded-lg border px-4 py-2 text-sm font-semibold " + (boardView === "rooms" ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
