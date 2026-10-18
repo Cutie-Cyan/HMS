@@ -57,6 +57,7 @@ export function DoctorFormPage() {
     [patients.data],
   );
   const activeEncounters = (encounters.data ?? []).filter((item) => item.encounter_status === "open");
+  const existingEncounter = activeEncounters.find((item) => item.patient_id === patientId);
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
 
   useEffect(() => {
@@ -77,6 +78,10 @@ export function DoctorFormPage() {
     setSuccess("");
     if (!patientId) {
       setError("Select a patient before saving the encounter form.");
+      return;
+    }
+    if (existingEncounter) {
+      setError("This patient already has an active encounter. Continue from the saved encounter queue instead of creating another one.");
       return;
     }
     try {
@@ -154,6 +159,20 @@ export function DoctorFormPage() {
                   {selectablePatients.map((item) => <option key={item.patient_id} value={item.patient_id}>{item.patient_number} — {nameOf(item)}</option>)}
                 </select>
               </label>
+              {existingEncounter && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                  <div className="flex items-start gap-3">
+                    <span aria-hidden="true" className="mt-0.5 text-amber-700">⚠</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">Encounter already in queue</p>
+                      <p className="mt-1 leading-5">This patient already has an active encounter ({stageLabel(existingEncounter.workflow_stage).toLowerCase()}). Continue the existing record to avoid duplicates.</p>
+                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => document.getElementById("saved-encounters-queue")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                        Go to existing encounter
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Info label="Full name" value={nameOf(patient)} />
                 <Info label="Age" value={age(patient?.date_of_birth ?? null)} />
@@ -168,14 +187,14 @@ export function DoctorFormPage() {
               </label>
             </section>
             <label className="block text-sm font-medium text-slate-700">Nurse assessment<textarea rows={3} maxLength={4000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Initial observations (optional)" className={inputClass}/></label>
-            <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId}>
+            <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="saved-encounters-queue">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-semibold tracking-tight text-slate-900">Saved Encounters</h2><p className="mt-1 text-sm text-slate-500">Print a saved form, then update it when the doctor returns it.</p></div><Button variant="secondary" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} /> Refresh</Button></div>
         </CardHeader>
