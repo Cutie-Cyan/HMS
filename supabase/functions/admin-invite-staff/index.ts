@@ -1,9 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const allowedOrigin = Deno.env.get("HMS_ALLOWED_ORIGIN");
 const cors = {
-  "Access-Control-Allow-Origin": allowedOrigin ?? "null",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
@@ -17,8 +16,6 @@ const allowedRoles = new Set([
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json(405, { error: "Method not allowed." });
-  if (!allowedOrigin) return json(500, { error: "Server auth configuration is missing the allowed frontend origin." });
-
   const url = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
