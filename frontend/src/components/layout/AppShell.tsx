@@ -2,7 +2,7 @@ import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
   ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
-  FlaskConical, PackageOpen, FileCheck2, ChartNoAxesCombined, ListTodo, Package,
+  FlaskConical, PackageOpen, FileCheck2, ChartBar, ListTodo, Package,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -12,7 +12,7 @@ import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions"
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard, patients: Activity, "patient-registration": ClipboardList, cbc: Activity,
   encounters: Stethoscope, requests: ClipboardList, "available-doctors": UserRoundCheck,
-  wards: BedDouble, billing: Wallet, inventory: FlaskConical, "lab-supplies": PackageOpen, "lab-requests": ListTodo, "lab-results": FileCheck2, "lab-profit-inventory": ChartNoAxesCombined, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": Package, staff: Users, audit: ScrollText,
+  wards: BedDouble, billing: Wallet, inventory: FlaskConical, "lab-supplies": PackageOpen, "lab-requests": ListTodo, "lab-results": FileCheck2, "lab-profit-inventory": ChartBar, "medicine-stock": Boxes, "profit-inventory": Wallet, "medicine-requests": Package, staff: Users, audit: ScrollText,
 };
 const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
