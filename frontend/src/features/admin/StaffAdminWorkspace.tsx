@@ -106,35 +106,18 @@ export function StaffAdminWorkspace() {
   });
   const invite = useMutation({
     mutationFn: async () => {
-      const supabase = getSupabaseClient();
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      const accessToken = sessionData.session?.access_token;
-      if (!accessToken) throw new Error("Your session has expired. Sign in again.");
-
-      const apiUrl = (import.meta.env.VITE_HMS_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
-      const response = await fetch(`${apiUrl}/api/admin/staff/invite`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await getSupabaseClient().functions.invoke("admin-invite-staff", {
+        body: {
           email: inviteEmail,
           displayName: inviteName,
           password: invitePassword,
           role: inviteRole,
           wardId: inviteRole === "nurse_station" ? inviteWardId : null,
-        }),
+        },
       });
-      const payload: unknown = await response.json().catch(() => null);
-      if (!response.ok) {
-        const detail = payload && typeof payload === "object" && "detail" in payload
-          ? (payload as { detail?: unknown }).detail
-          : null;
-        throw new Error(typeof detail === "string" ? detail : "Unable to create staff account.");
-      }
-      return payload;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: async () => {
       setMessage("Staff account created for " + inviteEmail.trim() + ". Give the initial password to the staff member securely."); setErrorMessage("");
