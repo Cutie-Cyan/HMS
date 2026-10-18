@@ -63,15 +63,6 @@ function useWardBoard(canConfigure: boolean) {
       return (data ?? []) as RoomOption[];
     },
   });
-  const saveRates = useMutation({
-    mutationFn: async (v: { wardId: string; publicRate: number; privateRate: number }) => {
-      const { error } = await getSupabaseClient().rpc("admin_update_ward_rates", {
-        p_ward_id: v.wardId, p_public_daily_rate: v.publicRate, p_private_daily_rate: v.privateRate,
-      });
-      if (error) throw error;
-    },
-    onSuccess: async () => { await client.invalidateQueries({ queryKey: ["wards"] }); setMessage("Ward prices updated successfully."); },
-  });
   const saveBed = useMutation({
     mutationFn: async (v: {
       code: string;
@@ -217,6 +208,21 @@ export function WardsWorkspace() {
   const [editingRatesWard, setEditingRatesWard] = useState<string | null>(null);
   const [publicRate, setPublicRate] = useState("");
   const [privateRate, setPrivateRate] = useState("");
+  const saveRates = useMutation({
+    mutationFn: async (v: { wardId: string; publicRate: number; privateRate: number }) => {
+      const { error } = await getSupabaseClient().rpc("admin_update_ward_rates", {
+        p_ward_id: v.wardId,
+        p_public_daily_rate: v.publicRate,
+        p_private_daily_rate: v.privateRate,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["wards"] });
+      await board.refetch();
+      setMessage("Ward prices updated successfully.");
+    },
+  });
   useEffect(() => {
     if (!message && !error) return;
     const timeout = window.setTimeout(() => { setMessage(""); setError(""); }, 3500);
