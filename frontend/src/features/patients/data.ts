@@ -204,12 +204,13 @@ export function useRegisterPatient() {
 export function useUpdatePatientDetails() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { patientId: string; dateOfBirth: string; address: string }) => {
+    mutationFn: async (input: { patientId: string; dateOfBirth: string; phone: string; address: string }) => {
       const { error } = await getSupabaseClient().rpc(
         "info_officer_update_patient_details",
         {
           p_patient_id: input.patientId,
           p_date_of_birth: input.dateOfBirth,
+          p_phone: input.phone.trim() || null,
           p_address: input.address.trim() || null,
         },
       );
