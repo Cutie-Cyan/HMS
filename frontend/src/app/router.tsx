@@ -95,6 +95,7 @@ export const router = createBrowserRouter([
           { index: true, element: <RoleHomeRedirect /> },
           { path: "overview", element: <RoleGate module="dashboard" /> },
           { path: "patients", element: <RoleGate module="patients" /> },
+          { path: "patient-registration-workspace", element: <RoleGate module="patient-registration" /> },
           { path: "encounters", element: <RoleGate module="encounters" /> },
           { path: "requests", element: <RoleGate module="requests" /> },
           { path: "wards", element: <RoleGate module="wards" /> },
