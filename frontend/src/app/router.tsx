@@ -81,7 +81,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "available-doctors") return <AvailableDoctorsWorkspace />;
   if (module === "requests") return <RequestsWorkspace />;
   if (module === "billing") return <BillingWorkspace />;
-  if (module === "inventory" || module === "medicine-stock" || module === "profit-inventory" || module === "medicine-requests" || module === "lab-requests" || module === "lab-results") return <InventoryWorkspace />;
+  if (module === "inventory" || module === "medicine-stock" || module === "profit-inventory" || module === "medicine-requests" || module === "lab-requests" || module === "lab-results" || module === "lab-profit-inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
   if (module === "staff") return <StaffAdminWorkspace />;
   if (module === "audit") return <AuditWorkspace />;
@@ -120,6 +120,7 @@ export const router = createBrowserRouter([
           { path: "lab-inventory", element: <RoleGate module="inventory" /> },
           { path: "lab-requests", element: <RoleGate module="lab-requests" /> },
           { path: "lab-results", element: <RoleGate module="lab-results" /> },
+          { path: "lab-profit-inventory", element: <RoleGate module="lab-profit-inventory" /> },
           { path: "medicine-stock", element: <RoleGate module="medicine-stock" /> },
           { path: "medicine-requests", element: <RoleGate module="medicine-requests" /> },
           { path: "profit-inventory", element: <RoleGate module="profit-inventory" /> },
