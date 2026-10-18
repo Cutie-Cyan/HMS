@@ -93,10 +93,9 @@ export function DashboardPage() {
     { label: "Configured beds", value: beds.data?.total ?? "—", detail: "Across all four wards", icon: BedDouble, to: MODULES.wards.path },
     { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
   ] : isInfo ? [
-    { label: "Patient records", value: patients.data?.length ?? "—", detail: "Searchable patient directory", icon: Users, to: MODULES.patients.path },
-    { label: "Currently active", value: patients.data ? activePatients.length : "—", detail: "Not marked discharged", icon: Activity, to: MODULES.patients.path },
-    { label: "Registration workspace", value: "Open", detail: "Manual registration and patient QR submissions", icon: ClipboardCheck, to: MODULES["patient-registration"].path },
-    { label: "Self-registration", value: "QR", detail: "Review new patient submissions", icon: UserRoundCheck, to: MODULES["patient-registration"].path },
+    { label: "Total patient records", value: patients.data?.length ?? "—", detail: "All registered patients", icon: Users, to: MODULES.patients.path },
+    { label: "Active patients", value: patients.data ? activePatients.length : "—", detail: "Patients not marked discharged", icon: Activity, to: MODULES.patients.path },
+    { label: "Discharged patients", value: patients.data ? patients.data.filter((row) => row.status === "discharged").length : "—", detail: "Completed patient stays", icon: ClipboardList, to: MODULES.patients.path },
   ] : isEmergency ? [
     { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Consultations to review or continue", icon: Stethoscope, to: MODULES.encounters.path },
     { label: "Registered / active patients", value: patients.data?.length ?? "—", detail: "Patient directory", icon: Users, to: MODULES.patients.path },
