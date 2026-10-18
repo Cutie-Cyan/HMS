@@ -1,5 +1,5 @@
 import {
-  Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard, LogOut,
+  Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
   ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail,
 } from "lucide-react";
@@ -22,7 +22,7 @@ const groups: { title: string; modules: HmsModule[] }[] = [
 ];
 
 export function AppShell() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -81,7 +81,7 @@ export function AppShell() {
         <div className={`flex items-center rounded-xl bg-white/[0.06] p-2 ${mobile || expanded ? "gap-3" : "flex-col gap-2"}`}>
           <div className="grid size-9 shrink-0 place-items-center rounded-full bg-sky-100 text-xs font-bold text-sky-900">{initials || <ShieldCheck size={16}/>}</div>
           {(mobile || expanded) && <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-white">{profile?.displayName ?? "Staff account"}</p><p className="truncate text-[11px] capitalize text-slate-400">{profile?.role.replaceAll("_", " ") ?? "Role not assigned"}</p></div>}
-          <button type="button" title="Log out" aria-label="Log out" onClick={() => void signOut()} className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-rose-500/15 hover:text-rose-300"><LogOut size={17}/></button>
+          
         </div>
         {(mobile || expanded) && <p className="mt-3 px-1 text-[10px] text-slate-500">Secure staff access</p>}
       </div>
