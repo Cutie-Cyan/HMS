@@ -119,7 +119,7 @@ export function BillingWorkspace() {
   };
   const isCashier = role === "cashier";
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
@@ -177,7 +177,7 @@ export function BillingWorkspace() {
                 return (
                   <article
                     key={row.encounter_id}
-                    className="rounded-2xl border border-[#e3e3e8] bg-white p-4 shadow-[0_1px_2px_rgb(20_20_35/3%),0_4px_16px_rgb(20_20_35/3%)] md:p-5"
+                    className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -248,7 +248,7 @@ export function BillingWorkspace() {
                       </div>
                     </div>
                     {row.pwd_or_senior && (
-                      <p className="mt-3 text-xs text-teal-800">
+                      <p className="mt-3 text-xs text-sky-800">
                         Patient is marked PWD/Senior; eligible discount is
                         applied during final bill preparation.
                       </p>
