@@ -1,7 +1,7 @@
 import {
   Activity, BedDouble, Boxes, ClipboardList, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
-  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail,
+  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -22,7 +22,7 @@ const groups: { title: string; modules: HmsModule[] }[] = [
 ];
 
 export function AppShell() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -77,7 +77,11 @@ export function AppShell() {
           </section>;
         })}
       </div>
-
+      <div className="shrink-0 border-t border-white/10 p-3">
+        <button type="button" onClick={() => { void signOut(); }} title="Sign out" aria-label="Sign out" className={`flex h-10 items-center justify-center rounded-xl text-slate-300 transition hover:bg-red-500/15 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 ${mobile || expanded ? "w-full gap-2 px-3 text-xs font-medium" : "w-full"}`}>
+          <LogOut size={18}/>{(mobile || expanded) && <span>Sign out</span>}
+        </button>
+      </div>
     </>
   );
 
