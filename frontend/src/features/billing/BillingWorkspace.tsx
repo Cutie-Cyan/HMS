@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Banknote,
-  ChartNoAxesCombined,
   CheckCircle2,
   ClipboardCheck,
   RefreshCw,
@@ -172,7 +171,7 @@ export function BillingWorkspace() {
           ["Outstanding bills", earnings.data ? money(Number(earnings.data.outstanding_bills)) : "—"],
           ["Inventory profit", earnings.data ? money(Number(earnings.data.inventory_profit)) : "—"],
           ["Bills paid", earnings.data ? `${earnings.data.paid_bill_count} / ${earnings.data.bill_count}` : "—"],
-        ].map(([label, value]) => <Card key={label}><CardContent><div className="flex items-center gap-2 text-sm text-slate-500"><ChartNoAxesCombined size={16}/>{label}</div><p className="mt-2 text-xl font-semibold text-slate-900">{value}</p></CardContent></Card>)}
+        ].map(([label, value]) => <Card key={label}><CardContent><div className="flex items-center gap-2 text-sm text-slate-500"><Banknote size={16}/>{label}</div><p className="mt-2 text-xl font-semibold text-slate-900">{value}</p></CardContent></Card>)}
         {earnings.isError && <p role="alert" className="text-sm text-rose-700 sm:col-span-2 xl:col-span-4">Could not load earnings summary. Check cashier/admin access to billing earnings.</p>}
       </section>}
       <Card>
