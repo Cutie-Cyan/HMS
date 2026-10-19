@@ -64,7 +64,7 @@ export function NurseStationERPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
-  const [activeTab, setActiveTab] = useState<"overview" | "queue" | "triage" | "clinical" | "requests" | "beds">(() => searchParams.get("tab") === "triage" ? "triage" : "overview");
+  const activeTab = (["overview", "queue", "triage", "clinical", "requests", "beds"].includes(searchParams.get("tab") ?? "") ? searchParams.get("tab") : "overview") as "overview" | "queue" | "triage" | "clinical" | "requests" | "beds";
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -76,11 +76,10 @@ export function NurseStationERPage() {
   const printPatient = patients.data?.find((item) => item.patient_id === printTarget?.patient_id);
 
   const selectTab = (tab: typeof activeTab) => {
-    setActiveTab(tab);
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
-      if (tab === "triage") nextParams.set("tab", "triage");
-      else nextParams.delete("tab");
+      if (tab === "overview") nextParams.delete("tab");
+      else nextParams.set("tab", tab);
       return nextParams;
     }, { replace: true });
   };
