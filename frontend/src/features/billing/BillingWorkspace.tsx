@@ -347,7 +347,10 @@ export function BillingWorkspace() {
                                   <option value="none">No discount</option><option value="philhealth">PhilHealth</option><option value="senior">Senior citizen</option><option value="pwd">PWD</option>
                                 </select>
                               </label>
-                              <label className="block text-sm font-medium text-slate-700">Approved discount amount (₱)\n                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Enter verified amount" />\n                              </label>\n                              <label className="block text-sm font-medium text-slate-700">Verification / reference notes
+                              <label className="block text-sm font-medium text-slate-700">Approved discount amount (₱)
+                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Enter verified amount" />
+                              </label>
+                              <label className="block text-sm font-medium text-slate-700">Verification / reference notes
                                 <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="ID checked / PhilHealth reference" />
                               </label>
                             </div>
