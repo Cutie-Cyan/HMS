@@ -17,7 +17,7 @@ export function PatientRegistrationWorkspace(){
  const print=(target:"blank"|"qr"|"portal")=>{setPrintTarget(target);window.setTimeout(()=>window.print(),80);};
  const submitPatient=async(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();setError("");setSuccess("");try{const result=await register.mutateAsync({firstName,middleName,lastName,dateOfBirth,sex,phone,address,pwdOrSenior});setSuccess(`Patient registered: ${result.patient_number}`);setFirstName("");setMiddleName("");setLastName("");setDateOfBirth("");setSex("unknown");setPhone("");setAddress("");setPwdOrSenior(false);}catch(cause){setError(humanizeError(cause));}};
  const reviewSubmission=async(submissionId:string,approve:boolean)=>{setError("");setSuccess("");try{const result=await review.mutateAsync({submissionId,approve});setSuccess(approve?`Submission approved. Patient number: ${result.patient_number??"created"}`:"Patient registration submission rejected.");}catch(cause){setError(humanizeError(cause));}};
- return <div className="mx-auto w-full max-w-6xl space-y-5 pb-8">
+ return <div className="mx-auto w-full max-w-7xl space-y-5 pb-8">
   
   {(success||error)&&<div role={error?"alert":"status"} className={`no-print fixed right-4 top-4 z-[120] max-w-[min(24rem,calc(100vw-2rem))] rounded-lg px-3 py-2 text-sm shadow-lg ${error?"bg-rose-700 text-white":"bg-slate-900 text-white"}`}>{error||success}</div>}
 
