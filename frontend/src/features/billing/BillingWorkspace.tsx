@@ -43,6 +43,24 @@ function patientPortalUrl(encounterId: string) {
   url.searchParams.set("encounterId", encounterId);
   return url.toString();
 }
+const TEST_DISCOUNT_IDS = {
+  philhealth: [
+    { id: "TEST-PH-000001", amount: 100 },
+    { id: "TEST-PH-000002", amount: 250 },
+    { id: "TEST-PH-000003", amount: 500 },
+  ],
+  senior: [
+    { id: "TEST-SC-000001", amount: 150 },
+    { id: "TEST-SC-000002", amount: 300 },
+    { id: "TEST-SC-000003", amount: 450 },
+  ],
+  pwd: [
+    { id: "TEST-PWD-000001", amount: 200 },
+    { id: "TEST-PWD-000002", amount: 350 },
+    { id: "TEST-PWD-000003", amount: 600 },
+  ],
+} as const;
+
 const money = (v: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(v ?? 0),
@@ -138,6 +156,7 @@ export function BillingWorkspace() {
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
+  const [discountIdByBill, setDiscountIdByBill] = useState<Record<string, string>>({});
   const [discountAmounts, setDiscountAmounts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -342,15 +361,35 @@ export function BillingWorkspace() {
                             <h3 className="text-sm font-semibold text-slate-800">Apply / update discount</h3>
                             <div className="grid gap-3 sm:grid-cols-2">
                               <label className="block text-sm font-medium text-slate-700">Discount type
-                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id] ?? "none"} onChange={e => setDiscountByBill(current => ({...current, [row.final_bill_id!]: e.target.value as "none" | "philhealth" | "senior" | "pwd"}))}>
+                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id] ?? "none"} onChange={e => {
+                                  const category = e.target.value as "none" | "philhealth" | "senior" | "pwd";
+                                  setDiscountByBill(current => ({...current, [row.final_bill_id!]: category}));
+                                  setDiscountIdByBill(current => ({...current, [row.final_bill_id!]: ""}));
+                                  setDiscountAmounts(current => ({...current, [row.final_bill_id!]: ""}));
+                                  setDiscountNotes(current => ({...current, [row.final_bill_id!]: ""}));
+                                }}>
                                   <option value="none">No discount</option><option value="philhealth">PhilHealth</option><option value="senior">Senior citizen</option><option value="pwd">PWD</option>
                                 </select>
                               </label>
+                              {(discountByBill[row.final_bill_id] ?? "none") !== "none" && <label className="block text-sm font-medium text-slate-700">Test ID (select to autofill discount)
+                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountIdByBill[row.final_bill_id] ?? ""} onChange={e => {
+                                  const selectedId = e.target.value;
+                                  const category = discountByBill[row.final_bill_id!] as "philhealth" | "senior" | "pwd";
+                                  const selected = TEST_DISCOUNT_IDS[category].find(item => item.id === selectedId);
+                                  setDiscountIdByBill(current => ({...current, [row.final_bill_id!]: selectedId}));
+                                  setDiscountAmounts(current => ({...current, [row.final_bill_id!]: selected ? String(selected.amount) : ""}));
+                                  setDiscountNotes(current => ({...current, [row.final_bill_id!]: selected ? `TEST ONLY — ${selectedId}` : ""}));
+                                }}>
+                                  <option value="">Choose a test ID</option>
+                                  {TEST_DISCOUNT_IDS[discountByBill[row.final_bill_id] as "philhealth" | "senior" | "pwd"].map(item => <option key={item.id} value={item.id}>{item.id} — {money(item.amount)}</option>)}
+                                </select>
+                                <span className="mt-1 block text-xs font-normal text-amber-700">Fictional IDs for development/testing only.</span>
+                              </label>}
                               <label className="block text-sm font-medium text-slate-700">Approved discount amount (₱)
-                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Enter verified amount" />
+                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Choose a test ID or enter approved amount" />
                               </label>
                               <label className="block text-sm font-medium text-slate-700">Verification / reference notes
-                                <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="ID checked / PhilHealth reference" />
+                                <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Test ID / verification reference" />
                               </label>
                             </div>
                             <p className="text-xs leading-5 text-amber-800">Verify eligibility, covered charges, and the approved amount before applying. Enter the amount approved under current hospital and statutory rules. Only one discount category can be applied at a time.</p>
