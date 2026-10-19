@@ -318,6 +318,15 @@ export function WardsWorkspace() {
     }
   };
   const wardList = wards.map((w) => ({ id: w.ward_id, name: w.ward_name }));
+  const visibleWardList =
+    role === "nurse_station" && assignedWardId
+      ? wardList.filter((ward) => ward.id === assignedWardId)
+      : wardList;
+  useEffect(() => {
+    if (role === "nurse_station" && assignedWardId) {
+      setSelectedWardId(assignedWardId);
+    }
+  }, [role, assignedWardId]);
   const roomsForWard = (wardId: string, privateOnly = false) =>
     (rooms.data ?? []).filter(
       (r) =>
@@ -407,10 +416,10 @@ export function WardsWorkspace() {
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-4 gap-2" role="tablist" aria-label="Select ward">
-                {wardList.slice(0, 4).map((w) => { const count = (board.data ?? []).filter((b) => b.ward_id === w.id && b.bed_id).length; const active = (selectedWardId || wardList[0]?.id) === w.id; return <button key={w.id} type="button" role="tab" aria-selected={active} onClick={() => setSelectedWardId(w.id)} className={"min-w-0 rounded-xl border px-2 py-3 text-center text-xs font-semibold sm:px-3 sm:text-sm " + (active ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}><span className="block truncate">{w.name}</span><span className="mt-1 block text-[11px] font-normal opacity-75">{count} beds</span></button>; })}
+                {visibleWardList.map((w) => { const count = (board.data ?? []).filter((b) => b.ward_id === w.id && b.bed_id).length; const active = (selectedWardId || visibleWardList[0]?.id) === w.id; return <button key={w.id} type="button" role="tab" aria-selected={active} onClick={() => setSelectedWardId(w.id)} className={"min-w-0 rounded-xl border px-2 py-3 text-center text-xs font-semibold sm:px-3 sm:text-sm " + (active ? "border-sky-600 bg-sky-50 text-sky-800" : "border-slate-200 bg-white text-slate-600")}><span className="block truncate">{w.name}</span><span className="mt-1 block text-[11px] font-normal opacity-75">{count} beds</span></button>; })}
               </div>
               <div className="max-h-[60vh] overflow-y-auto overscroll-contain pr-1">
-              {wardList.filter((w) => w.id === (selectedWardId || wardList[0]?.id)).map((w) => {
+              {visibleWardList.filter((w) => w.id === (selectedWardId || visibleWardList[0]?.id)).map((w) => {
                 const rows = (board.data ?? []).filter(
                   (b) => b.ward_id === w.id,
                 );
