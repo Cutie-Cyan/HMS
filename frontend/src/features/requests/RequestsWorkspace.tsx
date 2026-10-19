@@ -110,7 +110,6 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><ClipboardList size={18} className="text-sky-700" /> {mode === "cbc" ? "CBC request status" : isCashier ? "Requests awaiting payment" : "Request status"}</div>
-          <p className="mt-1 text-sm text-slate-500">{mode === "cbc" ? "Track CBC requests linked to the patient encounter. Lab processes the test after payment." : isCashier ? "Record payment before Pharmacy or Laboratory can fulfill a request." : "Track medicine and laboratory requests linked to the patient encounter."}</p>
         </CardHeader>
         <CardContent>
           {requestQueue.isLoading ? <p className="py-6 text-sm text-slate-500">Loading requests…</p> : requestQueue.isError ? <div className="py-6"><p role="alert" className="text-sm text-rose-700">Could not load requests.</p><Button className="mt-3" variant="secondary" onClick={() => void requestQueue.refetch()}>Retry</Button></div> : (requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).length ? <div className="space-y-3">
