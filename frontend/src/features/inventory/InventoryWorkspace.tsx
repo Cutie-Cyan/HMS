@@ -514,7 +514,7 @@ export function InventoryWorkspace() {
                 onClick={() => void inventory.refetch()}
                 disabled={inventory.isFetching}
               >
-                <RefreshCw size={15} /> Refresh
+                <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
               </Button>
             </div>
           </div>
