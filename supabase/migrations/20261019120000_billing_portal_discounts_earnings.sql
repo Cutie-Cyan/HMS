@@ -150,7 +150,7 @@ end;
 $$;
 
 revoke all on function public.cashier_set_bill_discount(uuid, text, numeric, text) from public, anon;
-grant execute on function public.cashier_set_bill_discount(uuid, text, text) to authenticated;
+grant execute on function public.cashier_set_bill_discount(uuid, text, numeric, text) to authenticated;
 
 create or replace function public.cashier_billing_earnings()
 returns table (
