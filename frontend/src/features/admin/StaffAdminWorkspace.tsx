@@ -27,7 +27,7 @@ const roles: { value: StaffRole; label: string }[] = [
   { value: "lab", label: "Laboratory" },
   { value: "nurse_station", label: "Nurse Station" },
 ];
-const fieldClass = "mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
+const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
@@ -165,14 +165,14 @@ export function StaffAdminWorkspace() {
         <div><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#202124] md:text-3xl">Staff access</h1></div>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => void staff.refetch()} disabled={staff.isFetching}><RefreshCw size={15}/> Refresh</Button><Button onClick={() => { setShowInvite(true); setMessage(""); setErrorMessage(""); }}><Plus size={16}/> Add staff</Button></div>
       </header>
-      {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`rounded-xl p-3 text-sm ${errorMessage ? "bg-rose-50 text-rose-800" : "bg-emerald-50 text-emerald-800"}`}>{errorMessage || message}</div>}
+      {(message || errorMessage) && <div role={errorMessage ? "alert" : "status"} className={`hms-toast rounded-xl border p-3 text-sm shadow-xl ${errorMessage ? "border-rose-200 bg-white text-rose-800" : "border-emerald-200 bg-white text-emerald-800"}`}>{errorMessage || message}</div>}
       {showInvite && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !invite.isPending) setShowInvite(false); }}><section role="dialog" aria-modal="true" aria-labelledby="add-staff-title" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="add-staff-title" className="text-lg font-semibold">Add staff account</h2><p className="mt-1 text-sm text-slate-500">Create login access and assign a role.</p></div><button type="button" aria-label="Close add staff dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setShowInvite(false)} disabled={invite.isPending}><X size={18}/></button></div>
         <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
           <label className="block text-sm font-medium">Full name<input required maxLength={150} value={inviteName} onChange={(event) => setInviteName(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium">Initial password<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={invitePassword} onChange={(event) => setInvitePassword(event.target.value)} className={fieldClass} placeholder="At least 8 characters"/></label>
           <label className="block text-sm font-medium">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Ward / nurse station<select required value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select></label>}
+          {inviteRole === "nurse_station" && <label className="block text-sm font-medium">Ward / nurse station<select required disabled={!wards.data?.length} value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="">{wards.data?.length ? "Select ward" : "No wards available"}</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{!wards.data?.length && <span className="mt-1 block text-xs text-slate-500">No wards available to assign.</span>}</label>}
           <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
         </form>
       </section></div>}
