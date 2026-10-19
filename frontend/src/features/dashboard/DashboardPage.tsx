@@ -114,7 +114,7 @@ export function DashboardPage() {
   ] : [];
 
   const hasDataError = [staff, beds, patients, encounters, requests, inventory].some((query) => query.isError);
-  if (isEmergency) return <div className="mx-auto max-w-[1440px] space-y-4 pb-5">
+  if (isEmergency) return <div className={`w-full space-y-4 pb-5 ${isInfo ? "max-w-none" : "mx-auto max-w-[1440px]"}`}>
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 hover:shadow-sm">
         <div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div>
