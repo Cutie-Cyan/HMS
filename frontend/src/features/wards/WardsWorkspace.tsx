@@ -27,6 +27,7 @@ type BedRow = {
   encounter_id: string | null;
   admitted_at: string | null;
 };
+type WardCatalogRow = { id: string; name: string; public_daily_rate: number; private_daily_rate: number };
 type RoomOption = {
   id: string;
   room_code: string;
@@ -263,12 +264,21 @@ export function WardsWorkspace() {
       ]);
     },
   });
-  const wards = useMemo(() => {
-    const map = new Map<string, BedRow>();
-    for (const row of board.data ?? [])
-      if (!map.has(row.ward_id)) map.set(row.ward_id, row);
-    return [...map.values()];
-  }, [board.data]);
+  // Read the ward catalog independently of the bed board. A ward must remain
+  // selectable even before its first room or bed has been configured.
+  const wardCatalog = useQuery({
+    queryKey: ["wards", "catalog"],
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient()
+        .from("wards")
+        .select("id,name,public_daily_rate,private_daily_rate")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as WardCatalogRow[];
+    },
+  });
+  const wards = useMemo(() => wardCatalog.data ?? [], [wardCatalog.data]);
   const doAction = async (encounterId: string, bedId: string) => {
     setError("");
     setMessage("");
@@ -317,7 +327,7 @@ export function WardsWorkspace() {
       setError(requestError(err));
     }
   };
-  const wardList = wards.map((w) => ({ id: w.ward_id, name: w.ward_name }));
+  const wardList = wards.map((w) => ({ id: w.id, name: w.name, public_daily_rate: Number(w.public_daily_rate), private_daily_rate: Number(w.private_daily_rate) }));
   const visibleWardList =
     role === "nurse_station" && assignedWardId
       ? wardList.filter((ward) => ward.id === assignedWardId)
@@ -389,16 +399,16 @@ export function WardsWorkspace() {
                 <Button variant="secondary" onClick={() => { setConfigTab("room"); setConfigOpen(true); }}><Plus size={15}/> Add room</Button>
                 <Button onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Plus size={15}/> Add bed</Button>
               </>}
-              <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || rooms.isFetching}>
+              <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || wardCatalog.isFetching || rooms.isFetching}>
                 <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {board.isLoading ? (
+          {board.isLoading || wardCatalog.isLoading ? (
             <p className="py-8 text-sm text-slate-500">Loading ward board…</p>
-          ) : board.isError ? (
+          ) : board.isError || wardCatalog.isError ? (
             <div className="py-8 text-center">
               <ShieldAlert className="mx-auto text-rose-500" size={25} />
               <p role="alert" className="mt-2 text-sm text-rose-700">
@@ -434,9 +444,9 @@ export function WardsWorkspace() {
                       <div>
                         <h2 className="font-semibold">{w.name}</h2>
                         <p className="text-xs text-slate-500">
-                          Public {money(Number(first?.public_daily_rate ?? 0))}{" "}
+                          Public {money(Number(first?.public_daily_rate ?? w.public_daily_rate))}{" "}
                           / 24 hours · Private{" "}
-                          {money(Number(first?.private_daily_rate ?? 0))} / 24
+                          {money(Number(first?.private_daily_rate ?? w.private_daily_rate))} / 24
                           hours
                         </p>
                       </div>
