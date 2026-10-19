@@ -228,12 +228,13 @@ function FulfillmentCard({
           <Button
             disabled={busy || !canRelease}
             onClick={() => {
-              if (
-                window.confirm(
-                  `Release this ${isLab ? "laboratory result" : "medicine request"} for ${request.patient_name}?`,
-                )
-              )
+              if (isLab) {
                 void onFulfill(request.request_id, resultToSave);
+                return;
+              }
+              if (window.confirm(`Release this medicine request for ${request.patient_name}?`)) {
+                void onFulfill(request.request_id, resultToSave);
+              }
             }}
           >
             <ClipboardCheck size={16} />
