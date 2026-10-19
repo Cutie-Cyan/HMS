@@ -41,7 +41,7 @@ begin
          b.id,
          coalesce(b.subtotal, 0),
          case
-           when b.discount_label is distinct from 'none' then b.discount_label
+           when b.discount_label is not null and b.discount_label <> 'none' then b.discount_label
            when b.discount_category = 'philhealth'::public.discount_type then 'philhealth'
            when b.discount_category = 'pwd_senior'::public.discount_type then 'pwd/senior'
            else 'none'
