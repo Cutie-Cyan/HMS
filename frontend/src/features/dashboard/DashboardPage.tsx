@@ -115,16 +115,15 @@ export function DashboardPage() {
 
   const hasDataError = [staff, beds, patients, encounters, requests, inventory].some((query) => query.isError);
   if (isEmergency) return <div className="mx-auto max-w-[1440px] space-y-6 pb-8">
-    {hasDataError && <div role="status" className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">Some live dashboard data could not be loaded. Open the relevant workspace to retry.</div>}
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm">
+      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 hover:shadow-sm">
         <div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div>
-        <p className="mt-5 text-3xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div>
+        <p className="mt-4 text-2xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div>
       </Link>)}
     </section>
   </div>;
   return <div className="mx-auto max-w-[1440px] space-y-7 pb-8">
-    {hasDataError && <div role="status" className="rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">Some live dashboard data could not be loaded. Open the relevant workspace to retry; metrics are not being replaced with sample data.</div>}
+    {hasDataError && <div role="status" className="hms-toast rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">Some live dashboard data could not be loaded. Open the relevant workspace to retry; metrics are not being replaced with sample data.</div>}
     
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-sm"><div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div><p className="mt-5 text-3xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div></Link>)}
