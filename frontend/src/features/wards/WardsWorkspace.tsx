@@ -424,7 +424,11 @@ export function WardsWorkspace() {
           </div>
         </CardHeader>
         <CardContent>
-          {board.isLoading || wardCatalog.isLoading ? (
+          {role === "nurse_station" && !assignedWardId ? (
+            <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
+              Your staff profile has no ward assignment. Ask an administrator to assign this account to Emergency Room, Female Ward, Male Ward, or Pedia Ward. Patient and bed details are hidden until the assignment is configured.
+            </div>
+          ) : board.isLoading || wardCatalog.isLoading ? (
             <p className="py-8 text-sm text-slate-500">Loading ward board…</p>
           ) : board.isError || wardCatalog.isError ? (
             <div className="py-8 text-center">
