@@ -386,7 +386,7 @@ export function BillingWorkspace() {
                                   <option value="none">No discount</option><option value="philhealth">PhilHealth</option><option value="senior">Senior citizen</option><option value="pwd">PWD</option>
                                 </select>
                               </label>
-                              {(discountByBill[row.final_bill_id] ?? "none") !== "none" && <label className="block text-sm font-medium text-slate-700">Test ID (select to autofill discount)
+                              {(discountByBill[row.final_bill_id!] ?? "none") !== "none" && <label className="block text-sm font-medium text-slate-700">Test ID (select to autofill discount)
                                 <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountIdByBill[row.final_bill_id] ?? ""} onChange={e => {
                                   const selectedId = e.target.value;
                                   const category = discountByBill[row.final_bill_id!] as "philhealth" | "senior" | "pwd";
@@ -396,20 +396,20 @@ export function BillingWorkspace() {
                                   setDiscountNotes(current => ({...current, [row.final_bill_id!]: selected ? `TEST ONLY — ${selectedId}` : ""}));
                                 }}>
                                   <option value="">Choose a test ID</option>
-                                  {TEST_DISCOUNT_IDS[discountByBill[row.final_bill_id] as "philhealth" | "senior" | "pwd"].map(item => <option key={item.id} value={item.id}>{item.id} — {money(item.amount)}</option>)}
+                                  {TEST_DISCOUNT_IDS[discountByBill[row.final_bill_id!] as "philhealth" | "senior" | "pwd"].map(item => <option key={item.id} value={item.id}>{item.id} — {money(item.amount)}</option>)}
                                 </select>
                                 <span className="mt-1 block text-xs font-normal text-amber-700">Fictional IDs for development/testing only.</span>
                               </label>}
                               <label className="block text-sm font-medium text-slate-700">Approved discount amount (₱)
-                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Choose a test ID or enter approved amount" />
+                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id!] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Choose a test ID or enter approved amount" />
                               </label>
                               <label className="block text-sm font-medium text-slate-700">Verification / reference notes
-                                <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Test ID / verification reference" />
+                                <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id!] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Test ID / verification reference" />
                               </label>
                             </div>
                             <p className="text-xs leading-5 text-amber-800">Verify eligibility, covered charges, and the approved amount before applying. Enter the amount approved under current hospital and statutory rules. Only one discount category can be applied at a time.</p>
-                            <Button variant="secondary" disabled={busy || discountAmounts[row.final_bill_id] === undefined || discountAmounts[row.final_bill_id].trim() === "" || !Number.isFinite(Number(discountAmounts[row.final_bill_id])) || Number(discountAmounts[row.final_bill_id]) < 0 || (["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior)} onClick={() => void act(() => discount.mutateAsync({billId: row.final_bill_id!, category: discountByBill[row.final_bill_id] ?? "none", amount: Number(discountAmounts[row.final_bill_id]), notes: discountNotes[row.final_bill_id] ?? ""}), "Discount updated. Review the revised bill before recording payment.")}>Save discount</Button>
-                            {["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior && <p className="text-xs text-rose-700">The patient record is not marked PWD/Senior eligible. Verify/update the patient record first.</p>}
+                            <Button variant="secondary" disabled={busy || discountAmounts[row.final_bill_id!] === undefined || discountAmounts[row.final_bill_id!].trim() === "" || !Number.isFinite(Number(discountAmounts[row.final_bill_id!])) || Number(discountAmounts[row.final_bill_id!]) < 0 || (["senior","pwd"].includes(discountByBill[row.final_bill_id!] ?? "none") && !row.pwd_or_senior)} onClick={() => void act(() => discount.mutateAsync({billId: row.final_bill_id!, category: discountByBill[row.final_bill_id!] ?? "none", amount: Number(discountAmounts[row.final_bill_id!]), notes: discountNotes[row.final_bill_id!] ?? ""}), "Discount updated. Review the revised bill before recording payment.")}>Save discount</Button>
+                            {["senior","pwd"].includes(discountByBill[row.final_bill_id!] ?? "none") && !row.pwd_or_senior && <p className="text-xs text-rose-700">The patient record is not marked PWD/Senior eligible. Verify/update the patient record first.</p>}
                           </div>
                         )}
                         {canPay && (
