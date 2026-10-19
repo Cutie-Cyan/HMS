@@ -39,6 +39,11 @@ type BillingRow = {
   paid_at: string | null;
 };
 type Earnings = { paid_revenue: number; outstanding_bills: number; bill_count: number; paid_bill_count: number; inventory_revenue: number; inventory_cost: number; inventory_profit: number };
+function patientPortalUrl(encounterId: string) {
+  const url = new URL(`${import.meta.env.BASE_URL}patient-portal`, window.location.origin);
+  url.searchParams.set("encounterId", encounterId);
+  return url.toString();
+}
 const money = (v: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(v ?? 0),
@@ -256,7 +261,7 @@ export function BillingWorkspace() {
                     </div>
                     <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${window.location.origin}/patient-portal?encounterId=${row.encounter_id}`)}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`}
                         alt="QR code to open the patient billing portal"
                         width={120}
                         height={120}
@@ -266,7 +271,7 @@ export function BillingWorkspace() {
                       <div className="min-w-0 flex-1">
                         <p className="flex items-center gap-2 text-sm font-semibold text-teal-950"><QrCode size={16}/> Patient live-bill portal</p>
                         <p className="mt-1 text-xs leading-5 text-slate-600">Print or share this QR code. The patient must verify their patient number and date of birth before viewing the bill. The portal refreshes bill data automatically.</p>
-                        <a className="mt-2 inline-block text-sm font-semibold text-teal-800 underline" href={`/patient-portal?encounterId=${row.encounter_id}`} target="_blank" rel="noreferrer">Open portal link</a>
+                        <a className="mt-2 inline-block text-sm font-semibold text-teal-800 underline" href={patientPortalUrl(row.encounter_id)} target="_blank" rel="noreferrer">Open portal link</a>
                       </div>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
