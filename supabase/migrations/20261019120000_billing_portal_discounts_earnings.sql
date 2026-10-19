@@ -73,6 +73,7 @@ grant execute on function public.public_patient_portal_bill_lookup(text, date, u
 create or replace function public.cashier_set_bill_discount(
   p_bill_id uuid,
   p_discount_label text,
+  p_discount_amount numeric,
   p_notes text default null
 )
 returns table (bill_id uuid, subtotal numeric, discount_amount numeric, total_bill numeric, discount_label text)
@@ -98,6 +99,9 @@ begin
   if p_discount_label is null or p_discount_label not in ('none', 'philhealth', 'senior', 'pwd') then
     raise exception using errcode='22023', message='Choose PhilHealth, Senior, PWD, or no discount.';
   end if;
+  if p_discount_amount is null or p_discount_amount < 0 then
+    raise exception using errcode='22023', message='Enter a verified discount amount of zero or greater.';
+  end if;
 
   select b.subtotal, p.pwd_or_senior
     into v_subtotal, v_patient_pwd_senior
@@ -119,11 +123,13 @@ begin
     when p_discount_label in ('senior', 'pwd') then 'pwd_senior'::public.discount_type
     else 'none'::public.discount_type
   end;
-  v_discount := case
-    when p_discount_label = 'philhealth' then least(v_subtotal, 2000.00)
-    when p_discount_label in ('senior', 'pwd') then round(v_subtotal * 0.20, 2)
-    else 0
-  end;
+  v_discount := p_discount_amount;
+  if p_discount_label = 'none' and v_discount <> 0 then
+    raise exception using errcode='22023', message='Set the discount amount to zero when no discount is selected.';
+  end if;
+  if v_discount > v_subtotal then
+    raise exception using errcode='22023', message='Discount cannot exceed the bill subtotal.';
+  end if;
 
   update public.bills
   set discount_category = v_category,
@@ -143,7 +149,7 @@ begin
 end;
 $$;
 
-revoke all on function public.cashier_set_bill_discount(uuid, text, text) from public, anon;
+revoke all on function public.cashier_set_bill_discount(uuid, text, numeric, text) from public, anon;
 grant execute on function public.cashier_set_bill_discount(uuid, text, text) to authenticated;
 
 create or replace function public.cashier_billing_earnings()
