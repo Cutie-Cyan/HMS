@@ -328,13 +328,18 @@ export function WardsWorkspace() {
     }
   };
   const wardList = wards.map((w) => ({ id: w.id, name: w.name, public_daily_rate: Number(w.public_daily_rate), private_daily_rate: Number(w.private_daily_rate) }));
+  // Ward nurses must never fall back to the all-wards view when their profile
+  // is missing a ward assignment. Admin and Emergency Nurse can coordinate
+  // across wards; each Nurse Station sees only its assigned ward.
   const visibleWardList =
-    role === "nurse_station" && assignedWardId
-      ? wardList.filter((ward) => ward.id === assignedWardId)
+    role === "nurse_station"
+      ? assignedWardId
+        ? wardList.filter((ward) => ward.id === assignedWardId)
+        : []
       : wardList;
   useEffect(() => {
-    if (role === "nurse_station" && assignedWardId) {
-      setSelectedWardId(assignedWardId);
+    if (role === "nurse_station") {
+      setSelectedWardId(assignedWardId && visibleWardList.some((ward) => ward.id === assignedWardId) ? assignedWardId : "");
       return;
     }
     if (visibleWardList.length > 0 && !visibleWardList.some((ward) => ward.id === selectedWardId)) {
@@ -382,6 +387,19 @@ export function WardsWorkspace() {
             </div>
           </section>
         </div>
+      )}
+      {role === "nurse_station" && !assignedWardId && (
+        <Card>
+          <CardContent>
+            <div className="flex items-start gap-3 py-2">
+              <ShieldAlert className="mt-0.5 shrink-0 text-amber-600" size={20} />
+              <div>
+                <h2 className="font-semibold text-slate-900">Ward assignment required</h2>
+                <p className="mt-1 text-sm text-slate-600">Your staff profile is not assigned to a ward. Ask the HMS administrator to assign your Nurse Station account to Emergency Room, Female Ward, Male Ward, or Pedia Ward. No ward patient board is shown until the assignment is configured.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
       <Card>
         <CardHeader>
