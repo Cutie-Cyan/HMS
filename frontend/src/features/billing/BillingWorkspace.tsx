@@ -199,7 +199,7 @@ export function BillingWorkspace() {
               onClick={() => void queue.refetch()}
               disabled={queue.isFetching}
             >
-              <RefreshCw size={15} /> Refresh
+              <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
             </Button>
           </div>
           <p className="mt-1 text-sm text-slate-500">
