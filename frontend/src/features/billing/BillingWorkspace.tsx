@@ -1,10 +1,12 @@
 import { useState } from "react";
 import {
   Banknote,
+  ChartNoAxesCombined,
   CheckCircle2,
   ClipboardCheck,
   RefreshCw,
   ShieldAlert,
+  QrCode,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
@@ -36,6 +38,7 @@ type BillingRow = {
   total_bill: number;
   paid_at: string | null;
 };
+type Earnings = { paid_revenue: number; outstanding_bills: number; bill_count: number; paid_bill_count: number; inventory_revenue: number; inventory_cost: number; inventory_profit: number };
 const money = (v: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
     Number(v ?? 0),
@@ -52,6 +55,23 @@ function useBillingQueue() {
       if (error) throw error;
       return (data ?? []) as BillingRow[];
     },
+  });
+  const earnings = useQuery({
+    queryKey: ["billing", "earnings"],
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient().rpc("cashier_billing_earnings");
+      if (error) throw error;
+      return ((data ?? [])[0] ?? null) as Earnings | null;
+    },
+  });
+  const discount = useMutation({
+    mutationFn: async (v: { billId: string; category: "none" | "philhealth" | "senior" | "pwd"; notes: string }) => {
+      const { error } = await getSupabaseClient().rpc("cashier_set_bill_discount", {
+        p_bill_id: v.billId, p_discount_label: v.category, p_notes: v.notes || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => { await client.invalidateQueries({ queryKey: ["billing"] }); },
   });
   const prepare = useMutation({
     mutationFn: async (v: { encounterId: string; philhealth: boolean }) => {
@@ -104,20 +124,22 @@ function useBillingQueue() {
       ]);
     },
   });
-  return { queue, prepare, pay, discharge, recordDischargeOrder };
+  return { queue, earnings, discount, prepare, pay, discharge, recordDischargeOrder };
 }
 
 export function BillingWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
-  const { queue, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
+  const { queue, earnings, discount, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
   const [philhealthByEncounter, setPhilhealthByEncounter] = useState<
     Record<string, boolean>
   >({});
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
+  const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
+  const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending;
+  const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
   const act = async (operation: () => Promise<unknown>, success: string) => {
     setError("");
     setMessage("");
@@ -139,12 +161,20 @@ export function BillingWorkspace() {
           {error || message}
         </div>
       )}
+      {(role === "cashier" || role === "admin") && <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          ["Collected revenue", earnings.data ? money(Number(earnings.data.paid_revenue)) : "—"],
+          ["Outstanding bills", earnings.data ? money(Number(earnings.data.outstanding_bills)) : "—"],
+          ["Inventory profit", earnings.data ? money(Number(earnings.data.inventory_profit)) : "—"],
+          ["Bills paid", earnings.data ? `${earnings.data.paid_bill_count} / ${earnings.data.bill_count}` : "—"],
+        ].map(([label, value]) => <Card key={label}><CardContent><div className="flex items-center gap-2 text-sm text-slate-500"><ChartNoAxesCombined size={16}/>{label}</div><p className="mt-2 text-xl font-semibold text-slate-900">{value}</p></CardContent></Card>)}
+        {earnings.isError && <p role="alert" className="text-sm text-rose-700 sm:col-span-2 xl:col-span-4">Could not load earnings summary. Check cashier/admin access to billing earnings.</p>}
+      </section>}
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 font-semibold">
-              <Banknote size={18} className="text-teal-700" /> Inpatient
-              closeout
+              <Banknote size={18} className="text-teal-700" /> Billing &amp; inpatient closeout
             </div>
             <Button
               variant="secondary"
@@ -224,6 +254,21 @@ export function BillingWorkspace() {
                               : "Requests not cleared"}
                       </Badge>
                     </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`${window.location.origin}/patient-portal?encounterId=${row.encounter_id}`)}`}
+                        alt="QR code to open the patient billing portal"
+                        width={120}
+                        height={120}
+                        loading="lazy"
+                        className="rounded-lg border border-slate-200 bg-white p-1"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-teal-950"><QrCode size={16}/> Patient live-bill portal</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-600">Print or share this QR code. The patient must verify their patient number and date of birth before viewing the bill. The portal refreshes bill data automatically.</p>
+                        <a className="mt-2 inline-block text-sm font-semibold text-teal-800 underline" href={`/patient-portal?encounterId=${row.encounter_id}`} target="_blank" rel="noreferrer">Open portal link</a>
+                      </div>
+                    </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div className="rounded-xl border border-[#e8e8ed] bg-[#f8f8fa] p-3">
                         <p className="text-xs text-slate-500">
@@ -288,6 +333,24 @@ export function BillingWorkspace() {
                             </p>
                           )}
                         </div>
+                        {isCashier && row.final_bill_id && !row.paid_at && (
+                          <div className="w-full space-y-3 border-t border-slate-200 pt-3">
+                            <h3 className="text-sm font-semibold text-slate-800">Apply / update discount</h3>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <label className="block text-sm font-medium text-slate-700">Discount type
+                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id] ?? "none"} onChange={e => setDiscountByBill(current => ({...current, [row.final_bill_id!]: e.target.value as "none" | "philhealth" | "senior" | "pwd"}))}>
+                                  <option value="none">No discount</option><option value="philhealth">PhilHealth (up to ₱2,000 benefit)</option><option value="senior">Senior citizen (20% estimate)</option><option value="pwd">PWD (20% estimate)</option>
+                                </select>
+                              </label>
+                              <label className="block text-sm font-medium text-slate-700">Verification / reference notes
+                                <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="ID checked / PhilHealth reference" />
+                              </label>
+                            </div>
+                            <p className="text-xs leading-5 text-amber-800">Verify valid documents and applicable covered charges before applying. Senior/PWD amounts are an estimate using 20% of this bill subtotal; confirm current hospital and statutory rules. Only one discount category can be applied at a time.</p>
+                            <Button variant="secondary" disabled={busy || (["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior)} onClick={() => void act(() => discount.mutateAsync({billId: row.final_bill_id!, category: discountByBill[row.final_bill_id] ?? "none", notes: discountNotes[row.final_bill_id] ?? ""}), "Discount updated. Review the revised bill before recording payment.")}>Save discount</Button>
+                            {["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior && <p className="text-xs text-rose-700">The patient record is not marked PWD/Senior eligible. Verify/update the patient record first.</p>}
+                          </div>
+                        )}
                         {canPay && (
                           <Button
                             disabled={busy}
