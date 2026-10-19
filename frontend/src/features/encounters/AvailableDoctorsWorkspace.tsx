@@ -8,7 +8,7 @@ import { humanizeError, useDoctors, useSaveDoctor, type DoctorRecord } from "../
 
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 2 }).format(Number(value ?? 0));
-const fieldClass = "mt-1.5 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
+const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
 
 export function AvailableDoctorsWorkspace() {
   const { profile } = useAuth();
@@ -55,7 +55,7 @@ export function AvailableDoctorsWorkspace() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5">
-      {(message || error) && <div role={error ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || message}</div>}
+      {(message || error) && <div role={error ? "alert" : "status"} className={`hms-toast rounded-xl border p-3 text-sm shadow-xl ${error ? "border-rose-200 bg-white text-rose-800" : "border-emerald-200 bg-white text-emerald-800"}`}>{error || message}</div>}
       <div className="flex flex-wrap justify-end gap-2">
         {canManage && <Button type="button" onClick={() => openForm()}><Plus size={15}/> Add doctor</Button>}
         <Button type="button" variant="secondary" onClick={() => void doctors.refetch()} disabled={doctors.isFetching}>
