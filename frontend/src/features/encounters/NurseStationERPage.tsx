@@ -45,6 +45,7 @@ export function NurseStationERPage() {
   const markReturned = useMarkDoctorFormReturned();
   const recordFindings = useRecordDoctorFindings();
   const [patientId, setPatientId] = useState("");
+  const [patientQuery, setPatientQuery] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [nurseAssessment, setNurseAssessment] = useState("");
   const [triagePriority, setTriagePriority] = useState("");
@@ -134,6 +135,7 @@ export function NurseStationERPage() {
       setSuccess("Initial encounter saved to the queue. Print the form from the queue and give it to the doctor.");
       window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       setPatientId("");
+      setPatientQuery("");
       setDoctorId("");
       setNurseAssessment("");
       setTriagePriority("");
@@ -203,7 +205,7 @@ export function NurseStationERPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Emergency Services</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Emergency Room</h1>
-          <p className="mt-1 text-sm text-slate-500">Receive ER referrals, record triage, coordinate doctor orders and results, then document discharge or ward admission.</p>
+          
         </div>
         <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2" aria-label="Emergency Room sections">
           {([
@@ -248,12 +250,25 @@ export function NurseStationERPage() {
           <form onSubmit={saveInitialForm} className="space-y-5">
             <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <h2 className="mb-3 text-base font-semibold tracking-tight text-slate-900">Patient Information</h2>
-              <label className="block text-sm font-medium text-slate-700">Select patient
-                <select required value={patientId} onChange={(event) => setPatientId(event.target.value)} className={inputClass}>
-                  <option value="">Select registered or emergency patient…</option>
-                  {selectablePatients.map((item) => <option key={item.patient_id} value={item.patient_id}>{item.patient_number} — {nameOf(item)}</option>)}
-                </select>
+              <label className="block text-sm font-medium text-slate-700">Patient
+                <input required list="er-patient-options" value={patientQuery} placeholder={selectablePatients.length ? "Search patient name or number…" : "No eligible patients available"} disabled={!selectablePatients.length} onChange={(event) => {
+                  const value = event.target.value;
+                  setPatientQuery(value);
+                  const match = selectablePatients.find((item) => value.trim().startsWith(item.patient_number + " — " + nameOf(item)));
+                  setPatientId(match?.patient_id ?? "");
+                }} className={inputClass} autoComplete="off" />
+                <datalist id="er-patient-options">
+                  {selectablePatients.map((item) => {
+                    const queued = activeEncounters.some((encounter) => encounter.patient_id === item.patient_id);
+                    return <option key={item.patient_id} value={item.patient_number + " — " + nameOf(item) + (queued ? " · IN QUEUE" : " · No active encounter")} />;
+                  })}
+                </datalist>
               </label>
+              {!selectablePatients.length ? <p className="mt-2 text-xs text-slate-500">No registered or emergency patients are available for ER intake.</p> : patientQuery && !patientId && <p className="mt-2 text-xs text-slate-500">Choose a matching patient from the suggestions to continue.</p>}
+              {patient && <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-700">{patient.patient_number}</span>
+                <span className={`rounded-full px-2.5 py-1 font-medium ${existingEncounter ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>{existingEncounter ? "Already in queue" : "No active encounter"}</span>
+              </div>}
               {existingEncounter && (
                 <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
                   <div className="flex items-start gap-3">
