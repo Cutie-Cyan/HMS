@@ -135,9 +135,6 @@ export function BillingWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
   const { queue, earnings, discount, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
-  const [philhealthByEncounter, setPhilhealthByEncounter] = useState<
-    Record<string, boolean>
-  >({});
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
@@ -436,19 +433,7 @@ export function BillingWorkspace() {
                     )}
                     {canPrepare && (
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3">
-                        <label className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={!!philhealthByEncounter[row.encounter_id]}
-                            onChange={(e) =>
-                              setPhilhealthByEncounter((current) => ({
-                                ...current,
-                                [row.encounter_id]: e.target.checked,
-                              }))
-                            }
-                          />{" "}
-                          Apply PhilHealth ₱2,000 admission benefit
-                        </label>
+                        <p className="text-sm text-slate-600">Prepare the bill first, then choose the applicable discount category and enter the verified approved amount.</p>
                         <Button
                           disabled={busy}
                           onClick={() =>
@@ -456,8 +441,7 @@ export function BillingWorkspace() {
                               () =>
                                 prepare.mutateAsync({
                                   encounterId: row.encounter_id,
-                                  philhealth:
-                                    !!philhealthByEncounter[row.encounter_id],
+                                  philhealth: false,
                                 }),
                               "Final bill prepared. Review the total and record payment when ready.",
                             )
