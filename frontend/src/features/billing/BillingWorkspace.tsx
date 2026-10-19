@@ -69,9 +69,9 @@ function useBillingQueue() {
     },
   });
   const discount = useMutation({
-    mutationFn: async (v: { billId: string; category: "none" | "philhealth" | "senior" | "pwd"; notes: string }) => {
+    mutationFn: async (v: { billId: string; category: "none" | "philhealth" | "senior" | "pwd"; amount: number; notes: string }) => {
       const { error } = await getSupabaseClient().rpc("cashier_set_bill_discount", {
-        p_bill_id: v.billId, p_discount_label: v.category, p_notes: v.notes || null,
+        p_bill_id: v.billId, p_discount_label: v.category, p_discount_amount: v.amount, p_notes: v.notes || null,
       });
       if (error) throw error;
     },
@@ -141,6 +141,7 @@ export function BillingWorkspace() {
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
+  const [discountAmounts, setDiscountAmounts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
@@ -343,15 +344,15 @@ export function BillingWorkspace() {
                             <div className="grid gap-3 sm:grid-cols-2">
                               <label className="block text-sm font-medium text-slate-700">Discount type
                                 <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id] ?? "none"} onChange={e => setDiscountByBill(current => ({...current, [row.final_bill_id!]: e.target.value as "none" | "philhealth" | "senior" | "pwd"}))}>
-                                  <option value="none">No discount</option><option value="philhealth">PhilHealth (up to ₱2,000 benefit)</option><option value="senior">Senior citizen (20% estimate)</option><option value="pwd">PWD (20% estimate)</option>
+                                  <option value="none">No discount</option><option value="philhealth">PhilHealth</option><option value="senior">Senior citizen</option><option value="pwd">PWD</option>
                                 </select>
                               </label>
-                              <label className="block text-sm font-medium text-slate-700">Verification / reference notes
+                              <label className="block text-sm font-medium text-slate-700">Approved discount amount (₱)\n                                <input type="number" min="0" step="0.01" required className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountAmounts[row.final_bill_id] ?? ""} onChange={e => setDiscountAmounts(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="Enter verified amount" />\n                              </label>\n                              <label className="block text-sm font-medium text-slate-700">Verification / reference notes
                                 <input className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountNotes[row.final_bill_id] ?? ""} onChange={e => setDiscountNotes(current => ({...current, [row.final_bill_id!]: e.target.value}))} placeholder="ID checked / PhilHealth reference" />
                               </label>
                             </div>
-                            <p className="text-xs leading-5 text-amber-800">Verify valid documents and applicable covered charges before applying. Senior/PWD amounts are an estimate using 20% of this bill subtotal; confirm current hospital and statutory rules. Only one discount category can be applied at a time.</p>
-                            <Button variant="secondary" disabled={busy || (["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior)} onClick={() => void act(() => discount.mutateAsync({billId: row.final_bill_id!, category: discountByBill[row.final_bill_id] ?? "none", notes: discountNotes[row.final_bill_id] ?? ""}), "Discount updated. Review the revised bill before recording payment.")}>Save discount</Button>
+                            <p className="text-xs leading-5 text-amber-800">Verify eligibility, covered charges, and the approved amount before applying. Enter the amount approved under current hospital and statutory rules. Only one discount category can be applied at a time.</p>
+                            <Button variant="secondary" disabled={busy || discountAmounts[row.final_bill_id] === undefined || discountAmounts[row.final_bill_id].trim() === "" || !Number.isFinite(Number(discountAmounts[row.final_bill_id])) || Number(discountAmounts[row.final_bill_id]) < 0 || (["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior)} onClick={() => void act(() => discount.mutateAsync({billId: row.final_bill_id!, category: discountByBill[row.final_bill_id] ?? "none", amount: Number(discountAmounts[row.final_bill_id]), notes: discountNotes[row.final_bill_id] ?? ""}), "Discount updated. Review the revised bill before recording payment.")}>Save discount</Button>
                             {["senior","pwd"].includes(discountByBill[row.final_bill_id] ?? "none") && !row.pwd_or_senior && <p className="text-xs text-rose-700">The patient record is not marked PWD/Senior eligible. Verify/update the patient record first.</p>}
                           </div>
                         )}
