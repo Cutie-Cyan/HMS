@@ -58,8 +58,8 @@ export function AvailableDoctorsWorkspace() {
       {(message || error) && <div role={error ? "alert" : "status"} className={`hms-toast rounded-xl border p-3 text-sm shadow-xl ${error ? "border-rose-200 bg-white text-rose-800" : "border-emerald-200 bg-white text-emerald-800"}`}>{error || message}</div>}
       <div className="flex flex-wrap justify-end gap-2">
         {canManage && <Button type="button" onClick={() => openForm()}><Plus size={15}/> Add doctor</Button>}
-        <Button type="button" variant="secondary" onClick={() => void doctors.refetch()} disabled={doctors.isFetching}>
-          <RefreshCw size={15} className={doctors.isFetching ? "animate-spin" : ""} /> Refresh
+        <Button type="button" variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label="Refresh doctor list" title="Refresh" onClick={() => void doctors.refetch()} disabled={doctors.isFetching}>
+          <RefreshCw size={15} className={doctors.isFetching ? "animate-spin" : ""} />
         </Button>
       </div>
 
