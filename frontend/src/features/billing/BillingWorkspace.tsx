@@ -158,6 +158,7 @@ export function BillingWorkspace() {
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
   const [discountIdByBill, setDiscountIdByBill] = useState<Record<string, string>>({});
   const [discountAmounts, setDiscountAmounts] = useState<Record<string, string>>({});
+  const [billingView, setBillingView] = useState<"queue" | "history">("queue");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
@@ -172,6 +173,11 @@ export function BillingWorkspace() {
     }
   };
   const isCashier = role === "cashier";
+  const canViewHistory = role === "cashier" || role === "admin";
+  const visibleRows = (queue.data ?? []).filter((row) => {
+    if (!canViewHistory) return true;
+    return billingView === "history" ? !!row.paid_at : !row.paid_at;
+  });
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
       {(message || error) && (
@@ -200,6 +206,12 @@ export function BillingWorkspace() {
             Room rates use rolling 24-hour blocks. A partial block is charged as
             one day.
           </p>
+          {canViewHistory && (
+            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Billing views">
+              <Button type="button" variant={billingView === "queue" ? "primary" : "secondary"} onClick={() => setBillingView("queue")}>Billing queue</Button>
+              <Button type="button" variant={billingView === "history" ? "primary" : "secondary"} onClick={() => setBillingView("history")}>Transaction history</Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {queue.isLoading ? (
@@ -220,9 +232,9 @@ export function BillingWorkspace() {
                 Retry
               </Button>
             </div>
-          ) : queue.data?.length ? (
+          ) : visibleRows.length ? (
             <div className="space-y-4">
-              {queue.data.map((row) => {
+              {visibleRows.map((row) => {
                 const canPrepare =
                   isCashier && row.requests_cleared && !row.final_bill_id;
                 const canPay = isCashier && row.final_bill_id && !row.paid_at;
@@ -506,9 +518,9 @@ export function BillingWorkspace() {
           ) : (
             <div className="py-10 text-center">
               <CheckCircle2 className="mx-auto text-slate-300" size={30} />
-              <p className="mt-3 font-medium">No patients awaiting closeout</p>
+              <p className="mt-3 font-medium">{canViewHistory && billingView === "history" ? "No completed transactions yet" : "No patients awaiting closeout"}</p>
               <p className="mt-1 text-sm text-slate-500">
-                Admitted encounters will appear here.
+                {canViewHistory && billingView === "history" ? "Fully paid bills will appear here." : "Admitted encounters will appear here."}
               </p>
             </div>
           )}
