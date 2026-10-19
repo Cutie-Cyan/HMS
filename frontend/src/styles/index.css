@@ -133,3 +133,9 @@ select:disabled, input:disabled { cursor: not-allowed; opacity: 0.65; }
   [data-slot="card-content"] { padding: 0 0.8rem 0.8rem; }
   .hms-toast { top: 4.25rem; right: 0.75rem; width: calc(100vw - 1.5rem); }
 }
+
+div.overflow-x-auto:has(> table) {
+  max-height: min(30rem, 62vh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
