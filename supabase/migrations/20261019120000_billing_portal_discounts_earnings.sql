@@ -87,7 +87,7 @@ begin
   from public.staff_profiles sp
   where sp.user_id = v_actor and sp.is_active = true;
 
-  if v_actor is null or v_role not in ('cashier'::public.staff_role, 'admin'::public.staff_role) then
+  if v_actor is null or (v_role is distinct from 'cashier'::public.staff_role and v_role is distinct from 'admin'::public.staff_role) then
     raise exception using errcode='42501', message='Only an active Cashier or Admin can apply billing discounts.';
   end if;
   if p_discount_label not in ('none', 'philhealth', 'senior', 'pwd') then
