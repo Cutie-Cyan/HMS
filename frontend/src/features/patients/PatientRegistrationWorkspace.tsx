@@ -2,7 +2,6 @@ import { useEffect,useState,type FormEvent,type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CheckCircle2,Clipboard,ClipboardCheck,Printer,QrCode,UserPlus,XCircle } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
-import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card,CardContent,CardHeader } from "../../components/ui/Card";
 import { humanizeError,usePendingPatientSubmissions,useRegisterPatient,useReviewPatientSubmission } from "./data";
