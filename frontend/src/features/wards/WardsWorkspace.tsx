@@ -409,7 +409,6 @@ export function WardsWorkspace() {
                 <div className="flex items-center gap-2 font-semibold">
                   <BedDouble size={18} className="text-sky-700" /> Bed board
                 </div>
-                <p className="mt-1 max-w-2xl text-sm text-slate-500">Receiving wards should review the ER handover, confirm acceptance and bed availability, then assess the patient on arrival. Keep the ER triage and doctor documentation linked to the patient; record ward observations and treatment as new clinical entries.</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
