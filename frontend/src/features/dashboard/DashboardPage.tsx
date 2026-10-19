@@ -115,11 +115,14 @@ export function DashboardPage() {
 
   const hasDataError = [staff, beds, patients, encounters, requests, inventory].some((query) => query.isError);
   if (isEmergency) return <div className={`w-full space-y-4 pb-5 ${isInfo ? "max-w-none" : "mx-auto max-w-[1440px]"}`}>
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group rounded-xl border border-border bg-card p-4 transition hover:border-primary/40 hover:shadow-sm">
-        <div className="flex items-center justify-between gap-3"><span className="text-sm font-medium text-muted-foreground">{label}</span><span className="grid size-10 place-items-center rounded-xl bg-muted text-foreground"><Icon size={18}/></span></div>
-        <p className="mt-4 text-2xl font-semibold tabular-nums">{value}</p><div className="mt-2 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{detail}</span><ArrowUpRight size={16} className="shrink-0 text-muted-foreground group-hover:text-foreground"/></div>
+    <section className={`w-full rounded-xl border border-border bg-card px-4 py-3 ${isInfo ? "max-w-none" : ""}`}>
+      <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      {metrics.map(({ label, value, detail, icon: Icon, to }) => <Link key={label} to={to} className="group flex min-w-0 items-center gap-3 px-2 py-2 transition hover:bg-muted/40 sm:px-4 sm:first:pl-1 sm:last:pr-1">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-foreground"><Icon size={17}/></span>
+        <div className="min-w-0 flex-1"><div className="flex items-baseline justify-between gap-2"><span className="truncate text-xs font-medium text-muted-foreground">{label}</span><span className="text-xl font-semibold tabular-nums">{value}</span></div><p className="mt-0.5 truncate text-[11px] text-muted-foreground">{detail}</p></div>
+        <ArrowUpRight size={15} className="shrink-0 text-muted-foreground group-hover:text-foreground"/>
       </Link>)}
+      </div>
     </section>
   </div>;
   return <div className="mx-auto max-w-[1440px] space-y-4 pb-5">
