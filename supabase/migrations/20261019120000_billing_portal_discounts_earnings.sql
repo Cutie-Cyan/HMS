@@ -40,7 +40,12 @@ begin
          e.status,
          b.id,
          coalesce(b.subtotal, 0),
-         coalesce(b.discount_label, 'none'),
+         case
+           when b.discount_label is distinct from 'none' then b.discount_label
+           when b.discount_category = 'philhealth'::public.discount_type then 'philhealth'
+           when b.discount_category = 'pwd_senior'::public.discount_type then 'pwd/senior'
+           else 'none'
+         end,
          coalesce(b.discount_amount, 0),
          coalesce(b.total_bill, 0),
          b.paid_at,
