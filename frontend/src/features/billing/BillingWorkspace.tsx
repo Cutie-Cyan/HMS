@@ -5,7 +5,7 @@ import {
   ClipboardCheck,
   RefreshCw,
   ShieldAlert,
-  QrCode,
+  Printer,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
@@ -256,20 +256,31 @@ export function BillingWorkspace() {
                               : "Requests not cleared"}
                       </Badge>
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-teal-100 bg-teal-50/60 p-3">
+                    <div className="mt-4 flex flex-col items-start gap-2">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`}
-                        alt="QR code to open the patient billing portal"
-                        width={120}
-                        height={120}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`}
+                        alt="Patient billing portal QR code"
+                        width={144}
+                        height={144}
                         loading="lazy"
                         className="rounded-lg border border-slate-200 bg-white p-1"
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="flex items-center gap-2 text-sm font-semibold text-teal-950"><QrCode size={16}/> Patient live-bill portal</p>
-                        <p className="mt-1 text-xs leading-5 text-slate-600">Print or share this QR code. The patient must verify their patient number and date of birth before viewing the bill. The portal refreshes bill data automatically.</p>
-                        <a className="mt-2 inline-block text-sm font-semibold text-teal-800 underline" href={patientPortalUrl(row.encounter_id)} target="_blank" rel="noreferrer">Open portal link</a>
-                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`;
+                          const printWindow = window.open("", "_blank", "width=480,height=560");
+                          if (!printWindow) {
+                            setError("Allow pop-ups to print the patient QR code.");
+                            return;
+                          }
+                          printWindow.document.write(`<!doctype html><html><head><title>Patient Billing QR Code</title><style>body{font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}img{width:320px;height:320px;object-fit:contain}</style></head><body><img src="${qrUrl}" alt="Patient billing portal QR code" onload="window.print()" /></body></html>`);
+                          printWindow.document.close();
+                        }}
+                      >
+                        <Printer size={15} /> Print QR code
+                      </Button>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <div className="rounded-xl border border-[#e8e8ed] bg-[#f8f8fa] p-3">
