@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthProvider";
 import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
-import { DashboardPage } from "../../features/dashboard/DashboardPage";
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard,
@@ -58,7 +57,7 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileOpen]);
 
-  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && !(profile.role === "info_officer" && module === "dashboard"));
+  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module));
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
   const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); return path === location.pathname && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "Overview";
@@ -128,7 +127,7 @@ export function AppShell() {
         </div>
       </header>
       {profileOpen&&<><button type="button" aria-label="Close staff profile popup" className="fixed inset-0 z-[90] cursor-default bg-transparent" onClick={()=>setProfileOpen(false)}/><section role="dialog" aria-modal="false" aria-labelledby="staff-profile-title" className="fixed right-4 top-[4.5rem] z-[100] w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"><div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-sky-700">Account</p><h2 id="staff-profile-title" className="mt-0.5 text-base font-bold text-slate-900">Staff profile</h2></div><button type="button" aria-label="Close profile" onClick={()=>setProfileOpen(false)} className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"><X size={17}/></button></div><div className="p-4"><div className="flex items-center gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-100 text-sm font-bold text-sky-900">{initials||"H"}</span><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{profile?.displayName??"Staff account"}</p><p className="mt-0.5 text-xs capitalize text-slate-500">{profile?.role.replaceAll("_"," ")??"Role not assigned"}</p></div></div><dl className="mt-4 space-y-3"><div className="flex items-start gap-2.5"><Mail size={15} className="mt-0.5 shrink-0 text-slate-400"/><div className="min-w-0"><dt className="text-[11px] text-slate-500">Email address</dt><dd className="break-all text-xs font-medium text-slate-800">{profile?.email??"Not available"}</dd></div></div><div className="flex items-start gap-2.5"><UserRound size={15} className="mt-0.5 shrink-0 text-slate-400"/><div><dt className="text-[11px] text-slate-500">Role</dt><dd className="text-xs font-medium capitalize text-slate-800">{profile?.role.replaceAll("_"," ")??"Not assigned"}</dd></div></div><div className="flex items-start gap-2.5"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-slate-400"/><div><dt className="text-[11px] text-slate-500">Account status</dt><dd className="text-xs font-medium text-emerald-700">{profile?.isActive?"Active":"Unknown"}</dd></div></div>{profile?.wardId&&<div><dt className="text-[11px] text-slate-500">Assigned ward</dt><dd className="text-xs font-medium text-slate-800">{profile.wardId}</dd></div>}</dl></div></section></>}
-      <main className="mx-auto min-w-0 max-w-[1680px] p-3 sm:p-4 lg:p-5">{profile?.role === "info_officer" && <div className="mb-5 w-full"><DashboardPage /></div>}<Outlet/></main>
+      <main className="mx-auto min-w-0 max-w-[1680px] p-3 sm:p-4 lg:p-5"><Outlet/></main>
     </div>
   </div>;
 }
