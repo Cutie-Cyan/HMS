@@ -511,6 +511,9 @@ export function InventoryWorkspace() {
               </Button>}
               <Button
                 variant="secondary"
+                className="!size-9 !min-h-9 !p-0"
+                aria-label="Refresh inventory"
+                title="Refresh"
                 onClick={() => void inventory.refetch()}
                 disabled={inventory.isFetching}
               >
