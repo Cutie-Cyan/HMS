@@ -325,7 +325,7 @@ export function NurseStationERPage() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
-            <Button variant="secondary" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} /> Refresh</Button>
+            <Button variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label="Refresh encounters" title="Refresh" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} className={encounters.isFetching ? "animate-spin" : ""}/></Button>
           </div>
           <div className="flex flex-wrap gap-2 pt-3" role="group" aria-label="Encounter record views">
             <Button type="button" variant={encounterView === "queue" ? "primary" : "secondary"} onClick={() => setEncounterView("queue")}>Queue <span className="ml-1 rounded-full bg-black/10 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></Button>
