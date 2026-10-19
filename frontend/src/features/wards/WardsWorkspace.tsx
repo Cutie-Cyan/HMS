@@ -365,7 +365,7 @@ export function WardsWorkspace() {
       {configOpen && role === "admin" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}>
           <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 id="ward-config-title" className="font-semibold">Configure rooms and beds</h2><p className="mt-1 text-sm text-slate-500">Add a room first for private beds.</p></div><button type="button" aria-label="Close" onClick={() => setConfigOpen(false)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></header>
+            <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 id="ward-config-title" className="font-semibold">Configure rooms and beds</h2></div><button type="button" aria-label="Close" onClick={() => setConfigOpen(false)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></header>
             <div className="flex gap-2 border-b border-slate-200 px-5 py-3"><Button type="button" variant={configTab === "bed" ? "primary" : "secondary"} onClick={() => setConfigTab("bed")}>Add bed</Button><Button type="button" variant={configTab === "room" ? "primary" : "secondary"} onClick={() => setConfigTab("room")}>Add room</Button></div>
             <div className="overflow-y-auto p-5">
               {configTab === "room" ? (
