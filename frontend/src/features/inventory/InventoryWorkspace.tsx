@@ -587,7 +587,6 @@ export function InventoryWorkspace() {
             <div className="flex items-center gap-2 font-semibold"><Boxes size={18} className="text-sky-700" /> Laboratory Supplies & Equipment</div>
             <Button onClick={() => { reset(); setCatalogType("supply"); setPrice("0"); setView("add"); }}><PackagePlus size={15} /> Add Supply</Button>
           </div>
-          <p className="mt-1 text-sm text-slate-500">Internal stock used to operate the laboratory. These are not patient-facing sale items or diagnostic tests.</p>
         </CardHeader>
         <CardContent>
           {inventory.isLoading ? <p className="py-4 text-sm text-slate-500">Loading supplies and equipment…</p> : inventory.isError ? <p role="alert" className="py-4 text-sm text-rose-700">Could not load supplies and equipment.</p> : (inventory.data ?? []).filter((item) => item.catalog_type === "supply").length ? <div className="space-y-3">
