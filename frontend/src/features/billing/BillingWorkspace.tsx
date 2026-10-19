@@ -152,7 +152,7 @@ function useBillingQueue() {
 export function BillingWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
-  const { queue, earnings, discount, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
+  const { queue, discount, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
@@ -376,7 +376,7 @@ export function BillingWorkspace() {
                             <h3 className="text-sm font-semibold text-slate-800">Apply / update discount</h3>
                             <div className="grid gap-3 sm:grid-cols-2">
                               <label className="block text-sm font-medium text-slate-700">Discount type
-                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id] ?? "none"} onChange={e => {
+                                <select className="mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm" value={discountByBill[row.final_bill_id!] ?? "none"} onChange={e => {
                                   const category = e.target.value as "none" | "philhealth" | "senior" | "pwd";
                                   setDiscountByBill(current => ({...current, [row.final_bill_id!]: category}));
                                   setDiscountIdByBill(current => ({...current, [row.final_bill_id!]: ""}));
