@@ -11,7 +11,7 @@ function patientStatus(status: string) {
   const normalized = status.toLowerCase().replaceAll("-", "_").replaceAll(" ", "_");
   if (["registered", "outpatient", "out_patient", "out_patients"].includes(normalized)) return { label: "Out patients", className: "bg-sky-50 text-sky-700 ring-sky-200" };
   if (["admitted", "inpatient", "in_patient"].includes(normalized)) return { label: "Admitted", className: "bg-emerald-50 text-emerald-700 ring-emerald-200" };
-  if (["emergency", "emergency_room", "in_emergency_room", "er"].includes(normalized)) return { label: "In emergency room", className: "bg-amber-50 text-amber-800 ring-amber-200" };
+  if (["emergency", "emergency_room", "in_emergency_room", "er"].includes(normalized)) return { label: "In Emergency Room", className: "bg-red-50 text-red-700 ring-red-200" };
   if (["discharged", "discharge"].includes(normalized)) return { label: "Discharge", className: "bg-slate-100 text-slate-600 ring-slate-200" };
   return { label: status.replaceAll("_", " "), className: "bg-slate-100 text-slate-600 ring-slate-200" };
 }
