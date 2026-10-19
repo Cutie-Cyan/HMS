@@ -25,7 +25,7 @@ export function PatientPortalPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function lookup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(""); setRecord(null);
+    event.preventDefault(); setBusy(true); setError(""); setRecord(null); setBill(null); setBillError("");
     try {
       const { data, error: rpcError } = await getSupabaseClient().rpc("public_patient_portal_lookup", {
         p_patient_number: patientNumber.trim().toUpperCase(), p_date_of_birth: dateOfBirth,
