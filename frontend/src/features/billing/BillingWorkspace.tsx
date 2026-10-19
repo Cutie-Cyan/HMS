@@ -196,6 +196,9 @@ export function BillingWorkspace() {
             </div>
             <Button
               variant="secondary"
+              className="!size-9 !min-h-9 !p-0"
+              aria-label="Refresh billing records"
+              title="Refresh"
               onClick={() => void queue.refetch()}
               disabled={queue.isFetching}
             >
