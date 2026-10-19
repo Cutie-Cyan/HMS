@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { CheckCircle2, FileText, Pencil, Printer, RefreshCw, Search, X } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
-import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { humanizeError, usePatientDirectory, usePatientHistory, useUpdatePatientDetails, type PatientRecord } from "./data";
