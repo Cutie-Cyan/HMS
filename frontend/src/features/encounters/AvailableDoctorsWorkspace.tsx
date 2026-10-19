@@ -1,7 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { Activity, Pencil, Plus, RefreshCw, Search, Stethoscope, UserRound, X } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
-import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { humanizeError, useDoctors, useSaveDoctor, type DoctorRecord } from "../patients/data";
