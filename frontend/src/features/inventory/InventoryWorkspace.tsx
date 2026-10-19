@@ -368,7 +368,7 @@ export function InventoryWorkspace() {
       {(message || error) && (
         <div
           role={error ? "alert" : "status"}
-          className={`rounded-xl border p-3 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}
+          className={`hms-toast rounded-xl border p-3 text-sm shadow-xl ${error ? "border-rose-200 bg-white text-rose-800" : "border-emerald-200 bg-white text-emerald-800"}`}
         >
           {error || message}
         </div>
