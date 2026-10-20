@@ -492,6 +492,24 @@ export function WardsWorkspace() {
                         {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}>Edit price</Button>}
                       </div>
                     </div>
+                    <div className="mb-5 grid gap-3 sm:grid-cols-2">
+                      <div className="flex min-h-[108px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Public bed</p>
+                          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</p>
+                          <p className="mt-1 text-xs text-slate-500">Per day</p>
+                        </div>
+                        <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-700"><BedDouble size={21}/></div>
+                      </div>
+                      <div className="flex min-h-[108px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Private room</p>
+                          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</p>
+                          <p className="mt-1 text-xs text-slate-500">Per day</p>
+                        </div>
+                        <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><BedDouble size={21}/></div>
+                      </div>
+                    </div>
 
                     {role !== "admin" && <div className="mb-4 flex justify-end border-b border-slate-200" role="tablist" aria-label="Choose rooms or beds">
                       <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
