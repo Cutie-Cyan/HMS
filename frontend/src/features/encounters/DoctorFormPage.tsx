@@ -164,7 +164,7 @@ export function DoctorFormPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 pb-8">
-      {(error || success) && <div role={error ? "alert" : "status"} className={`hms-toast-auto fixed right-4 top-4 z-[120] rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`} aria-label={error || success} title={error || success}>{error ? "Error" : "Saved"}</div>}
+      {(error || success) && <div role={error ? "alert" : "status"} className={`hms-toast-auto fixed right-4 top-4 z-[120] flex max-w-[min(22rem,calc(100vw-2rem))] items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold shadow-xl ring-1 ring-black/10 ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`} aria-label={error || success} title={error || success}><span className="min-w-0 truncate">{error ? "Error" : "Saved"}</span><button type="button" onClick={() => { setError(""); setSuccess(""); }} className="grid size-5 shrink-0 place-items-center rounded hover:bg-white/15" aria-label="Dismiss notification" title="Dismiss">×</button></div>}
 
       <Card>
         <CardHeader>
