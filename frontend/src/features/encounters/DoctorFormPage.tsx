@@ -164,7 +164,7 @@ export function DoctorFormPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 pb-8">
-      {(error || success) && <div role={error ? "alert" : "status"} className={`fixed right-4 top-4 z-[120] max-w-[min(30rem,calc(100vw-2rem))] rounded-xl border p-3 text-sm shadow-lg ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{error || success}</div>}
+      {(error || success) && <div role={error ? "alert" : "status"} className={`hms-toast-auto fixed right-4 top-4 z-[120] rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`} aria-label={error || success} title={error || success}>{error ? "Error" : "Saved"}</div>}
 
       <Card>
         <CardHeader>
