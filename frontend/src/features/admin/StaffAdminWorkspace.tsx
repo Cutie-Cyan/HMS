@@ -4,7 +4,7 @@ import { Activity, Pencil, Plus, ShieldCheck, Users, Trash2, X, UserCheck } from
 import { getSupabaseClient } from "../../lib/supabase";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent } from "../../components/ui/Card";
-import { ListEmpty, ListError, ListToolbar, Metric, MetricDivider, MetricStrip, PageToast, RefreshButton, StatusPill, TableSkeleton, ToolbarActions } from "../../components/ui/ListTable";
+import { ListEmpty, ListError, ListToolbar, Metric, MetricDivider, MetricStrip, PageToast, RefreshButton, SearchField, StatusPill, TableSkeleton, ToolbarActions } from "../../components/ui/ListTable";
 import { rowClass, tbodyClass, theadClass, thClass, thFirstClass } from "../../components/ui/listTableStyles";
 import type { StaffRole } from "../../lib/roles";
 
@@ -66,6 +66,7 @@ export function StaffAdminWorkspace() {
   const [inviteWardId, setInviteWardId] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
   const [showInvite, setShowInvite] = useState(false);
+  const [search, setSearch] = useState("");
   const staff = useQuery({
     queryKey: ["admin", "staff-directory"],
     queryFn: async () => {
@@ -161,6 +162,8 @@ export function StaffAdminWorkspace() {
     setErrorMessage("");
   };
   const staffRows = staff.data ?? [];
+  const term = search.trim().toLowerCase();
+  const visibleStaff = term ? staffRows.filter((row) => `${row.display_name} ${roleLabel(row.role)}`.toLowerCase().includes(term)) : staffRows;
   return (
     <div className="mx-auto max-w-[1440px] space-y-3 pb-5">
       <PageToast message={message} error={errorMessage} />
@@ -176,7 +179,8 @@ export function StaffAdminWorkspace() {
       </section></div>}
       <Card><CardContent className="px-4 pb-4 pt-6 sm:px-5 sm:pb-5 sm:pt-7">
         <ListToolbar>
-          <ToolbarActions className="xl:ml-auto">
+          <SearchField label="Search staff" placeholder="Search by name or role…" value={search} onChange={setSearch} />
+          <ToolbarActions>
             <MetricStrip>
               <Metric icon={<Users size={16} className="text-sky-700"/>} label="Total staff" value={staff.isLoading ? "—" : staffRows.length} />
               <MetricDivider />
@@ -188,7 +192,7 @@ export function StaffAdminWorkspace() {
             <RefreshButton label="Refresh staff list" onClick={() => void staff.refetch()} spinning={staff.isFetching} />
           </ToolbarActions>
         </ListToolbar>
-        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : staffRows.length ? <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Email</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{staffRows.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{row.display_name}</td><td className="py-3 pr-4 text-slate-600">{row.email}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Deactivate</Button>}</div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title="No staff profiles" hint="Select Add staff to create the first staff account." />}
+        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : visibleStaff.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{visibleStaff.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{row.display_name}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Deactivate</Button>}</div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title={term ? "No staff found" : "No staff profiles"} hint={term ? "Try a different name or role." : "Select Add staff to create the first staff account."} />}
       </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
