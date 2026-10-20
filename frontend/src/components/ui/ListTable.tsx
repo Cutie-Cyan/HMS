@@ -78,9 +78,9 @@ export function PageToast({ message, error }: { message: string; error: string }
   if ((!message && !error) || !visible) return null;
   const text = (error || message).trim();
   const normalized = text.toLowerCase();
-  const kind = error ? "error" : /delet|remov|reject|fail|error|denied|invalid|unable/.test(normalized) ? "error"
-    : /warning|attention|pending|not yet|cannot|can't/.test(normalized) ? "warning"
-    : /saved|success|added|created|updated|registered|approved|paid|completed|reactivated|deactivated|submitted|sent|copied/.test(normalized) ? "success" : "info";
+  const kind = error ? "error" : /saved|success|added|created|updated|registered|approved|paid|completed|deleted|removed|reactivated|deactivated|submitted|sent|copied/.test(normalized) ? "success"
+    : /reject|fail|error|denied|invalid|unable|could not|cannot|can't|not allowed/.test(normalized) ? "error"
+    : /warning|attention|pending|not yet|awaiting/.test(normalized) ? "warning" : "info";
   const styles = kind === "error" ? "border-rose-200 bg-rose-50 text-rose-800"
     : kind === "warning" ? "border-amber-200 bg-amber-50 text-amber-900"
     : kind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800"
