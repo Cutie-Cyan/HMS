@@ -97,7 +97,7 @@ export interface EncounterInput {
   encounterId?: string;
 }
 export function capitalizePersonName(value: string): string {
-  return value.trim().toLocaleLowerCase().split(/([\\s’'-]+)/).map((part) => /^[\\p{L}]/u.test(part) ? part.charAt(0).toLocaleUpperCase() + part.slice(1) : part).join("");
+  return value.trim().split(" ").filter(Boolean).map((part) => part.toLocaleLowerCase().charAt(0).toLocaleUpperCase() + part.toLocaleLowerCase().slice(1)).join(" ");
 }
 
 export function humanizeError(error: unknown): string {
