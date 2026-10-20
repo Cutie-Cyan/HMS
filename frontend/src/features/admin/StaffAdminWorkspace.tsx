@@ -30,29 +30,10 @@ const roles: { value: StaffRole; label: string }[] = [
 ];
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
-const capitalizePersonName = (value: string) => value.trim().toLocaleLowerCase().split(" ").filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1)).join(" ");
+const capitalizePersonName = (value: string) => value.trim().split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ");
 
-// Temporary display names for one-name demo accounts while HMS is in development.
-// These labels are presentation-only; actual profile values are not silently changed.
-const developmentFullNames: Record<string, string> = {
-  charles: "Charles Mendoza",
-  ella: "Ella Santos",
-  hannah: "Hannah Reyes",
-  hendrex: "Hendrex Dela Cruz",
-  jastine: "Jastine Navarro",
-  "jay-ar": "Jay-ar Hermoso",
-  kinneth: "Kinneth Tingdan",
-  yana: "Yana Bautista",
-};
-const staffDisplayName = (value: string) => {
-  const normalized = value.trim().toLocaleLowerCase();
-  if (!normalized || normalized === "former staff account" || normalized === "unknown staff") return value.trim() || "Unknown staff";
-  const knownName = developmentFullNames[normalized];
-  if (knownName) return knownName;
-  const name = capitalizePersonName(value);
-  // Give any remaining one-name demo account a temporary surname during development.
-  return name.includes(" ") ? name : `${name} Santos`;
-};
+// Names are read from public.staff_profiles.display_name in Supabase.
+const staffDisplayName = (value: string) => value.trim() || "Unknown staff";
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
   const context = cause && typeof cause === "object" && "context" in cause
