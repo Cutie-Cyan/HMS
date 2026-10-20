@@ -158,8 +158,23 @@ export function DashboardPage() {
         </button>
       </div>
       {hasDataError && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900"><AlertTriangle size={17} className="mt-0.5 shrink-0"/><span>Some dashboard data could not load. Refresh to try again.</span></div>}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {metrics.filter((metric) => (metric.label + " " + metric.detail).toLowerCase().includes(metricSearch.trim().toLowerCase())).length ? metrics.filter((metric) => (metric.label + " " + metric.detail).toLowerCase().includes(metricSearch.trim().toLowerCase())).map(({ label, value, detail, icon: Icon }) => {
+      {(() => {
+        const filteredMetrics = metrics.filter((metric) => (metric.label + " " + metric.detail).toLowerCase().includes(metricSearch.trim().toLowerCase()));
+        const groupFor = (label: string) => {
+          const name = label.toLowerCase();
+          if (name.includes("patient") || name.includes("record")) return "Patients";
+          if (name.includes("encounter") || name.includes("doctor")) return "Clinical activity";
+          if (name.includes("bed") || name.includes("ward")) return "Beds & wards";
+          if (name.includes("request") || name.includes("payment") || name.includes("billing") || name.includes("amount")) return "Billing & requests";
+          if (name.includes("stock") || name.includes("medicine") || name.includes("inventory")) return "Inventory";
+          if (name.includes("staff") || name.includes("account")) return "Staff & access";
+          return "Operations";
+        };
+        const groups = [...new Set(filteredMetrics.map((metric) => groupFor(metric.label)))];
+        return filteredMetrics.length ? <div className="space-y-6">{groups.map((group) => <section key={group} aria-label={group}>
+          <h2 className="mb-3 border-b border-slate-100 pb-2 text-sm font-semibold tracking-wide text-slate-800">{group}</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredMetrics.filter((metric) => groupFor(metric.label) === group).map(({ label, value, detail, icon: Icon }) => {
           const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary) : label.toLowerCase().includes("staff") ? staff
             : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
             : label.toLowerCase().includes("encounter") ? encounters
