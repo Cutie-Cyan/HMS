@@ -87,8 +87,8 @@ export function AppShell() {
             <div className="space-y-1">{items.map(module => {
               const Icon = icons[module]; const item = MODULES[module];
               const [path, query] = item.path.split("?"); const active = (location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`))) && (!query || location.search.slice(1) === query);
-              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={`relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-slate-100 text-slate-950 shadow-sm" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
-                <Icon size={20} strokeWidth={1.8} className="shrink-0"/>
+              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={`relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-slate-100 text-slate-950 shadow-sm focus-visible:bg-slate-100 focus-visible:text-slate-950" : "text-slate-400 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white"}`}>
+                <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${active ? "text-slate-950" : "text-current"}`}/>
                 {(mobile || expanded) && <span className={`min-w-0 flex-1 truncate text-[13px] ${active ? "font-semibold text-slate-950" : "font-medium text-slate-400"}`}>{item.label}</span>}
 
               </NavLink>;
