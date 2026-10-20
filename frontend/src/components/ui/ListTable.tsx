@@ -72,7 +72,7 @@ export function PageToast({ message, error }: { message: string; error: string }
       return;
     }
     setVisible(true);
-    const timeout = window.setTimeout(() => setVisible(false), 2400);
+    const timeout = window.setTimeout(() => setVisible(false), 4000);
     return () => window.clearTimeout(timeout);
   }, [message, error]);
   if ((!message && !error) || !visible) return null;
@@ -85,6 +85,5 @@ export function PageToast({ message, error }: { message: string; error: string }
     : kind === "warning" ? "border-amber-200 bg-amber-50 text-amber-900"
     : kind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800"
     : "border-sky-200 bg-sky-50 text-sky-800";
-  const label = kind === "error" ? "Failed" : kind === "warning" ? "Attention" : kind === "success" ? "Success" : "Info";
-  return <div role={kind === "error" ? "alert" : "status"} aria-label={text} title={text} className={`fixed right-4 top-4 z-[120] flex max-w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-xl border px-3.5 py-3 text-sm font-medium shadow-xl transition-opacity ${styles}`}><span className="min-w-0 flex-1 break-words"><span className="mr-2 text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>{text}</span><button type="button" onClick={() => setVisible(false)} className="grid size-6 shrink-0 place-items-center rounded-lg hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current" aria-label="Dismiss notification" title="Dismiss"><X size={14}/></button></div>;
+  return <div role={kind === "error" ? "alert" : "status"} aria-label={text} title={text} className={`fixed right-4 top-4 z-[120] flex max-w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-xl border px-3.5 py-3 text-sm font-medium shadow-xl transition-opacity ${styles}`}><span className="min-w-0 flex-1 break-words">{text}</span><button type="button" onClick={() => setVisible(false)} className="grid size-6 shrink-0 place-items-center rounded-lg hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current" aria-label="Dismiss notification" title="Dismiss"><X size={14}/></button></div>;
 }
