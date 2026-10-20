@@ -154,7 +154,7 @@ export function DashboardPage() {
       {hasDataError && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900"><AlertTriangle size={17} className="mt-0.5 shrink-0"/><span>Some dashboard data could not load. Refresh to try again.</span></div>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {metrics.map(({ label, value, detail, icon: Icon, to }) => {
-          const query = isAdmin ? adminSummary : label.toLowerCase().includes("staff") ? staff
+          const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary) : label.toLowerCase().includes("staff") ? staff
             : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
             : label.toLowerCase().includes("encounter") ? encounters
             : label.toLowerCase().includes("request") ? requests
