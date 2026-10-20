@@ -96,6 +96,10 @@ export interface EncounterInput {
   doctorId: string | null;
   encounterId?: string;
 }
+export function capitalizePersonName(value: string): string {
+  return value.trim().toLocaleLowerCase().split(/([\\s’'-]+)/).map((part) => /^[\\p{L}]/u.test(part) ? part.charAt(0).toLocaleUpperCase() + part.slice(1) : part).join("");
+}
+
 export function humanizeError(error: unknown): string {
   const message = error instanceof Error ? error.message : "The request could not be completed.";
   if (message.includes("42501") || message.toLowerCase().includes("permission")) return "Your staff role is not allowed to perform this action.";
@@ -180,7 +184,7 @@ export function useRegisterPatient() {
   return useMutation({
     mutationFn: async (input: RegisterPatientInput) => {
       const { data, error } = await getSupabaseClient().rpc("info_officer_register_patient", {
-        p_first_name: input.firstName, p_middle_name: input.middleName || null, p_last_name: input.lastName,
+        p_first_name: capitalizePersonName(input.firstName), p_middle_name: input.middleName.trim() ? capitalizePersonName(input.middleName) : null, p_last_name: capitalizePersonName(input.lastName),
         p_date_of_birth: input.dateOfBirth, p_sex: input.sex, p_phone: input.phone || null,
         p_address: input.address || null, p_pwd_or_senior: input.pwdOrSenior,
       });
