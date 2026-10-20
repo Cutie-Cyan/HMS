@@ -124,7 +124,7 @@ export function useDoctors(enabled = true) {
     enabled,
     queryKey: ["doctors", "active"],
     queryFn: async () => {
-      const { data, error } = await getSupabaseClient().from("doctors").select("id,full_name,specialty,is_on_duty,fixed_fee,is_active").eq("is_active", true).order("full_name");
+      const { data, error } = await getSupabaseClient().rpc("staff_active_doctors");
       if (error) throw error;
       return (data ?? []) as DoctorRecord[];
     },
