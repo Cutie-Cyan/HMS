@@ -170,4 +170,3 @@ export function DashboardPage() {
     </section>;
   </div>;
 }
-}
