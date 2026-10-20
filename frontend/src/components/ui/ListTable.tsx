@@ -76,6 +76,15 @@ export function PageToast({ message, error }: { message: string; error: string }
     return () => window.clearTimeout(timeout);
   }, [message, error]);
   if ((!message && !error) || !visible) return null;
-  const label = error ? "Error" : "Saved";
-  return <div role={error ? "alert" : "status"} aria-label={error || message} title={error || message} className={`fixed right-4 top-4 z-[120] flex max-w-[min(22rem,calc(100vw-2rem))] items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold shadow-xl ring-1 ring-black/10 transition-opacity ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`}><span className="min-w-0 truncate">{label}</span><button type="button" onClick={() => setVisible(false)} className="grid size-5 shrink-0 place-items-center rounded hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Dismiss notification" title="Dismiss"><X size={13}/></button></div>;
+  const text = (error || message).trim();
+  const normalized = text.toLowerCase();
+  const kind = error ? "error" : /delet|remov|reject|fail|error|denied|invalid|unable/.test(normalized) ? "error"
+    : /warning|attention|pending|not yet|cannot|can't/.test(normalized) ? "warning"
+    : /saved|success|added|created|updated|registered|approved|paid|completed|reactivated|deactivated|submitted|sent|copied/.test(normalized) ? "success" : "info";
+  const styles = kind === "error" ? "border-rose-200 bg-rose-50 text-rose-800"
+    : kind === "warning" ? "border-amber-200 bg-amber-50 text-amber-900"
+    : kind === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+    : "border-sky-200 bg-sky-50 text-sky-800";
+  const label = kind === "error" ? "Failed" : kind === "warning" ? "Attention" : kind === "success" ? "Success" : "Info";
+  return <div role={kind === "error" ? "alert" : "status"} aria-label={text} title={text} className={`fixed right-4 top-4 z-[120] flex max-w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-xl border px-3.5 py-3 text-sm font-medium shadow-xl transition-opacity ${styles}`}><span className="min-w-0 flex-1 break-words"><span className="mr-2 text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</span>{text}</span><button type="button" onClick={() => setVisible(false)} className="grid size-6 shrink-0 place-items-center rounded-lg hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current" aria-label="Dismiss notification" title="Dismiss"><X size={14}/></button></div>;
 }
