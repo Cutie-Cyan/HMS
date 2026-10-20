@@ -10,8 +10,8 @@ import { humanizeError, useDoctors, useSaveDoctor, type DoctorRecord } from "../
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 2 }).format(Number(value ?? 0));
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
-const capitalizeName = (value: string) => value.trim().toLocaleLowerCase().replace(/(^|[\\s’'-])([\\p{L}])/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase());
-const splitDoctorName = (value: string) => { const parts = value.trim().split(/\\s+/); return { first: parts[0] ?? "", middle: parts.length > 2 ? parts.slice(1, -1).join(" ") : "", last: parts.length > 1 ? parts[parts.length - 1] : "" }; };
+const capitalizeName = (value: string) => value.trim().split(" ").filter(Boolean).map((part) => part.toLocaleLowerCase().charAt(0).toLocaleUpperCase() + part.toLocaleLowerCase().slice(1)).join(" ");
+const splitDoctorName = (value: string) => { const parts = value.trim().split(" ").filter(Boolean); return { first: parts[0] ?? "", middle: parts.length > 2 ? parts.slice(1, -1).join(" ") : "", last: parts.length > 1 ? parts[parts.length - 1] : "" }; };
 
 export function AvailableDoctorsWorkspace() {
   const { profile } = useAuth();
