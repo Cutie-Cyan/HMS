@@ -65,6 +65,7 @@ export function StaffAdminWorkspace() {
   const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<StaffRow | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [role, setRole] = useState<StaffRole>("info_officer");
   const [wardId, setWardId] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -104,6 +105,17 @@ export function StaffAdminWorkspace() {
   const save = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Select a staff profile first.");
+      const normalizedEmail = editEmail.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) || normalizedEmail.length > 254) {
+        throw new Error("Enter a valid email address.");
+      }
+      if (normalizedEmail !== selected.email.toLowerCase()) {
+        const { data, error: emailError } = await getSupabaseClient().functions.invoke("admin-update-staff-email", {
+          body: { userId: selected.user_id, email: normalizedEmail },
+        });
+        if (emailError) throw emailError;
+        if (data?.error) throw new Error(data.error);
+      }
       const { error } = await getSupabaseClient().rpc("admin_update_staff_profile", {
         p_user_id: selected.user_id,
         p_display_name: capitalizePersonName(displayName),
@@ -193,6 +205,7 @@ export function StaffAdminWorkspace() {
   const edit = (row: StaffRow) => {
     setSelected(row);
     setDisplayName(row.display_name);
+    setEditEmail(row.email);
     setRole(row.role);
     setWardId(row.ward_id ?? "");
     setIsActive(row.is_active);
@@ -236,9 +249,10 @@ export function StaffAdminWorkspace() {
       </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
-          <div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="edit-staff-title" className="text-lg font-semibold text-slate-900">Edit staff profile</h2><p className="mt-1 text-sm text-slate-500">{selected.email}</p></div><button type="button" aria-label="Close edit dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setSelected(null)} disabled={save.isPending}><X size={18}/></button></div>
+          <div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="edit-staff-title" className="text-lg font-semibold text-slate-900">Edit staff profile</h2></div><button type="button" aria-label="Close edit dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setSelected(null)} disabled={save.isPending}><X size={18}/></button></div>
           <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); save.mutate(); }}>
             <label className="block text-sm font-medium text-slate-700">Display name<input required maxLength={150} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={fieldClass}/></label>
+            <label className="block text-sm font-medium text-slate-700">Email<input required type="email" maxLength={254} value={editEmail} onChange={(event) => setEditEmail(event.target.value)} className={fieldClass}/></label>
             <label className="block text-sm font-medium text-slate-700">Role<select value={role} onChange={(event) => setRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             {role === "nurse_station" && <label className="block text-sm font-medium text-slate-700">Assigned ward<select required value={wardId} onChange={(event) => setWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{wards.isError && <span className="mt-1 block text-xs text-rose-700">Could not load wards.</span>}</label>}
             <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-sky-700"/> <span><span className="block font-medium text-slate-800">Account active</span></span></label>
