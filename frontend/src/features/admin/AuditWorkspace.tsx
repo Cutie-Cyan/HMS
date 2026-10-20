@@ -56,7 +56,7 @@ const recordLabel = (value: string) => {
     patient: "Patient record",
     "patient registration submission": "Patient registration",
     request: "Payment request",
-    staff profile: "Staff account",
+    "staff profile": "Staff account",
   };
   return labels[key] ?? (key ? key.charAt(0).toLocaleUpperCase() + key.slice(1) : "System record");
 };
