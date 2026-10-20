@@ -42,7 +42,7 @@ const groups: { title: string; modules: HmsModule[] }[] = [
 export function AppShell() {
   const { profile, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [search, setSearch] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
@@ -74,7 +74,7 @@ export function AppShell() {
           {(mobile || expanded) && <span><span className="block text-base font-bold tracking-wide text-white">HMS</span></span>}
         </NavLink>
         {mobile && <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" className="grid size-9 place-items-center rounded-xl text-slate-300 hover:bg-white/10"><X size={18}/></button>}
-        {!mobile && <button type="button" onClick={() => setExpanded(v => !v)} aria-label={expanded ? "Collapse navigation" : "Expand navigation"} title={expanded ? "Collapse navigation" : "Expand navigation"} className={`grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white ${expanded ? "" : "hidden"}`}>{expanded ? <PanelLeftClose size={17}/> : <PanelLeftOpen size={17}/>}</button>}
+        {!mobile && <button type="button" onClick={() => setExpanded(v => !v)} aria-label={expanded ? "Collapse navigation" : "Expand navigation"} title={expanded ? "Collapse navigation" : "Expand navigation"} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white">{expanded ? <PanelLeftClose size={17}/> : <PanelLeftOpen size={17}/>}</button>}
       </div>
       <div className={`min-h-0 flex-1 overflow-y-auto py-5 ${mobile || expanded ? "px-3" : "px-2"}`}>
         {(mobile || expanded) && <label className="mb-5 flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-slate-400"><Search size={15}/><input aria-label="Search modules" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search modules" className="min-w-0 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"/></label>}
@@ -107,17 +107,18 @@ export function AppShell() {
     {mobileOpen && <button type="button" aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm md:hidden"/>}
     <aside aria-label="Mobile navigation" className={`fixed inset-y-0 left-0 z-50 flex w-[min(86vw,300px)] flex-col bg-[#17191d] text-white shadow-2xl transition-transform md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{navigation(true)}</aside>
     <div className={`min-h-screen min-w-0 transition-[padding] duration-200 ${expanded ? "md:pl-[252px]" : "md:pl-[84px]"}`}>
-      <header className="sticky top-0 z-20 flex h-[64px] items-center justify-between gap-3 border-b border-slate-200/70 bg-white/95 px-3 backdrop-blur-xl sm:px-5 lg:px-6">
+      <header className="sticky top-0 z-20 flex h-[64px] items-center justify-between gap-3 bg-transparent px-3 sm:px-5 lg:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-expanded={mobileOpen} className="grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm md:hidden"><Menu size={18}/></button>
           <div className="min-w-0"><h1 className="truncate text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">{currentLabel}</h1></div>
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          
-
-          <button type="button" onClick={()=>setProfileOpen(true)} aria-haspopup="dialog" aria-label="Open staff profile" className="flex items-center gap-2 rounded-full bg-slate-50 py-1.5 pl-1.5 pr-3 ring-1 ring-slate-200/80 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
+          <button type="button" onClick={()=>setProfileOpen(true)} aria-haspopup="dialog" aria-label="Open staff profile" className="flex items-center gap-2 rounded-full bg-white/70 py-1.5 pl-1.5 pr-3 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400">
             <span className="grid size-8 place-items-center rounded-full bg-sky-100 text-xs font-bold text-sky-900">{initials || "H"}</span>
             <span className="hidden max-w-28 truncate text-xs font-semibold text-slate-700 sm:block">{profile?.displayName ?? "Staff"}</span>
+          </button>
+          <button type="button" onClick={() => { void signOut(); }} aria-label="Sign out" title="Sign out" className="flex h-9 items-center gap-2 rounded-full px-3 text-slate-600 transition hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+            <LogOut size={17}/><span className="hidden text-xs font-semibold sm:inline">Sign out</span>
           </button>
         </div>
       </header>
