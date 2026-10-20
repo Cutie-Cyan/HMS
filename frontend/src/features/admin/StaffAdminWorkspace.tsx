@@ -39,7 +39,6 @@ const developmentFullNames: Record<string, string> = {
   ella: "Ella Santos",
   hannah: "Hannah Reyes",
   hendrex: "Hendrex Dela Cruz",
-  hend rex: "Hendrex Dela Cruz",
   jastine: "Jastine Navarro",
   "jay-ar": "Jay-ar Hermoso",
   kinneth: "Kinneth Tingdan",
