@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
-  Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck, ClipboardList, Stethoscope,
+  Activity, BedDouble, Boxes, ClipboardCheck, ClipboardList, Stethoscope, Search,
   FileText, PackageCheck, Users, Wallet, RefreshCw, AlertTriangle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -19,6 +20,7 @@ type AdminSummary = { patient_count: number; active_patient_count: number; open_
 
 export function DashboardPage() {
   const { profile } = useAuth();
+  const [metricSearch, setMetricSearch] = useState("");
   const role = profile?.role ?? "";
   const isAdmin = role === "admin";
   const isInfo = role === "info_officer";
@@ -101,10 +103,13 @@ export function DashboardPage() {
   const metrics: Metric[] = isAdmin ? [
     { label: "Staff accounts", value: staff.data?.total ?? "—", detail: staff.data ? `${staff.data.active} active · ${staff.data.inactive} inactive` : "Live staff directory", icon: Users, to: MODULES.staff.path },
     { label: "Patient records", value: adminSummary.data?.patient_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.active_patient_count} active patients` : "Hospital-wide patient records", icon: Users, to: MODULES.patients.path },
+    { label: "Active patients", value: adminSummary.data?.active_patient_count ?? "—", detail: "Patients not marked discharged", icon: Activity, to: MODULES.patients.path },
     { label: "Open encounters", value: adminSummary.data?.open_encounter_count ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES["available-doctors"].path },
     { label: "Total requests", value: adminSummary.data?.request_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.pending_payment_count} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
     { label: "Configured beds", value: adminSummary.data?.configured_bed_count ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
     { label: "Available beds", value: adminSummary.data?.available_bed_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.occupied_bed_count} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Occupied beds", value: adminSummary.data?.occupied_bed_count ?? "—", detail: "Beds currently assigned to patients", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Paid requests", value: adminSummary.data?.paid_request_count ?? "—", detail: "Paid requests awaiting department handling or completion", icon: ClipboardCheck, to: MODULES.requests.path },
     { label: "Medicine low-stock items", value: adminSummary.data?.medicine_low_stock_count ?? "—", detail: "At or below reorder threshold", icon: Boxes, to: MODULES.staff.path },
   ] : isInfo ? [
     { label: "Total patient records", value: patients.data?.length ?? "—", detail: "All registered patients", icon: Users, to: MODULES.patients.path },
@@ -143,17 +148,17 @@ export function DashboardPage() {
   return <div className="mx-auto w-full max-w-[1440px] pb-6">
     <section aria-label="Dashboard overview" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-950">Dashboard overview</h2>
-          <p className="mt-1 text-sm text-slate-500">A live snapshot of your hospital workspace.</p>
-        </div>
-        <button type="button" onClick={() => void refreshDashboard()} disabled={isRefreshing} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60" aria-label="Refresh dashboard data">
+        <label className="relative min-w-[220px] flex-1 sm:max-w-md">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
+          <input type="search" value={metricSearch} onChange={(event) => setMetricSearch(event.target.value)} placeholder="Search dashboard metrics..." aria-label="Search dashboard metrics" className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"/>
+        </label>
+        <button type="button" onClick={() => void refreshDashboard()} disabled={isRefreshing} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60" aria-label="Refresh dashboard data">
           <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""}/> Refresh
         </button>
       </div>
       {hasDataError && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900"><AlertTriangle size={17} className="mt-0.5 shrink-0"/><span>Some dashboard data could not load. Refresh to try again.</span></div>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {metrics.map(({ label, value, detail, icon: Icon, to }) => {
+        {metrics.filter((metric) => (metric.label + " " + metric.detail).toLowerCase().includes(metricSearch.trim().toLowerCase())).length ? metrics.filter((metric) => (metric.label + " " + metric.detail).toLowerCase().includes(metricSearch.trim().toLowerCase())).map(({ label, value, detail, icon: Icon }) => {
           const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary) : label.toLowerCase().includes("staff") ? staff
             : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
             : label.toLowerCase().includes("encounter") ? encounters
@@ -162,18 +167,17 @@ export function DashboardPage() {
              : label.toLowerCase().includes("stock") ? inventory : null;
           const failed = Boolean(query?.isError);
           const loading = Boolean(query?.isLoading);
-          return <Link key={label} to={to} className="group flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-sky-300 hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
+          return <div key={label} className="flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4">
             <div className="flex items-start justify-between gap-3">
               <span className="min-w-0 text-sm font-semibold leading-5 text-slate-600">{label}</span>
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 group-hover:text-sky-700"><Icon size={19} strokeWidth={1.8}/></span>
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"><Icon size={19} strokeWidth={1.8}/></span>
             </div>
             <p className={`mt-4 text-3xl font-semibold leading-none tracking-tight tabular-nums ${failed ? "text-rose-700" : "text-slate-950"}`}>{failed ? "!" : loading ? "…" : value}</p>
             <div className="mt-auto flex items-end justify-between gap-3 pt-4">
               <p className={`min-w-0 whitespace-normal break-words text-xs leading-5 ${failed ? "text-rose-700" : "text-slate-500"}`}>{failed ? "Data unavailable · refresh to retry" : loading ? "Loading data…" : detail}</p>
-              <span className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-400 transition group-hover:bg-slate-100 group-hover:text-slate-800"><ArrowUpRight size={16}/></span>
             </div>
-          </Link>;
-        })}
+          </div>;
+        }) : <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500 sm:col-span-2 xl:col-span-3">No matching metrics found.</p>}
       </div>
       <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
