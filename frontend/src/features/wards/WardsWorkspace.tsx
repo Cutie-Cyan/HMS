@@ -394,7 +394,7 @@ export function WardsWorkspace() {
                   <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
                   <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}><option value="">{wardList.length ? "Select ward" : "No wards available"}</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium sm:col-span-2">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public / shared</option><option value="private">Private</option></select></label>
-                  <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Saving room…" : "Save room"}</Button></div>
+                  <div className="flex justify-end sm:col-span-2"><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Saving…" : "Save"}</Button></div>
                 </form>
               ) : (
                 <form onSubmit={async (e) => { await submitBed(e); if (!saveBed.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
@@ -402,7 +402,7 @@ export function WardsWorkspace() {
                   <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">{wardList.length ? "Select ward" : "No wards available"}</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
                   {bedType === "private" && <label className="block text-sm font-medium">Private room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required disabled={!roomsForWard(bedWard, true).length}><option value="">{roomsForWard(bedWard, true).length ? "Select private room" : "No private rooms available"}</option>{roomsForWard(bedWard, true).map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select>{bedWard && roomsForWard(bedWard, true).length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active private rooms in this ward. Add a private room first.</span>}</label>}
-                  <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding bed…" : "Add bed"}</Button></div>
+                  <div className="flex justify-end sm:col-span-2"><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding…" : "Add"}</Button></div>
                 </form>
               )}
             </div>
@@ -449,7 +449,7 @@ export function WardsWorkspace() {
               Your staff profile has no ward assignment. Ask an administrator to assign this account to Emergency Room, Female Ward, Male Ward, or Pedia Ward. Patient and bed details are hidden until the assignment is configured.
             </div>
           ) : board.isLoading || wardCatalog.isLoading ? (
-            <p className="py-8 text-sm text-slate-500">Loading ward board…</p>
+            <div className="flex min-h-56 items-center justify-center text-sm text-slate-500">Loading…</div>
           ) : board.isError || wardCatalog.isError ? (
             <div className="py-8 text-center">
               <ShieldAlert className="mx-auto text-rose-500" size={25} />
@@ -482,25 +482,20 @@ export function WardsWorkspace() {
                 const first = rows[0];
                 return (
                   <section key={w.id}>
-                    <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-                      <div>
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-3">
                         <h2 className="font-semibold">{w.name}</h2>
-                        
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                          <div><p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Available</p><p className="text-lg font-semibold tabular-nums">{rows.filter((b) => b.bed_id && !b.occupied).length}</p></div>
+                          <span className="h-8 w-px bg-slate-200"/>
+                          <div><p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">Configured</p><p className="text-lg font-semibold tabular-nums">{rows.filter((b) => b.bed_id).length}</p></div>
+                        </div>
                       </div>
-                      <Badge tone="neutral">
-                        {
-                          rows
-                            .filter((b) => b.bed_id)
-                            .filter((b) => !b.occupied).length
-                        }{" "}
-                        available / {rows.filter((b) => b.bed_id).length}{" "}
-                        configured
-                      </Badge>
-                    </div>
-                    <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-                      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Public bed</span><span className="text-sm font-semibold text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</span></div>
-                      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Private room</span><span className="text-sm font-semibold text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</span></div>
-                      {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}><span>Edit prices</span></Button>}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="rounded-xl border border-slate-200 bg-white px-3 py-2"><p className="text-[11px] font-medium text-slate-500">Public bed</p><p className="text-sm font-semibold text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</p></div>
+                        <div className="rounded-xl border border-slate-200 bg-white px-3 py-2"><p className="text-[11px] font-medium text-slate-500">Private room</p><p className="text-sm font-semibold text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</p></div>
+                        {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}>Edit</Button>}
+                      </div>
                     </div>
                     <div className="mb-4 flex justify-end border-b border-slate-200" role="tablist" aria-label="Choose rooms or beds">
                       <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
@@ -509,11 +504,7 @@ export function WardsWorkspace() {
                     {boardView === "rooms" ? (
                       <>
                         {role === "admin" && (
-                              <div className="mb-4">
-                                <div className="mb-2 flex items-center justify-between gap-2">
-                                  <h3 className="text-sm font-semibold text-slate-700">Rooms</h3>
-                                  <span className="text-xs text-slate-500">{(rooms.data ?? []).filter((r) => r.ward_id === w.id).length} configured</span>
-                                </div>
+                              
                                 {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
                                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                                     {(rooms.data ?? []).filter((r) => r.ward_id === w.id).map((room) => {
