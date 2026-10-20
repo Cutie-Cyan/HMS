@@ -33,7 +33,12 @@ const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)
 const capitalizePersonName = (value: string) => value.trim().split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ");
 
 // Names are read from public.staff_profiles.display_name in Supabase.
-const staffDisplayName = (value: string) => value.trim() || "Unknown staff";
+const staffDisplayName = (value: string) => {
+  const name = value.trim().split(/\\s+/).filter(Boolean);
+  return name.length >= 3
+    ? name.map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ")
+    : value.trim() || "Unknown staff";
+};
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
   const context = cause && typeof cause === "object" && "context" in cause
