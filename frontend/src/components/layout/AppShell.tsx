@@ -88,7 +88,7 @@ export function AppShell() {
               const Icon = icons[module]; const item = MODULES[module];
               const [path, query] = item.path.split("?"); const active = (location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`))) && (!query || location.search.slice(1) === query);
               return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={`relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-slate-100 text-slate-950 shadow-sm" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
-                <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${(location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1])) ? "text-sky-700" : ""}`}/>
+                <Icon size={20} strokeWidth={1.8} className="shrink-0"/>
                 {(mobile || expanded) && <span className={`min-w-0 flex-1 truncate text-[13px] ${active ? "font-semibold text-slate-950" : "font-medium text-slate-400"}`}>{item.label}</span>}
 
               </NavLink>;
