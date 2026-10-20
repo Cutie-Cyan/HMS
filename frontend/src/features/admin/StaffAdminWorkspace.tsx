@@ -32,6 +32,21 @@ const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
 const capitalizePersonName = (value: string) => value.trim().toLocaleLowerCase().split(" ").filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1)).join(" ");
 
+// Temporary display names for one-name demo accounts while HMS is in development.
+// These labels are presentation-only; actual profile values are not silently changed.
+const developmentFullNames: Record<string, string> = {
+  charles: "Charles Mendoza",
+  ella: "Ella Santos",
+  hannah: "Hannah Reyes",
+  hendrex: "Hendrex Dela Cruz",
+  hend rex: "Hendrex Dela Cruz",
+  jastine: "Jastine Navarro",
+  "jay-ar": "Jay-ar Hermoso",
+  kinneth: "Kinneth Tingdan",
+  yana: "Yana Bautista",
+};
+const staffDisplayName = (value: string) => developmentFullNames[value.trim().toLocaleLowerCase()] ?? capitalizePersonName(value);
+
 async function invitationErrorMessage(cause: unknown): Promise<string> {
   const context = cause && typeof cause === "object" && "context" in cause
     ? (cause as { context?: unknown }).context
@@ -146,7 +161,7 @@ export function StaffAdminWorkspace() {
       return data;
     },
     onSuccess: async () => {
-      const deletedName = deleteTarget?.display_name ?? "Staff account";
+      const deletedName = deleteTarget ? staffDisplayName(deleteTarget.display_name) : "Staff account";
       setDeleteTarget(null);
       setMessage(deletedName + " was permanently deleted.");
       setErrorMessage("");
@@ -199,7 +214,7 @@ export function StaffAdminWorkspace() {
             <RefreshButton label="Refresh staff list" onClick={() => void staff.refetch()} spinning={staff.isFetching} />
           </ToolbarActions>
         </ListToolbar>
-        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : visibleStaff.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{visibleStaff.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{row.display_name}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="secondary" onClick={() => { if (window.confirm("Deactivate " + row.display_name + "? They will lose HMS access, but their account and audit history will be retained.")) { setErrorMessage(""); getSupabaseClient().rpc("admin_update_staff_profile", { p_user_id: row.user_id, p_display_name: row.display_name, p_role: row.role, p_ward_id: row.ward_id, p_is_active: false }).then(({ error }) => { if (error) { setErrorMessage(error.message); setMessage(""); } else { setMessage(row.display_name + " was deactivated."); setErrorMessage(""); void client.invalidateQueries({ queryKey: ["admin", "staff-directory"] }); } }); } }}><ShieldCheck size={14}/> Deactivate</Button>}<Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title={term ? "No staff found" : "No staff profiles"} hint={term ? "Try a different name or role." : "Select Add staff to create the first staff account."} />}
+        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : visibleStaff.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{visibleStaff.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{staffDisplayName(row.display_name)}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="secondary" onClick={() => { if (window.confirm("Deactivate " + staffDisplayName(row.display_name) + "? They will lose HMS access, but their account and audit history will be retained.")) { setErrorMessage(""); getSupabaseClient().rpc("admin_update_staff_profile", { p_user_id: row.user_id, p_display_name: row.display_name, p_role: row.role, p_ward_id: row.ward_id, p_is_active: false }).then(({ error }) => { if (error) { setErrorMessage(error.message); setMessage(""); } else { setMessage(staffDisplayName(row.display_name) + " was deactivated."); setErrorMessage(""); void client.invalidateQueries({ queryKey: ["admin", "staff-directory"] }); } }); } }}><ShieldCheck size={14}/> Deactivate</Button>}<Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title={term ? "No staff found" : "No staff profiles"} hint={term ? "Try a different name or role." : "Select Add staff to create the first staff account."} />}
       </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
@@ -218,7 +233,7 @@ export function StaffAdminWorkspace() {
         <section role="alertdialog" aria-modal="true" aria-labelledby="delete-staff-title" aria-describedby="delete-staff-description" className="my-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
           <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-rose-100 text-rose-700"><Trash2 size={20}/></div>
           <h2 id="delete-staff-title" className="text-lg font-semibold text-slate-900">Delete staff account permanently?</h2>
-          <p id="delete-staff-description" className="mt-2 text-sm leading-6 text-slate-600"><strong>{deleteTarget.display_name}</strong> ({deleteTarget.email}) will be permanently removed from Supabase Authentication. This cannot be undone. Related records may prevent deletion; the last active administrator cannot be deleted.</p>
+          <p id="delete-staff-description" className="mt-2 text-sm leading-6 text-slate-600"><strong>{staffDisplayName(deleteTarget.display_name)}</strong> ({deleteTarget.email}) will be permanently removed from Supabase Authentication. This cannot be undone. Related records may prevent deletion; the last active administrator cannot be deleted.</p>
           {errorMessage && <p role="alert" className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
           <div className="mt-6 flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)} disabled={removeStaff.isPending}>Cancel</Button><Button type="button" variant="danger" onClick={() => removeStaff.mutate()} disabled={removeStaff.isPending}>{removeStaff.isPending ? "Deleting…" : "Delete account"}</Button></div>
         </section>
