@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { BedDouble, CheckCircle2, Plus, RefreshCw, ShieldAlert, X } from "lucide-react";
+import { BedDouble, CheckCircle2, Settings2, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
@@ -433,6 +433,7 @@ export function WardsWorkspace() {
               </div>
             </div>
             <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
+              {role === "admin" && <Button variant="secondary" onClick={() => setConfigOpen(true)}><Settings2 size={15}/> Configure</Button>}
               <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || wardCatalog.isFetching || rooms.isFetching}>
                 <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
               </Button>
