@@ -57,7 +57,7 @@ export function AppShell() {
 
   const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && module !== "dashboard");
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
-  const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); return path === location.pathname && (!query || location.search.slice(1) === query); });
+  const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); const pathActive = location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`)); return pathActive && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "HMS";
   const initials = (profile?.displayName ?? "Staff").split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
@@ -86,9 +86,9 @@ export function AppShell() {
             {(mobile || expanded) && <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{group.title}</p>}
             <div className="space-y-1">{items.map(module => {
               const Icon = icons[module]; const item = MODULES[module];
-              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={() => { const [path, query] = item.path.split("?"); const active = location.pathname === path && (!query || location.search.slice(1) === query); return `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-white text-slate-950 shadow-md" : "text-slate-400 hover:bg-white/10 hover:text-white"}`; }}>
+              return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={() => { const [path, query] = item.path.split("?"); const active = (location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`))) && (!query || location.search.slice(1) === query); return `relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-slate-100 text-slate-950 shadow-sm" : "text-slate-400 hover:bg-white/10 hover:text-white"}`; }}>
                 <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${(location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1])) ? "text-sky-700" : ""}`}/>
-                {(mobile || expanded) && <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{item.label}</span>}
+                {(mobile || expanded) && <span className={`min-w-0 flex-1 truncate text-[13px] ${active ? "font-semibold text-slate-950" : "font-medium text-slate-400"}`}>{item.label}</span>}
                 {location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1]) && <span className={`absolute right-1.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-sky-600 ${mobile || expanded ? "" : "hidden"}`}/>}
               </NavLink>;
             })}</div>
