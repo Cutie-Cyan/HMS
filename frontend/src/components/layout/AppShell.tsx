@@ -32,11 +32,11 @@ const icons: Record<HmsModule, typeof LayoutDashboard> = {
   staff: Users,
   audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
   { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "cbc", "wards"] },
   { title: "Operations", modules: ["billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory"] },
-  { title: "Administration", modules: ["staff", "audit"] },
+  { title: "Administration", modules: ["dashboard", "staff", "audit"] },
 ];
 
 export function AppShell() {
@@ -55,7 +55,7 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileOpen]);
 
-  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && module !== "dashboard");
+  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && (module !== "dashboard" || profile.role === "admin"));
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
   const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); const pathActive = location.pathname === path || (path !== "/" && location.pathname.startsWith(`${path}/`)); return pathActive && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "HMS";
