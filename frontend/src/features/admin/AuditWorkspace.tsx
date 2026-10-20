@@ -9,25 +9,8 @@ import { rowClass, tbodyClass, theadClass, thClass, thFirstClass } from "../../c
 type AuditRow = { id: number; actor_name: string; actor_email: string | null; action: string; entity_type: string; entity_id: string | null; details: Record<string, unknown>; created_at: string };
 const when = (value: string) => new Date(value).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
 const readable = (value: string) => value.replaceAll(".", " ").replaceAll("_", " ").trim();
-const developmentFullNames: Record<string, string> = {
-  charles: "Charles Mendoza",
-  ella: "Ella Santos",
-  hannah: "Hannah Reyes",
-  hendrex: "Hendrex Dela Cruz",
-  "hend rex": "Hendrex Dela Cruz",
-  jastine: "Jastine Navarro",
-  "jay-ar": "Jay-ar Hermoso",
-  kinneth: "Kinneth Tingdan",
-  yana: "Yana Bautista",
-};
-const staffDisplayName = (value: string) => {
-  const normalized = value.trim().toLocaleLowerCase();
-  if (!normalized || normalized === "former staff account" || normalized === "unknown staff") return value.trim() || "Unknown staff";
-  const knownName = developmentFullNames[normalized];
-  if (knownName) return knownName;
-  const name = value.trim().split(/\\s+/).filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ");
-  return name.includes(" ") ? name : `${name} Santos`;
-};
+// Actor names are returned by admin_audit_log from Supabase staff_profiles.
+const staffDisplayName = (value: string) => value.trim() || "Unknown staff";
 const actionLabel = (value: string) => {
   const key = readable(value).toLocaleLowerCase();
   const labels: Record<string, string> = {
