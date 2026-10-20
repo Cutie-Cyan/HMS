@@ -209,6 +209,7 @@ export function WardsWorkspace() {
   const [editingRatesWard, setEditingRatesWard] = useState<string | null>(null);
   const [publicRate, setPublicRate] = useState("");
   const [privateRate, setPrivateRate] = useState("");
+  const [rateType, setRateType] = useState<"public" | "private">("public");
   const saveRates = useMutation({
     mutationFn: async (v: { wardId: string; publicRate: number; privateRate: number }) => {
       const { error } = await getSupabaseClient().rpc("admin_update_ward_rates", {
@@ -370,13 +371,13 @@ export function WardsWorkspace() {
             <header className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><h2 id="edit-ward-prices-title" className="text-base font-semibold text-slate-900">Edit ward prices</h2><p className="mt-1 text-sm text-slate-500">{ward.name} · rates per 24 hours</p></div><button type="button" aria-label="Close" onClick={() => setEditingRatesWard(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></header>
             <form onSubmit={async (e) => {
               e.preventDefault(); setError(""); setMessage("");
-              const pub = Number(publicRate); const priv = Number(privateRate);
-              if (!Number.isFinite(pub) || !Number.isFinite(priv) || pub < 0 || priv < 0) { setError("Enter valid prices of zero or greater."); return; }
-              try { await saveRates.mutateAsync({ wardId: ward.id, publicRate: pub, privateRate: priv }); setEditingRatesWard(null); }
+              const selectedRate = Number(rateType === "public" ? publicRate : privateRate);
+              if (!Number.isFinite(selectedRate) || selectedRate < 0) { setError("Enter a valid price of zero or greater."); return; }
+              try { await saveRates.mutateAsync({ wardId: ward.id, publicRate: rateType === "public" ? selectedRate : Number(publicRate), privateRate: rateType === "private" ? selectedRate : Number(privateRate) }); setEditingRatesWard(null); }
               catch (err) { setError(requestError(err)); }
             }} className="space-y-4 p-5">
-              <label className="block text-sm font-medium text-slate-700">Public bed rate (₱)<input className={field} type="number" min="0" step="0.01" required value={publicRate} onChange={(e) => setPublicRate(e.target.value)}/></label>
-              <label className="block text-sm font-medium text-slate-700">Private room rate (₱)<input className={field} type="number" min="0" step="0.01" required value={privateRate} onChange={(e) => setPrivateRate(e.target.value)}/></label>
+              <label className="block text-sm font-medium text-slate-700">Price to change<select className={field} value={rateType} onChange={(e) => setRateType(e.target.value as "public" | "private")}><option value="public">Public bed price</option><option value="private">Private room price</option></select></label>
+              <label className="block text-sm font-medium text-slate-700">{rateType === "public" ? "Public bed rate (₱)" : "Private room rate (₱)"}<input className={field} type="number" min="0" step="0.01" required value={rateType === "public" ? publicRate : privateRate} onChange={(e) => rateType === "public" ? setPublicRate(e.target.value) : setPrivateRate(e.target.value)}/></label>
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-4"><Button type="button" variant="secondary" onClick={() => setEditingRatesWard(null)}>Cancel</Button><Button type="submit" disabled={saveRates.isPending}>{saveRates.isPending ? "Saving…" : "Save prices"}</Button></div>
             </form>
           </section>
@@ -471,7 +472,7 @@ export function WardsWorkspace() {
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="tablist" aria-label="Select ward">
-                {visibleWardList.map((w) => { const count = (board.data ?? []).filter((b) => b.ward_id === w.id && b.bed_id).length; const active = (selectedWardId || visibleWardList[0]?.id) === w.id; return <button key={w.id} type="button" role="tab" aria-selected={active} onClick={() => setSelectedWardId(w.id)} className={"min-h-[96px] min-w-0 rounded-2xl border p-4 text-left transition " + (active ? "border-sky-600 bg-sky-50 shadow-sm ring-1 ring-sky-600/10" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50")}><span className="flex items-start justify-between gap-2"><span className={"block truncate text-sm font-semibold sm:text-base " + (active ? "text-sky-900" : "text-slate-800")}>{w.name}</span><span className={"grid size-8 shrink-0 place-items-center rounded-xl " + (active ? "bg-white text-sky-700" : "bg-slate-100 text-slate-500")}><BedDouble size={17}/></span></span><span className="mt-3 flex items-baseline gap-1"><span className={"text-2xl font-semibold tabular-nums " + (active ? "text-sky-800" : "text-slate-900")}>{count}</span><span className="text-xs text-slate-500">configured beds</span></span></button>; })}
+                {visibleWardList.map((w) => { const count = (board.data ?? []).filter((b) => b.ward_id === w.id && b.bed_id).length; const active = (selectedWardId || visibleWardList[0]?.id) === w.id; return <button key={w.id} type="button" role="tab" aria-selected={active} onClick={() => setSelectedWardId(w.id)} className={"min-h-[78px] min-w-0 rounded-xl border p-3 text-left transition " + (active ? "border-sky-600 bg-sky-50 shadow-sm ring-1 ring-sky-600/10" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50")}><span className="flex items-start justify-between gap-2"><span className={"block truncate text-sm font-semibold sm:text-base " + (active ? "text-sky-900" : "text-slate-800")}>{w.name}</span><span className={"grid size-7 shrink-0 place-items-center rounded-lg " + (active ? "bg-white text-sky-700" : "bg-slate-100 text-slate-500")}><BedDouble size={17}/></span></span><span className="mt-2 flex items-baseline gap-1"><span className={"text-2xl font-semibold tabular-nums " + (active ? "text-sky-800" : "text-slate-900")}>{count}</span><span className="text-xs text-slate-500">configured beds</span></span></button>; })}
               </div>
               <div className="max-h-[60vh] overflow-y-auto overscroll-contain pr-1">
               {visibleWardList.filter((w) => w.id === (selectedWardId || visibleWardList[0]?.id)).map((w) => {
@@ -484,12 +485,7 @@ export function WardsWorkspace() {
                     <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                       <div>
                         <h2 className="font-semibold">{w.name}</h2>
-                        <p className="text-xs text-slate-500">
-                          Public {money(Number(first?.public_daily_rate ?? w.public_daily_rate))}{" "}
-                          / 24 hours · Private{" "}
-                          {money(Number(first?.private_daily_rate ?? w.private_daily_rate))} / 24
-                          hours
-                        </p>
+                        
                       </div>
                       <Badge tone="neutral">
                         {
@@ -501,22 +497,14 @@ export function WardsWorkspace() {
                         configured
                       </Badge>
                     </div>
-                    <div className="mb-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Public bed · per 24 hours</p>
-                        <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</p>
-                      </div>
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Private room · per 24 hours</p>
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                          <p className="text-2xl font-semibold tracking-tight text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</p>
-                          {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setEditingRatesWard(w.id); }}>Edit prices</Button>}
-                        </div>
-                      </div>
+                    <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+                      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Public bed</span><span className="text-sm font-semibold text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</span></div>
+                      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Private room</span><span className="text-sm font-semibold text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</span></div>
+                      {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}><span>Edit prices</span></Button>}
                     </div>
-                    <div className="mb-4 flex gap-2" role="tablist" aria-label="Choose rooms or beds">
-                      <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"min-h-11 rounded-xl border px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-slate-900 bg-slate-900 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
-                      <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"min-h-11 rounded-xl border px-5 py-2.5 text-sm font-semibold transition " + (boardView === "rooms" ? "border-slate-900 bg-slate-900 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
+                    <div className="mb-4 flex justify-end border-b border-slate-200" role="tablist" aria-label="Choose rooms or beds">
+                      <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
+                      <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "rooms" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
                     </div>
                     {boardView === "rooms" ? (
                       <>
