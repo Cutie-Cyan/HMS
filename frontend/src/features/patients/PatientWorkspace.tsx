@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, BedDouble, CheckCircle2, FileText, Pencil, Printer, RefreshCw, Search, Users, X } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
+import { getSupabaseClient } from "../../lib/supabase";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { humanizeError, usePatientDirectory, usePatientHistory, useUpdatePatientDetails, type PatientRecord } from "./data";
@@ -47,7 +48,7 @@ export function PatientWorkspace() {
     queryKey: ["patients", "location", viewPatient?.patient_id],
     enabled: canEdit && Boolean(viewPatient?.patient_id),
     queryFn: async () => {
-      const { data, error } = await (await import("../../lib/supabase")).getSupabaseClient().rpc("info_officer_patient_location", { p_patient_id: viewPatient!.patient_id });
+      const { data, error } = await getSupabaseClient().rpc("info_officer_patient_location", { p_patient_id: viewPatient!.patient_id });
       if (error) throw error;
       return (data ?? [])[0] as { ward_name: string | null; room_code: string | null; bed_code: string | null } | undefined;
     },
