@@ -4,7 +4,7 @@ import { CheckCircle2,Clipboard,ClipboardCheck,Printer,QrCode,UserPlus,XCircle }
 import { useAuth } from "../auth/AuthProvider";
 import { Button } from "../../components/ui/Button";
 import { Card,CardContent,CardHeader } from "../../components/ui/Card";
-import { humanizeError,usePendingPatientSubmissions,useRegisterPatient,useReviewPatientSubmission } from "./data";
+import { capitalizePersonName, humanizeError,usePendingPatientSubmissions,useRegisterPatient,useReviewPatientSubmission } from "./data";
 const inputClass="mt-1.5 min-h-11 w-full rounded-xl border border-[#dedee4] bg-white px-3.5 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10";
 function Field({label,children}:{label:string;children:ReactNode}){return <label className="block text-sm font-medium text-slate-700">{label}{children}</label>;}
 function ModalPortal({children}:{children:ReactNode}){return createPortal(children,document.body);}
@@ -15,7 +15,7 @@ export function PatientRegistrationWorkspace(){
  const publicFormUrl="https://cutie-cyan.github.io/HMS/patient-registration";const qrImageUrl=`https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(publicFormUrl)}`;const patientPortalUrl="https://cutie-cyan.github.io/HMS/patient-portal";const patientPortalQrImageUrl=`https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(patientPortalUrl)}`;
  useEffect(()=>{const reset=()=>setPrintTarget(null);window.addEventListener("afterprint",reset);return()=>window.removeEventListener("afterprint",reset);},[]);
  const print=(target:"blank"|"qr"|"portal")=>{setPrintTarget(target);window.setTimeout(()=>window.print(),80);};
- const submitPatient=async(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();setError("");setSuccess("");try{const result=await register.mutateAsync({firstName,middleName,lastName,dateOfBirth,sex,phone,address,pwdOrSenior});setSuccess(`Patient registered: ${result.patient_number}`);setFirstName("");setMiddleName("");setLastName("");setDateOfBirth("");setSex("unknown");setPhone("");setAddress("");setPwdOrSenior(false);}catch(cause){setError(humanizeError(cause));}};
+ const submitPatient=async(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();setError("");setSuccess("");try{const result=await register.mutateAsync({firstName:capitalizePersonName(firstName),middleName:capitalizePersonName(middleName),lastName:capitalizePersonName(lastName),dateOfBirth,sex,phone,address,pwdOrSenior});setSuccess(`Patient registered: ${result.patient_number}`);setFirstName("");setMiddleName("");setLastName("");setDateOfBirth("");setSex("unknown");setPhone("");setAddress("");setPwdOrSenior(false);}catch(cause){setError(humanizeError(cause));}};
  const reviewSubmission=async(submissionId:string,approve:boolean)=>{setError("");setSuccess("");try{const result=await review.mutateAsync({submissionId,approve});setSuccess(approve?`Submission approved. Patient number: ${result.patient_number??"created"}`:"Patient registration submission rejected.");}catch(cause){setError(humanizeError(cause));}};
  return <div className="mx-auto w-full max-w-7xl space-y-3 pb-5">
   
