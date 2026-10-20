@@ -34,8 +34,15 @@ function SessionGate() {
   const location = useLocation();
   if (loading)
     return (
-      <div className="grid min-h-screen place-items-center bg-slate-50 p-6 text-sm text-slate-500">
-        Verifying staff access…
+      <div className="min-h-screen bg-[#f3f5f8] p-4 sm:p-6" aria-label="Loading HMS" role="status">
+        <div className="mx-auto max-w-[1440px] animate-pulse space-y-5">
+          <div className="h-10 w-56 rounded-xl bg-slate-200" />
+          <div className="flex flex-wrap gap-3"><div className="h-10 w-44 rounded-lg bg-slate-200" /><div className="h-10 w-32 rounded-lg bg-slate-200" /></div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+            <div className="mb-6 flex flex-wrap justify-between gap-4"><div className="h-5 w-48 rounded bg-slate-200" /><div className="h-10 w-64 rounded-lg bg-slate-100" /></div>
+            <div className="space-y-4">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="grid grid-cols-3 gap-4 sm:grid-cols-6">{[0, 1, 2, 3, 4, 5].map((cell) => <div key={cell} className={cell > 2 ? "hidden h-4 rounded bg-slate-100 sm:block" : "h-4 rounded bg-slate-100"} />)}</div>)}</div>
+          </div>
+        </div>
       </div>
     );
   if (!configured)
@@ -49,10 +56,11 @@ function SessionGate() {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (profileLoading)
     return (
-      <div className="grid min-h-screen place-items-center bg-slate-50 p-6">
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600 shadow-sm">
-          <span className="size-5 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600" aria-hidden="true" />
-          Verifying your staff access…
+      <div className="min-h-screen bg-[#f3f5f8] p-4 sm:p-6" aria-label="Loading HMS" role="status">
+        <div className="mx-auto max-w-[1440px] animate-pulse space-y-5">
+          <div className="h-10 w-56 rounded-xl bg-slate-200" />
+          <div className="grid gap-4 sm:grid-cols-3"><div className="h-24 rounded-2xl bg-white" /><div className="h-24 rounded-2xl bg-white" /><div className="h-24 rounded-2xl bg-white" /></div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-6 h-5 w-48 rounded bg-slate-200" /><div className="space-y-4">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="h-4 rounded bg-slate-100" />)}</div></div>
         </div>
       </div>
     );
