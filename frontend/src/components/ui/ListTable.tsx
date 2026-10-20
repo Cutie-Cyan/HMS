@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, X } from "lucide-react";
 import { Button } from "./Button";
 import { statusTones } from "./listTableStyles";
 
@@ -77,5 +77,5 @@ export function PageToast({ message, error }: { message: string; error: string }
   }, [message, error]);
   if ((!message && !error) || !visible) return null;
   const label = error ? "Error" : "Saved";
-  return <div role={error ? "alert" : "status"} aria-label={error || message} title={error || message} className={`fixed right-4 top-4 z-[120] rounded-lg px-3 py-2 text-xs font-semibold shadow-lg transition-opacity ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`}>{label}</div>;
+  return <div role={error ? "alert" : "status"} aria-label={error || message} title={error || message} className={`fixed right-4 top-4 z-[120] flex max-w-[min(22rem,calc(100vw-2rem))] items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold shadow-xl ring-1 ring-black/10 transition-opacity ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`}><span className="min-w-0 truncate">{label}</span><button type="button" onClick={() => setVisible(false)} className="grid size-5 shrink-0 place-items-center rounded hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Dismiss notification" title="Dismiss"><X size={13}/></button></div>;
 }
