@@ -4,7 +4,6 @@ import {
   Activity, BedDouble, Boxes, ClipboardCheck, ClipboardList, Stethoscope, Search,
   FileText, PackageCheck, Users, Wallet, RefreshCw, AlertTriangle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { MODULES } from "../../lib/permissions";
 import { getSupabaseClient } from "../../lib/supabase";
