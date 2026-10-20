@@ -90,7 +90,7 @@ export function DashboardPage() {
   const metrics: Metric[] = isAdmin ? [
     { label: "Staff accounts", value: staff.data?.total ?? "—", detail: staff.data ? `${staff.data.active} active · ${staff.data.inactive} inactive` : "Live staff directory", icon: Users, to: MODULES.staff.path },
     { label: "Patient records", value: patients.data?.length ?? "—", detail: "Registered patient records", icon: Users, to: MODULES.patients.path },
-    { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES.available-doctors.path },
+    { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES["available-doctors"].path },
     { label: "Total requests", value: requests.data?.length ?? "—", detail: requests.data ? `${pendingRequests.length} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
     { label: "Configured beds", value: beds.data?.total ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
     { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
