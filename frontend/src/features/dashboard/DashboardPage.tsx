@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity, ArrowUpRight, BedDouble, Boxes, ClipboardCheck, ClipboardList, Stethoscope,
-  FileText, PackageCheck, Users, Wallet,
+  FileText, PackageCheck, Users, Wallet, RefreshCw, AlertTriangle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -119,35 +119,59 @@ export function DashboardPage() {
 
   const queryList = [staff, beds, patients, encounters, requests, inventory];
   const hasDataError = queryList.some((query) => query.isError);
-  const metricDetail = (label: string, detail: string) => {
-    const related = label.toLowerCase().includes("staff") ? staff
-      : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
-      : label.toLowerCase().includes("encounter") ? encounters
-      : label.toLowerCase().includes("request") ? requests
-      : label.toLowerCase().includes("bed") ? beds
-      : label.toLowerCase().includes("stock") ? inventory
-      : null;
-    if (related?.isError) return "Could not load data";
-    if (related?.isLoading) return "Loading…";
-    return detail;
-  };
 
-  return <div className="mx-auto w-full max-w-[1440px] space-y-4 pb-6">
-    {hasDataError && <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Data unavailable</div>}
-    <section aria-label="Dashboard metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {metrics.map(({ label, value, detail, icon: Icon, to }) => (
-        <Link key={label} to={to} className="group flex min-h-[156px] min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
-          <div className="flex items-start justify-between gap-3">
-            <span className="min-w-0 text-sm font-semibold leading-5 text-slate-600">{label}</span>
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 transition group-hover:bg-sky-50 group-hover:text-sky-700"><Icon size={20} strokeWidth={1.8}/></span>
-          </div>
-          <p className="mt-4 text-3xl font-semibold leading-none tracking-tight text-slate-950 tabular-nums">{value}</p>
-          <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-            <p className="min-w-0 whitespace-normal break-words text-xs leading-5 text-slate-500">{metricDetail(label, detail)}</p>
-            <span className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-400 transition group-hover:bg-slate-100 group-hover:text-slate-800"><ArrowUpRight size={16}/></span>
-          </div>
-        </Link>
-      ))}
-    </section>
+
+  const queryList = [staff, beds, patients, encounters, requests, inventory].filter((query) => query.isEnabled);
+  const hasDataError = queryList.some((query) => query.isError);
+  const isRefreshing = queryList.some((query) => query.isFetching);
+  const refreshDashboard = async () => { await Promise.all(queryList.map((query) => query.refetch())); };
+
+  return <div className="mx-auto w-full max-w-[1440px] pb-6">
+    <section aria-label="Dashboard overview" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-slate-950">Dashboard overview</h2>
+          <p className="mt-1 text-sm text-slate-500">A live snapshot of your hospital workspace.</p>
+        </div>
+        <button type="button" onClick={() => void refreshDashboard()} disabled={isRefreshing} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60" aria-label="Refresh dashboard data">
+          <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""}/> Refresh
+        </button>
+      </div>
+      {hasDataError && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900"><AlertTriangle size={17} className="mt-0.5 shrink-0"/><span>Some dashboard data could not load. Refresh to try again.</span></div>}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {metrics.map(({ label, value, detail, icon: Icon, to }) => {
+          const query = label.toLowerCase().includes("staff") ? staff
+            : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
+            : label.toLowerCase().includes("encounter") ? encounters
+            : label.toLowerCase().includes("request") ? requests
+            : label.toLowerCase().includes("bed") ? beds
+            : label.toLowerCase().includes("stock") ? inventory : null;
+          const failed = Boolean(query?.isError);
+          const loading = Boolean(query?.isLoading);
+          return <Link key={label} to={to} className="group flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-sky-300 hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
+            <div className="flex items-start justify-between gap-3">
+              <span className="min-w-0 text-sm font-semibold leading-5 text-slate-600">{label}</span>
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 group-hover:text-sky-700"><Icon size={19} strokeWidth={1.8}/></span>
+            </div>
+            <p className={`mt-4 text-3xl font-semibold leading-none tracking-tight tabular-nums ${failed ? "text-rose-700" : "text-slate-950"}`}>{failed ? "!" : loading ? "…" : value}</p>
+            <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+              <p className={`min-w-0 whitespace-normal break-words text-xs leading-5 ${failed ? "text-rose-700" : "text-slate-500"}`}>{failed ? "Data unavailable · refresh to retry" : loading ? "Loading data…" : detail}</p>
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-400 transition group-hover:bg-slate-100 group-hover:text-slate-800"><ArrowUpRight size={16}/></span>
+            </div>
+          </Link>;
+        })}
+      </div>
+      <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
+        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+          <span className={`grid size-9 place-items-center rounded-lg ${hasDataError ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-700"}`}><Activity size={18}/></span>
+          <div><p className="text-sm font-semibold text-slate-800">Data connection</p><p className="text-xs text-slate-500">{hasDataError ? "Some records need refreshing" : isRefreshing ? "Updating dashboard…" : "Dashboard data is up to date"}</p></div>
+        </div>
+        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+          <span className="grid size-9 place-items-center rounded-lg bg-sky-100 text-sky-700"><AlertTriangle size={18}/></span>
+          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{requests.isEnabled ? pendingRequests.length + " awaiting payment" : "Requests unavailable for this role"} · {inventory.isEnabled ? lowStock.length + " low-stock items" : "Inventory not in this role"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
+        </div>
+      </div>
+    </section>;
   </div>;
+}
 }
