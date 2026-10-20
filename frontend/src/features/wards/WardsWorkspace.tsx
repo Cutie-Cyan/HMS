@@ -367,7 +367,7 @@ export function WardsWorkspace() {
         const ward = wardList.find((item) => item.id === editingRatesWard);
         if (!ward) return null;
         return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingRatesWard(null); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="edit-ward-prices-title" className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+          <section role="dialog" aria-modal="true" aria-labelledby="edit-ward-prices-title" className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
             <header className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><h2 id="edit-ward-prices-title" className="text-base font-semibold text-slate-900">Edit ward prices</h2><p className="mt-1 text-sm text-slate-500">{ward.name} · rates per 24 hours</p></div><button type="button" aria-label="Close" onClick={() => setEditingRatesWard(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></header>
             <form onSubmit={async (e) => {
               e.preventDefault(); setError(""); setMessage("");
@@ -385,7 +385,7 @@ export function WardsWorkspace() {
       })()}
       {configOpen && role === "admin" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
             <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4"><div><h2 id="ward-config-title" className="font-semibold">Configure rooms and beds</h2></div><button type="button" aria-label="Close" onClick={() => setConfigOpen(false)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></header>
             <div className="relative flex border-b border-slate-200 px-5" role="tablist" aria-label="Configure beds or rooms">
               <button type="button" role="tab" aria-selected={configTab === "bed"} onClick={() => setConfigTab("bed")} className={"relative min-h-12 flex-1 border-b-2 px-4 text-sm font-semibold transition-colors " + (configTab === "bed" ? "border-sky-600 text-sky-700" : "border-transparent text-slate-500 hover:text-slate-800")}>Add bed</button>
@@ -397,7 +397,7 @@ export function WardsWorkspace() {
                   <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
                   <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium sm:col-span-2">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public</option><option value="private">Private</option></select></label>
-                  <div className="flex items-center justify-between gap-3 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Adding…" : "Add"}</Button></div>
+                  <div className="flex items-center justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" className="!rounded-md" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" className="!rounded-md" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Adding…" : "Add"}</Button></div>
                 </form>
               ) : (
                 <form onSubmit={async (e) => { await submitBed(e); if (!saveBed.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
@@ -405,7 +405,7 @@ export function WardsWorkspace() {
                   <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="">{wardList.length ? "Select ward" : "No wards available"}</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private room</option></select></label>
                   {bedType === "private" && <label className="block text-sm font-medium">Private room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required disabled={!roomsForWard(bedWard, true).length}><option value="">{roomsForWard(bedWard, true).length ? "Select private room" : "No private rooms available"}</option>{roomsForWard(bedWard, true).map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select>{bedWard && roomsForWard(bedWard, true).length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active private rooms in this ward. Add a private room first.</span>}</label>}
-                  <div className="flex items-center justify-between gap-3 sm:col-span-2"><Button type="button" variant="secondary" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding…" : "Add"}</Button></div>
+                  <div className="flex items-center justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" className="!rounded-md" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" className="!rounded-md" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}{saveBed.isPending ? "Adding…" : "Add"}</Button></div>
                 </form>
               )}
             </div>
