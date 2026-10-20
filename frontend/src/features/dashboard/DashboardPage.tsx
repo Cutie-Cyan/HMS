@@ -13,6 +13,7 @@ type PatientRow = { patient_id: string; status: string };
 type EncounterRow = { encounter_id: string; encounter_status: string; patient_status: string };
 type RequestRow = { request_id: string; request_type: "medicine" | "lab"; status: string; total: number; bill_paid: boolean };
 type InventoryRow = { id: string; item_name: string; quantity_on_hand: number; low_stock_threshold: number };
+type AdminSummary = { patient_count: number; active_patient_count: number; open_encounter_count: number; request_count: number; pending_payment_count: number; paid_request_count: number; configured_bed_count: number; occupied_bed_count: number; available_bed_count: number; medicine_low_stock_count: number };
 
 
 
@@ -31,6 +32,16 @@ export function DashboardPage() {
   const canSeeRequests = isAdmin || isEmergency || isStation || isCashier || isPharmacy || isLab;
   const department = isLab ? "lab" : "medicine";
 
+  const adminSummary = useQuery({
+    queryKey: ["admin", "dashboard-summary"], enabled: isAdmin,
+    queryFn: async () => {
+      const { data, error } = await getSupabaseClient().rpc("admin_dashboard_summary");
+      if (error) throw error;
+      const row = (data ?? [])[0] as AdminSummary | undefined;
+      if (!row) throw new Error("Dashboard summary returned no data.");
+      return row;
+    },
+  });
   const staff = useQuery({
     queryKey: ["admin", "dashboard-staff-count"], enabled: isAdmin,
     queryFn: async () => {
@@ -41,7 +52,7 @@ export function DashboardPage() {
     },
   });
   const beds = useQuery({
-    queryKey: ["dashboard", "bed-board"], enabled: isAdmin || isEmergency || isStation,
+    queryKey: ["dashboard", "bed-board"], enabled: !isAdmin && (isEmergency || isStation),
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_ward_bed_workspace");
       if (error) throw error;
@@ -51,7 +62,7 @@ export function DashboardPage() {
     },
   });
   const patients = useQuery({
-    queryKey: ["dashboard", "patient-count", role], enabled: canSeePatients,
+    queryKey: ["dashboard", "patient-count", role], enabled: canSeePatients && !isAdmin,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_patient_directory", { p_search: null });
       if (error) throw error;
@@ -59,7 +70,7 @@ export function DashboardPage() {
     },
   });
   const encounters = useQuery({
-    queryKey: ["dashboard", "encounters", role], enabled: canSeeEncounters,
+    queryKey: ["dashboard", "encounters", role], enabled: canSeeEncounters && !isAdmin,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_encounter_queue", { p_status: "open" });
       if (error) throw error;
@@ -67,7 +78,7 @@ export function DashboardPage() {
     },
   });
   const requests = useQuery({
-    queryKey: ["dashboard", "requests", role], enabled: canSeeRequests,
+    queryKey: ["dashboard", "requests", role], enabled: canSeeRequests && !isAdmin,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_request_workspace");
       if (error) throw error;
@@ -75,7 +86,7 @@ export function DashboardPage() {
     },
   });
   const inventory = useQuery({
-    queryKey: ["dashboard", "inventory", department], enabled: isAdmin || isPharmacy || isLab,
+    queryKey: ["dashboard", "inventory", department], enabled: isPharmacy || isLab,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_inventory_items", { p_department: department });
       if (error) throw error;
@@ -89,12 +100,12 @@ export function DashboardPage() {
   const lowStock = (inventory.data ?? []).filter((row) => row.quantity_on_hand <= row.low_stock_threshold);
   const metrics: Metric[] = isAdmin ? [
     { label: "Staff accounts", value: staff.data?.total ?? "—", detail: staff.data ? `${staff.data.active} active · ${staff.data.inactive} inactive` : "Live staff directory", icon: Users, to: MODULES.staff.path },
-    { label: "Patient records", value: patients.data?.length ?? "—", detail: "Registered patient records", icon: Users, to: MODULES.patients.path },
-    { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES["available-doctors"].path },
-    { label: "Total requests", value: requests.data?.length ?? "—", detail: requests.data ? `${pendingRequests.length} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
-    { label: "Configured beds", value: beds.data?.total ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
-    { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
-    { label: "Medicine low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below reorder threshold", icon: Boxes, to: MODULES.staff.path },
+    { label: "Patient records", value: adminSummary.data?.patient_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.active_patient_count} active patients` : "Hospital-wide patient records", icon: Users, to: MODULES.patients.path },
+    { label: "Open encounters", value: adminSummary.data?.open_encounter_count ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES["available-doctors"].path },
+    { label: "Total requests", value: adminSummary.data?.request_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.pending_payment_count} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
+    { label: "Configured beds", value: adminSummary.data?.configured_bed_count ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Available beds", value: adminSummary.data?.available_bed_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.occupied_bed_count} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Medicine low-stock items", value: adminSummary.data?.medicine_low_stock_count ?? "—", detail: "At or below reorder threshold", icon: Boxes, to: MODULES.staff.path },
   ] : isInfo ? [
     { label: "Total patient records", value: patients.data?.length ?? "—", detail: "All registered patients", icon: Users, to: MODULES.patients.path },
     { label: "Active patients", value: patients.data ? activePatients.length : "—", detail: "Patients not marked discharged", icon: Activity, to: MODULES.patients.path },
@@ -118,12 +129,12 @@ export function DashboardPage() {
   ] : [];
 
   const queryList = [
-    ...(isAdmin ? [staff] : []),
-    ...(isAdmin || isEmergency || isStation ? [beds] : []),
-    ...(canSeePatients ? [patients] : []),
-    ...(canSeeEncounters ? [encounters] : []),
-    ...(canSeeRequests ? [requests] : []),
-    ...(isAdmin || isPharmacy || isLab ? [inventory] : []),
+    ...(isAdmin ? [adminSummary, staff] : []),
+    ...(!isAdmin && (isEmergency || isStation) ? [beds] : []),
+    ...(canSeePatients && !isAdmin ? [patients] : []),
+    ...(canSeeEncounters && !isAdmin ? [encounters] : []),
+    ...(canSeeRequests && !isAdmin ? [requests] : []),
+    ...(isPharmacy || isLab ? [inventory] : []),
   ];
   const hasDataError = queryList.some((query) => query.isError);
   const isRefreshing = queryList.some((query) => query.isFetching);
@@ -143,12 +154,12 @@ export function DashboardPage() {
       {hasDataError && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900"><AlertTriangle size={17} className="mt-0.5 shrink-0"/><span>Some dashboard data could not load. Refresh to try again.</span></div>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {metrics.map(({ label, value, detail, icon: Icon, to }) => {
-          const query = label.toLowerCase().includes("staff") ? staff
+          const query = isAdmin ? adminSummary : label.toLowerCase().includes("staff") ? staff
             : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
             : label.toLowerCase().includes("encounter") ? encounters
             : label.toLowerCase().includes("request") ? requests
             : label.toLowerCase().includes("bed") ? beds
-            : label.toLowerCase().includes("stock") ? inventory : null;
+             : label.toLowerCase().includes("stock") ? inventory : null;
           const failed = Boolean(query?.isError);
           const loading = Boolean(query?.isLoading);
           return <Link key={label} to={to} className="group flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4 transition hover:border-sky-300 hover:bg-white hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
@@ -171,7 +182,7 @@ export function DashboardPage() {
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
           <span className="grid size-9 place-items-center rounded-lg bg-sky-100 text-sky-700"><AlertTriangle size={18}/></span>
-          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{canSeeRequests ? pendingRequests.length + " awaiting payment" : "Requests not assigned"} · {isAdmin || isPharmacy || isLab ? lowStock.length + " low-stock items" : "Inventory not assigned"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
+          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{isAdmin ? (adminSummary.data?.pending_payment_count ?? "—") + " awaiting payment" : canSeeRequests ? pendingRequests.length + " awaiting payment" : "Requests not assigned"} · {isAdmin ? (adminSummary.data?.medicine_low_stock_count ?? "—") + " low-stock items" : isPharmacy || isLab ? lowStock.length + " low-stock items" : "Inventory not assigned"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
         </div>
       </div>
     </section>;
