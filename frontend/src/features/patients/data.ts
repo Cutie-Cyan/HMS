@@ -270,3 +270,17 @@ export function useRecordDoctorFindings() {
     onSuccess: () => { client.invalidateQueries({ queryKey: ["encounters"] }); client.invalidateQueries({ queryKey: ["patients"] }); },
   });
 }
+
+export function useDeleteDoctor() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (doctorId: string) => {
+      const { error } = await getSupabaseClient().from("doctors").delete().eq("id", doctorId);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["doctors"] });
+      await client.invalidateQueries({ queryKey: ["encounters"] });
+    },
+  });
+}
