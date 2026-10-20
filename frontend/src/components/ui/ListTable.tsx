@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { RefreshCw, Search } from "lucide-react";
 import { Button } from "./Button";
 import { statusTones } from "./listTableStyles";
@@ -65,6 +65,17 @@ export function ListEmpty({ icon, title, hint }: { icon: ReactNode; title: strin
 }
 
 export function PageToast({ message, error }: { message: string; error: string }) {
-  if (!message && !error) return null;
-  return <div role={error ? "alert" : "status"} className={`fixed right-4 top-4 z-[120] max-w-[min(24rem,calc(100vw-2rem))] rounded-lg px-3 py-2 text-sm shadow-lg ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`}>{error || message}</div>;
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!message && !error) {
+      setVisible(false);
+      return;
+    }
+    setVisible(true);
+    const timeout = window.setTimeout(() => setVisible(false), 2400);
+    return () => window.clearTimeout(timeout);
+  }, [message, error]);
+  if ((!message && !error) || !visible) return null;
+  const label = error ? "Error" : "Saved";
+  return <div role={error ? "alert" : "status"} aria-label={error || message} title={error || message} className={`fixed right-4 top-4 z-[120] rounded-lg px-3 py-2 text-xs font-semibold shadow-lg transition-opacity ${error ? "bg-rose-700 text-white" : "bg-slate-900 text-white"}`}>{label}</div>;
 }
