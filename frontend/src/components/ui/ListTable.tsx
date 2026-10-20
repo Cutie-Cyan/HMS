@@ -54,9 +54,9 @@ export function TableSkeleton({ label }: { label: string }) {
 }
 
 export function ListError({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return <div className="py-6 text-center">
-    <p role="alert" className="text-sm text-rose-700">{message}</p>
-    <div className="mt-3 flex justify-center"><Button type="button" variant="secondary" size="sm" onClick={onRetry}>Retry</Button></div>
+  return <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-rose-100 bg-rose-50/50 px-4 py-8 text-center">
+    <p role="alert" className="max-w-md text-sm leading-5 text-rose-700">{message}</p>
+    <div className="mt-4 flex justify-center"><Button type="button" variant="secondary" size="sm" onClick={onRetry}><RefreshCw size={14}/> Retry</Button></div>
   </div>;
 }
 
