@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, Pencil, Plus, ShieldCheck, Users, Trash2, X, UserCheck } from "lucide-react";
 import { getSupabaseClient } from "../../lib/supabase";
@@ -84,6 +84,12 @@ export function StaffAdminWorkspace() {
       return (data ?? []) as Ward[];
     },
   });
+  useEffect(() => {
+    if (wards.data?.length) {
+      setInviteWardId((current) => current || wards.data![0].id);
+      setWardId((current) => current || wards.data![0].id);
+    }
+  }, [wards.data]);
   const save = useMutation({
     mutationFn: async () => {
       if (!selected) throw new Error("Select a staff profile first.");
@@ -171,7 +177,7 @@ export function StaffAdminWorkspace() {
           <label className="block text-sm font-medium text-slate-700">Initial password<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={invitePassword} onChange={(event) => setInvitePassword(event.target.value)} className={fieldClass} placeholder="At least 8 characters"/></label>
           <label className="block text-sm font-medium text-slate-700">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
           {inviteRole === "nurse_station" && <label className="block text-sm font-medium text-slate-700">Ward / nurse station<select required disabled={!wards.data?.length} value={inviteWardId} onChange={(event) => setInviteWardId(event.target.value)} className={fieldClass}><option value="" disabled hidden></option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{!wards.data?.length && <span className="mt-1 block text-xs text-slate-500">No wards available to assign.</span>}</label>}
-          <div className="flex items-end"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
+          <div className="flex items-end justify-end sm:col-span-2 xl:col-span-3"><Button type="submit" disabled={invite.isPending || wards.isLoading}>{invite.isPending ? "Adding staff…" : "Add staff"}</Button></div>
         </form>
       </section></div>}
       <Card><CardContent className="px-4 pb-4 pt-6 sm:px-5 sm:pb-5 sm:pt-7">
