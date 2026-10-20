@@ -44,7 +44,15 @@ const developmentFullNames: Record<string, string> = {
   kinneth: "Kinneth Tingdan",
   yana: "Yana Bautista",
 };
-const staffDisplayName = (value: string) => developmentFullNames[value.trim().toLocaleLowerCase()] ?? capitalizePersonName(value);
+const staffDisplayName = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase();
+  if (!normalized || normalized === "former staff account" || normalized === "unknown staff") return value.trim() || "Unknown staff";
+  const knownName = developmentFullNames[normalized];
+  if (knownName) return knownName;
+  const name = capitalizePersonName(value);
+  // Give any remaining one-name demo account a temporary surname during development.
+  return name.includes(" ") ? name : `${name} Santos`;
+};
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
   const context = cause && typeof cause === "object" && "context" in cause
