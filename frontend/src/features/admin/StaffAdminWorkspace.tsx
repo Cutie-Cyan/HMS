@@ -206,7 +206,7 @@ export function StaffAdminWorkspace() {
     setDisplayName(row.display_name);
     setEditEmail(row.email);
     setRole(row.role);
-    setWardId(row.ward_id ?? "");
+    setWardId(row.ward_id ?? wards.data?.[0]?.id ?? "");
     setMessage("");
     setErrorMessage("");
   };
