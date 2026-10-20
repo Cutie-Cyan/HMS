@@ -26,9 +26,9 @@ export function DashboardPage() {
   const isCashier = role === "cashier";
   const isPharmacy = role === "pharmacy";
   const isLab = role === "lab";
-  const canSeePatients = isInfo || isEmergency || isStation;
-  const canSeeEncounters = isEmergency || isStation;
-  const canSeeRequests = isEmergency || isStation || isCashier || isPharmacy || isLab;
+  const canSeePatients = isAdmin || isInfo || isEmergency || isStation;
+  const canSeeEncounters = isAdmin || isEmergency || isStation;
+  const canSeeRequests = isAdmin || isEmergency || isStation || isCashier || isPharmacy || isLab;
   const department = isLab ? "lab" : "medicine";
 
   const staff = useQuery({
