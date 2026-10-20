@@ -340,6 +340,10 @@ export function WardsWorkspace() {
         : []
       : wardList;
   useEffect(() => {
+    if (!roomWard && wardList.length) setRoomWard(wardList[0].id);
+    if (!bedWard && wardList.length) setBedWard(wardList[0].id);
+  }, [wardList, roomWard, bedWard]);
+  useEffect(() => {
     if (role === "nurse_station") {
       setSelectedWardId(assignedWardId && visibleWardList.some((ward) => ward.id === assignedWardId) ? assignedWardId : "");
       return;
@@ -398,16 +402,16 @@ export function WardsWorkspace() {
               {configTab === "room" ? (
                 <form onSubmit={async (e) => { await submitRoom(e); if (!saveRoom.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
                   <label className="block text-sm font-medium">Room code<input required value={roomCode} onChange={(e) => setRoomCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-Private-01" /></label>
-                  <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+                  <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={roomWard} onChange={(e) => setRoomWard(e.target.value)} className={field}><option value="" disabled hidden></option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium sm:col-span-2">Room type<select value={roomPrivate ? "private" : "public"} onChange={(e) => setRoomPrivate(e.target.value === "private")} className={field}><option value="public">Public</option><option value="private">Private</option></select></label>
                   <div className="flex items-center justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" className="!rounded-md" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" className="!rounded-md" disabled={saveRoom.isPending || !roomCode.trim() || !roomWard}>{saveRoom.isPending ? "Adding…" : "Add room"}</Button></div>
                 </form>
               ) : (
                 <form onSubmit={async (e) => { await submitBed(e); if (!saveBed.isError) setConfigOpen(false); }} className="grid gap-4 sm:grid-cols-2">
                   <label className="block text-sm font-medium">Bed code<input required value={bedCode} onChange={(e) => setBedCode(e.target.value)} className={field} maxLength={60} placeholder="e.g. ER-01" /></label>
-                  <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="" disabled>{wardList.length ? "Choose a ward" : "No wards available"}</option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
+                  <label className="block text-sm font-medium">Ward<select required disabled={!wardList.length} value={bedWard} onChange={(e) => { setBedWard(e.target.value); setRoomId(""); }} className={field}><option value="" disabled hidden></option>{wardList.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>
                   <label className="block text-sm font-medium">Bed type<select value={bedType} onChange={(e) => { setBedType(e.target.value as "public" | "private"); setRoomId(""); }} className={field}><option value="public">Public</option><option value="private">Private</option></select></label>
-                  {bedType === "private" && <label className="block text-sm font-medium">Private room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required disabled={!roomsForWard(bedWard, true).length}><option value="">{roomsForWard(bedWard, true).length ? "Select private room" : "No private rooms available"}</option>{roomsForWard(bedWard, true).map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select>{bedWard && roomsForWard(bedWard, true).length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active private rooms in this ward. Add a private room first.</span>}</label>}
+                  {bedType === "private" && <label className="block text-sm font-medium">Private room<select value={roomId} onChange={(e) => setRoomId(e.target.value)} className={field} required disabled={!roomsForWard(bedWard, true).length}><option value="" disabled hidden></option>{roomsForWard(bedWard, true).map((r) => <option key={r.id} value={r.id}>{r.room_code}</option>)}</select>{bedWard && roomsForWard(bedWard, true).length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active private rooms in this ward. Add a private room first.</span>}</label>}
                   <div className="flex items-center justify-end gap-2 sm:col-span-2"><Button type="button" variant="secondary" className="!rounded-md" onClick={() => setConfigOpen(false)}>Cancel</Button><Button type="submit" className="!rounded-md" disabled={saveBed.isPending || !bedCode.trim() || !bedWard || (bedType === "private" && !roomId)}>{saveBed.isPending ? "Adding…" : "Add bed"}</Button></div>
                 </form>
               )}
