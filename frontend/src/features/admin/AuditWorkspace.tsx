@@ -10,7 +10,12 @@ type AuditRow = { id: number; actor_name: string; actor_email: string | null; ac
 const when = (value: string) => new Date(value).toLocaleString("en-PH", { timeZone: "Asia/Manila" });
 const readable = (value: string) => value.replaceAll(".", " ").replaceAll("_", " ").trim();
 // Actor names are returned by admin_audit_log from Supabase staff_profiles.
-const staffDisplayName = (value: string) => value.trim() || "Unknown staff";
+const staffDisplayName = (value: string) => {
+  const name = value.trim().split(/\\s+/).filter(Boolean);
+  return name.length >= 3
+    ? name.map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ")
+    : value.trim() || "Unknown staff";
+};
 const actionLabel = (value: string) => {
   const key = readable(value).toLocaleLowerCase();
   const labels: Record<string, string> = {
