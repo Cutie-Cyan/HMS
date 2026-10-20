@@ -62,7 +62,9 @@ export function StaffAdminWorkspace() {
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteMiddleName, setInviteMiddleName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
   const [inviteRole, setInviteRole] = useState<StaffRole>("info_officer");
   const [inviteWardId, setInviteWardId] = useState("");
   const [invitePassword, setInvitePassword] = useState("");
@@ -118,7 +120,7 @@ export function StaffAdminWorkspace() {
       const { data, error } = await getSupabaseClient().functions.invoke("admin-invite-staff", {
         body: {
           email: inviteEmail,
-          displayName: capitalizePersonName(inviteName),
+          displayName: [inviteFirstName, inviteMiddleName, inviteLastName].map(capitalizePersonName).filter(Boolean).join(" "),
           password: invitePassword,
           role: inviteRole,
           wardId: inviteRole === "nurse_station" ? inviteWardId : null,
@@ -130,7 +132,7 @@ export function StaffAdminWorkspace() {
     },
     onSuccess: async () => {
       setMessage("Staff account created for " + inviteEmail.trim() + ". Give the initial password to the staff member securely."); setErrorMessage("");
-      setInviteEmail(""); setInviteName(""); setInvitePassword(""); setInviteRole("info_officer"); setInviteWardId(""); setShowInvite(false);
+      setInviteEmail(""); setInviteFirstName(""); setInviteMiddleName(""); setInviteLastName(""); setInvitePassword(""); setInviteRole("info_officer"); setInviteWardId(wards.data?.[0]?.id ?? ""); setShowInvite(false);
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
@@ -172,7 +174,9 @@ export function StaffAdminWorkspace() {
       <PageToast message={message} error={errorMessage} />
       {showInvite && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !invite.isPending) setShowInvite(false); }}><section role="dialog" aria-modal="true" aria-labelledby="add-staff-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="add-staff-title" className="text-lg font-semibold">Add staff account</h2></div><button type="button" aria-label="Close add staff dialog" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setShowInvite(false)} disabled={invite.isPending}><X size={18}/></button></div>
         <form className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); invite.mutate(); }}>
-          <label className="block text-sm font-medium text-slate-700">Full name<input required maxLength={150} value={inviteName} onChange={(event) => setInviteName(event.target.value)} className={fieldClass}/></label>
+          <label className="block text-sm font-medium text-slate-700">First name<input required maxLength={60} value={inviteFirstName} onChange={(event) => setInviteFirstName(event.target.value)} className={fieldClass}/></label>
+          <label className="block text-sm font-medium text-slate-700">Middle name<input maxLength={60} value={inviteMiddleName} onChange={(event) => setInviteMiddleName(event.target.value)} className={fieldClass}/></label>
+          <label className="block text-sm font-medium text-slate-700">Last name<input required maxLength={60} value={inviteLastName} onChange={(event) => setInviteLastName(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium text-slate-700">Email<input required type="email" maxLength={254} value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} className={fieldClass}/></label>
           <label className="block text-sm font-medium text-slate-700">Initial password<input required type="password" minLength={8} maxLength={128} autoComplete="new-password" value={invitePassword} onChange={(event) => setInvitePassword(event.target.value)} className={fieldClass} placeholder="At least 8 characters"/></label>
           <label className="block text-sm font-medium text-slate-700">Role<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
