@@ -20,7 +20,14 @@ const developmentFullNames: Record<string, string> = {
   kinneth: "Kinneth Tingdan",
   yana: "Yana Bautista",
 };
-const staffDisplayName = (value: string) => developmentFullNames[value.trim().toLocaleLowerCase()] ?? value.trim();
+const staffDisplayName = (value: string) => {
+  const normalized = value.trim().toLocaleLowerCase();
+  if (!normalized || normalized === "former staff account" || normalized === "unknown staff") return value.trim() || "Unknown staff";
+  const knownName = developmentFullNames[normalized];
+  if (knownName) return knownName;
+  const name = value.trim().split(/\\s+/).filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()).join(" ");
+  return name.includes(" ") ? name : `${name} Santos`;
+};
 const actionLabel = (value: string) => {
   const key = readable(value).toLocaleLowerCase();
   const labels: Record<string, string> = {
