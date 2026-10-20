@@ -55,7 +55,7 @@ export function AppShell() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileOpen]);
 
-  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module));
+  const allowed = navOrder.filter((module) => profile && canAccessModule(profile.role, module) && module !== "dashboard");
   const visible = allowed.filter((module) => MODULES[module].label.toLowerCase().includes(search.toLowerCase()));
   const current = allowed.find((module) => { const [path, query] = MODULES[module].path.split("?"); return path === location.pathname && (!query || location.search.slice(1) === query); });
   const currentLabel = current ? MODULES[current].label : "HMS";
@@ -77,6 +77,7 @@ export function AppShell() {
         {!mobile && <button type="button" onClick={() => setExpanded(v => !v)} aria-label={expanded ? "Collapse navigation" : "Expand navigation"} title={expanded ? "Collapse navigation" : "Expand navigation"} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white">{expanded ? <PanelLeftClose size={17}/> : <PanelLeftOpen size={17}/>}</button>}
       </div>
       <div className={`min-h-0 flex-1 overflow-y-auto py-5 ${mobile || expanded ? "px-3" : "px-2"}`}>
+        {(mobile || expanded) && <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Workspace navigation</p>}
         {(mobile || expanded) && <label className="mb-5 flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 text-slate-400"><Search size={15}/><input aria-label="Search modules" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search modules" className="min-w-0 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"/></label>}
         {groups.map(group => {
           const items = group.modules.filter(module => visible.includes(module));
@@ -103,10 +104,10 @@ export function AppShell() {
   );
 
   return <div className="min-h-screen bg-[#f3f5f8] text-slate-900">
-    <aside aria-label="Application navigation" className={`fixed inset-y-0 left-0 z-30 hidden flex-col bg-[#17191d] text-white shadow-xl transition-[width] duration-200 md:flex ${expanded ? "w-[252px]" : "w-[84px]"}`}>{navigation(false)}</aside>
+    <aside aria-label="Application navigation" className={`fixed inset-y-0 left-0 z-30 hidden flex-col bg-[#17191d] text-white shadow-xl transition-[width] duration-200 md:flex ${expanded ? "w-[280px]" : "w-[84px]"}`}>{navigation(false)}</aside>
     {mobileOpen && <button type="button" aria-label="Close navigation overlay" onClick={() => setMobileOpen(false)} className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm md:hidden"/>}
     <aside aria-label="Mobile navigation" className={`fixed inset-y-0 left-0 z-50 flex w-[min(86vw,300px)] flex-col bg-[#17191d] text-white shadow-2xl transition-transform md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>{navigation(true)}</aside>
-    <div className={`min-h-screen min-w-0 transition-[padding] duration-200 ${expanded ? "md:pl-[252px]" : "md:pl-[84px]"}`}>
+    <div className={`min-h-screen min-w-0 transition-[padding] duration-200 ${expanded ? "md:pl-[280px]" : "md:pl-[84px]"}`}>
       <header className="sticky top-0 z-20 flex h-[64px] items-center justify-between gap-3 bg-transparent px-3 sm:px-5 lg:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-expanded={mobileOpen} className="grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm md:hidden"><Menu size={18}/></button>
