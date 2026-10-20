@@ -432,7 +432,6 @@ export function WardsWorkspace() {
               <BedDouble size={18} className="text-sky-700" /> Bed board
             </div>
             <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
-              {role === "admin" && <Button variant="secondary" onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Settings2 size={15}/> Configure</Button>}
               <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || wardCatalog.isFetching || rooms.isFetching}>
                 <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
               </Button>
