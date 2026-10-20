@@ -281,6 +281,12 @@ export function WardsWorkspace() {
     },
   });
   const wards = useMemo(() => wardCatalog.data ?? [], [wardCatalog.data]);
+  useEffect(() => {
+    if (wards.length) {
+      setRoomWard((current) => current || wards[0].id);
+      setBedWard((current) => current || wards[0].id);
+    }
+  }, [wards]);
   const doAction = async (encounterId: string, bedId: string) => {
     setError("");
     setMessage("");
