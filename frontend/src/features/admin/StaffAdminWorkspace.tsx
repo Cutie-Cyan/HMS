@@ -30,6 +30,7 @@ const roles: { value: StaffRole; label: string }[] = [
 ];
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
 const roleLabel = (role: StaffRole) => roles.find((item) => item.value === role)?.label ?? role;
+const capitalizePersonName = (value: string) => value.trim().toLocaleLowerCase().split(" ").filter(Boolean).map((part) => part.charAt(0).toLocaleUpperCase() + part.slice(1)).join(" ");
 
 async function invitationErrorMessage(cause: unknown): Promise<string> {
   const context = cause && typeof cause === "object" && "context" in cause
@@ -88,7 +89,7 @@ export function StaffAdminWorkspace() {
       if (!selected) throw new Error("Select a staff profile first.");
       const { error } = await getSupabaseClient().rpc("admin_update_staff_profile", {
         p_user_id: selected.user_id,
-        p_display_name: displayName,
+        p_display_name: capitalizePersonName(displayName),
         p_role: role,
         p_ward_id: role === "nurse_station" ? wardId : null,
         p_is_active: isActive,
@@ -111,7 +112,7 @@ export function StaffAdminWorkspace() {
       const { data, error } = await getSupabaseClient().functions.invoke("admin-invite-staff", {
         body: {
           email: inviteEmail,
-          displayName: inviteName,
+          displayName: capitalizePersonName(inviteName),
           password: invitePassword,
           role: inviteRole,
           wardId: inviteRole === "nurse_station" ? inviteWardId : null,
@@ -131,24 +132,20 @@ export function StaffAdminWorkspace() {
   const removeStaff = useMutation({
     mutationFn: async () => {
       if (!deleteTarget) throw new Error("Select a staff account first.");
-      const { error } = await getSupabaseClient().rpc("admin_update_staff_profile", {
-        p_user_id: deleteTarget.user_id,
-        p_display_name: deleteTarget.display_name,
-        p_role: deleteTarget.role,
-        p_ward_id: deleteTarget.ward_id,
-        p_is_active: false,
-      });
+      const { data, error } = await getSupabaseClient().functions.invoke("admin-delete-staff", { body: { userId: deleteTarget.user_id } });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: async () => {
-      const deactivatedName = deleteTarget?.display_name ?? "Staff account";
+      const deletedName = deleteTarget?.display_name ?? "Staff account";
       setDeleteTarget(null);
-      setMessage(deactivatedName + " was deactivated. The login and audit history were retained.");
+      setMessage(deletedName + " was permanently deleted.");
       setErrorMessage("");
       await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
     },
     onError: (cause) => {
-      setErrorMessage(cause instanceof Error ? cause.message : "Unable to deactivate staff account.");
+      setErrorMessage(cause instanceof Error ? cause.message : "Unable to permanently delete staff account.");
       setMessage("");
     },
   });
