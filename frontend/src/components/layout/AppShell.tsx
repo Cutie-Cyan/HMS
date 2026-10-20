@@ -90,7 +90,7 @@ export function AppShell() {
               return <NavLink key={module} to={item.path} aria-label={item.label} title={item.label} className={`relative flex h-12 items-center rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${mobile || expanded ? "gap-3 px-3" : "justify-center px-0"} ${active ? "bg-slate-100 text-slate-950 shadow-sm" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}>
                 <Icon size={20} strokeWidth={1.8} className={`shrink-0 ${(location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1])) ? "text-sky-700" : ""}`}/>
                 {(mobile || expanded) && <span className={`min-w-0 flex-1 truncate text-[13px] ${active ? "font-semibold text-slate-950" : "font-medium text-slate-400"}`}>{item.label}</span>}
-                {location.pathname === item.path && (!item.path.includes("?") || location.search.slice(1) === item.path.split("?")[1]) && <span className={`absolute right-1.5 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-sky-600 ${mobile || expanded ? "" : "hidden"}`}/>}
+
               </NavLink>;
             })}</div>
           </section>;
