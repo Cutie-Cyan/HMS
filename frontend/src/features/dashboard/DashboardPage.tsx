@@ -75,7 +75,7 @@ export function DashboardPage() {
     },
   });
   const inventory = useQuery({
-    queryKey: ["dashboard", "inventory", department], enabled: isPharmacy || isLab,
+    queryKey: ["dashboard", "inventory", department], enabled: isAdmin || isPharmacy || isLab,
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("staff_inventory_items", { p_department: department });
       if (error) throw error;
@@ -89,8 +89,12 @@ export function DashboardPage() {
   const lowStock = (inventory.data ?? []).filter((row) => row.quantity_on_hand <= row.low_stock_threshold);
   const metrics: Metric[] = isAdmin ? [
     { label: "Staff accounts", value: staff.data?.total ?? "—", detail: staff.data ? `${staff.data.active} active · ${staff.data.inactive} inactive` : "Live staff directory", icon: Users, to: MODULES.staff.path },
-    { label: "Configured beds", value: beds.data?.total ?? "—", detail: "Across all four wards", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Patient records", value: patients.data?.length ?? "—", detail: "Registered patient records", icon: Users, to: MODULES.patients.path },
+    { label: "Open encounters", value: encounters.data?.length ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES.available-doctors.path },
+    { label: "Total requests", value: requests.data?.length ?? "—", detail: requests.data ? `${pendingRequests.length} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
+    { label: "Configured beds", value: beds.data?.total ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
     { label: "Available beds", value: beds.data?.available ?? "—", detail: beds.data ? `${beds.data.occupied} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
+    { label: "Medicine low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below reorder threshold", icon: Boxes, to: MODULES.staff.path },
   ] : isInfo ? [
     { label: "Total patient records", value: patients.data?.length ?? "—", detail: "All registered patients", icon: Users, to: MODULES.patients.path },
     { label: "Active patients", value: patients.data ? activePatients.length : "—", detail: "Patients not marked discharged", icon: Activity, to: MODULES.patients.path },
