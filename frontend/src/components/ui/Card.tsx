@@ -23,7 +23,7 @@ export function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className={`grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 ${className}`}
+      className={`flex min-w-0 flex-wrap items-start justify-between gap-3 px-6 ${className}`}
       {...props}
     />
   );
