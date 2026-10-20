@@ -139,3 +139,28 @@ div.overflow-x-auto:has(> table) {
   overflow: auto;
   overscroll-behavior: contain;
 }
+
+
+/* Shared workspace polish: search controls and table headings stay visually quiet. */
+label:has(input[placeholder*="Search" i]),
+label:has(input[aria-label*="Search" i]) {
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+input[placeholder*="Search" i],
+input[aria-label*="Search" i] {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+}
+input[placeholder*="Search" i]:focus,
+input[aria-label*="Search" i]:focus {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+thead { border-top: 0 !important; border-bottom: 0 !important; }
+thead tr { border-top: 0 !important; border-bottom: 0 !important; }
+thead th { border-top: 0 !important; border-bottom: 0 !important; }
