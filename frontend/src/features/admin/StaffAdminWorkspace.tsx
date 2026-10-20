@@ -63,6 +63,7 @@ export function StaffAdminWorkspace() {
   const client = useQueryClient();
   const [selected, setSelected] = useState<StaffRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<StaffRow | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<StaffRow | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<StaffRole>("info_officer");
   const [wardId, setWardId] = useState("");
@@ -145,6 +146,30 @@ export function StaffAdminWorkspace() {
     },
     onError: async (cause) => { setErrorMessage(await invitationErrorMessage(cause)); setMessage(""); },
   });
+  const deactivateStaff = useMutation({
+    mutationFn: async () => {
+      if (!deactivateTarget) throw new Error("Select a staff account first.");
+      const { error } = await getSupabaseClient().rpc("admin_update_staff_profile", {
+        p_user_id: deactivateTarget.user_id,
+        p_display_name: deactivateTarget.display_name,
+        p_role: deactivateTarget.role,
+        p_ward_id: deactivateTarget.ward_id,
+        p_is_active: false,
+      });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      const name = deactivateTarget ? staffDisplayName(deactivateTarget.display_name) : "Staff account";
+      setDeactivateTarget(null);
+      setMessage(name + " was deactivated. Their record and audit history were retained.");
+      setErrorMessage("");
+      await client.invalidateQueries({ queryKey: ["admin", "staff-directory"] });
+    },
+    onError: (cause) => {
+      setErrorMessage(cause instanceof Error ? cause.message : "Unable to deactivate staff account.");
+      setMessage("");
+    },
+  });
   const removeStaff = useMutation({
     mutationFn: async () => {
       if (!deleteTarget) throw new Error("Select a staff account first.");
@@ -207,7 +232,7 @@ export function StaffAdminWorkspace() {
             <RefreshButton label="Refresh staff list" onClick={() => void staff.refetch()} spinning={staff.isFetching} />
           </ToolbarActions>
         </ListToolbar>
-        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : visibleStaff.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{visibleStaff.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{staffDisplayName(row.display_name)}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="secondary" onClick={() => { if (window.confirm("Deactivate " + staffDisplayName(row.display_name) + "? They will lose HMS access, but their account and audit history will be retained.")) { setErrorMessage(""); getSupabaseClient().rpc("admin_update_staff_profile", { p_user_id: row.user_id, p_display_name: row.display_name, p_role: row.role, p_ward_id: row.ward_id, p_is_active: false }).then(({ error }) => { if (error) { setErrorMessage(error.message); setMessage(""); } else { setMessage(staffDisplayName(row.display_name) + " was deactivated."); setErrorMessage(""); void client.invalidateQueries({ queryKey: ["admin", "staff-directory"] }); } }); } }}><ShieldCheck size={14}/> Deactivate</Button>}<Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title={term ? "No staff found" : "No staff profiles"} hint={term ? "Try a different name or role." : "Select Add staff to create the first staff account."} />}
+        {staff.isLoading ? <TableSkeleton label="Loading staff profiles" /> : staff.isError ? <ListError message="Could not load staff." onRetry={() => void staff.refetch()} /> : visibleStaff.length ? <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Staff</th><th className={thClass}>Role</th><th className={thClass}>Status</th><th className="py-3.5 pr-2 text-base font-bold">Action</th></tr></thead><tbody className={tbodyClass}>{visibleStaff.map((row) => <tr key={row.user_id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{staffDisplayName(row.display_name)}</td><td className="py-3 pr-4">{row.role === "nurse_station" ? (wards.data?.find((ward) => ward.id === row.ward_id)?.name ?? roleLabel(row.role)) : roleLabel(row.role)}</td><td className="py-3 pr-4"><StatusPill tone={row.is_active ? "success" : "neutral"}>{row.is_active ? "Active" : "Inactive"}</StatusPill></td><td className="py-3"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => edit(row)}><Pencil size={14}/> Edit</Button>{row.is_active && <Button size="sm" variant="secondary" onClick={() => { setDeactivateTarget(row); setMessage(""); setErrorMessage(""); }}><ShieldCheck size={14}/> Deactivate</Button>}<Button size="sm" variant="danger" onClick={() => { setDeleteTarget(row); setMessage(""); setErrorMessage(""); }}><Trash2 size={14}/> Delete</Button></div></td></tr>)}</tbody></table></div> : <ListEmpty icon={<ShieldCheck className="mx-auto text-slate-300" size={30}/>} title={term ? "No staff found" : "No staff profiles"} hint={term ? "Try a different name or role." : "Select Add staff to create the first staff account."} />}
       </CardContent></Card>
       {selected && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !save.isPending) setSelected(null); }}>
         <section role="dialog" aria-modal="true" aria-labelledby="edit-staff-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
@@ -216,10 +241,19 @@ export function StaffAdminWorkspace() {
             <label className="block text-sm font-medium text-slate-700">Display name<input required maxLength={150} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className={fieldClass}/></label>
             <label className="block text-sm font-medium text-slate-700">Role<select value={role} onChange={(event) => setRole(event.target.value as StaffRole)} className={fieldClass}>{roles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             {role === "nurse_station" && <label className="block text-sm font-medium text-slate-700">Assigned ward<select required value={wardId} onChange={(event) => setWardId(event.target.value)} className={fieldClass}><option value="">Select ward</option>{(wards.data ?? []).map((ward) => <option key={ward.id} value={ward.id}>{ward.name}</option>)}</select>{wards.isError && <span className="mt-1 block text-xs text-rose-700">Could not load wards.</span>}</label>}
-            <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-sky-700"/> <span><span className="block font-medium text-slate-800">Account active</span><span className="block text-xs text-slate-500">Turn off to deactivate access while keeping the staff record.</span></span></label>
+            <label className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} className="size-4 accent-sky-700"/> <span><span className="block font-medium text-slate-800">Account active</span></span></label>
             {errorMessage && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
-            <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setSelected(null)} disabled={save.isPending}>Cancel</Button><Button type="submit" disabled={save.isPending || wards.isLoading}>{save.isPending ? "Saving…" : "Save staff"}</Button></div>
+            <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setSelected(null)} disabled={save.isPending}>Cancel</Button><Button type="submit" disabled={save.isPending || wards.isLoading}>{save.isPending ? "Saving…" : "Save changes"}</Button></div>
           </form>
+        </section>
+      </div>}
+      {deactivateTarget && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !deactivateStaff.isPending) setDeactivateTarget(null); }}>
+        <section role="alertdialog" aria-modal="true" aria-labelledby="deactivate-staff-title" aria-describedby="deactivate-staff-description" className="my-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
+          <div className="mb-4 flex size-11 items-center justify-center rounded-full bg-amber-100 text-amber-700"><ShieldCheck size={20}/></div>
+          <h2 id="deactivate-staff-title" className="text-lg font-semibold text-slate-900">Deactivate staff account?</h2>
+          <p id="deactivate-staff-description" className="mt-2 text-sm leading-6 text-slate-600"><strong>{staffDisplayName(deactivateTarget.display_name)}</strong> will lose access to HMS. Their staff record and audit history will be retained. You can reactivate the account later.</p>
+          {errorMessage && <p role="alert" className="mt-3 rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
+          <div className="mt-6 flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={() => { setDeactivateTarget(null); setErrorMessage(""); }} disabled={deactivateStaff.isPending}>Cancel</Button><Button type="button" variant="danger" onClick={() => deactivateStaff.mutate()} disabled={deactivateStaff.isPending}>{deactivateStaff.isPending ? "Deactivating…" : "Deactivate account"}</Button></div>
         </section>
       </div>}
       {deleteTarget && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !removeStaff.isPending) setDeleteTarget(null); }}>
