@@ -10,6 +10,8 @@ import { humanizeError, useDoctors, useSaveDoctor, type DoctorRecord } from "../
 const money = (value: number) =>
   new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 2 }).format(Number(value ?? 0));
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
+const capitalizeName = (value: string) => value.trim().toLocaleLowerCase().replace(/(^|[\\s’'-])([\\p{L}])/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase());
+const splitDoctorName = (value: string) => { const parts = value.trim().split(/\\s+/); return { first: parts[0] ?? "", middle: parts.length > 2 ? parts.slice(1, -1).join(" ") : "", last: parts.length > 1 ? parts[parts.length - 1] : "" }; };
 
 export function AvailableDoctorsWorkspace() {
   const { profile } = useAuth();
@@ -19,7 +21,9 @@ export function AvailableDoctorsWorkspace() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<DoctorRecord | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [isOnDuty, setIsOnDuty] = useState(true);
@@ -35,7 +39,10 @@ export function AvailableDoctorsWorkspace() {
 
   const openForm = (doctor?: DoctorRecord) => {
     setEditing(doctor ?? null);
-    setFullName(doctor?.full_name ?? "");
+    const nameParts = splitDoctorName(doctor?.full_name ?? "");
+    setFirstName(nameParts.first);
+    setMiddleName(nameParts.middle);
+    setLastName(nameParts.last);
     setSpecialty(doctor?.specialty ?? "");
     setIsActive(doctor?.is_active ?? true);
     setIsOnDuty(doctor?.is_on_duty ?? true);
@@ -49,7 +56,9 @@ export function AvailableDoctorsWorkspace() {
     setError("");
     setMessage("");
     try {
-      await saveDoctor.mutateAsync({ fullName, specialty, isOnDuty, fixedFee: Number(fixedFee), doctorId: editing?.id });
+      const fullName = [firstName, middleName, lastName].map(capitalizeName).filter(Boolean).join(" ");
+      if (!capitalizeName(firstName) || !capitalizeName(lastName)) throw new Error("Enter the doctor’s first and last name.");
+      await saveDoctor.mutateAsync({ fullName, specialty: capitalizeName(specialty), isOnDuty, fixedFee: Number(fixedFee), doctorId: editing?.id });
       setMessage(editing ? "Doctor record updated." : "Doctor record added.");
       setFormOpen(false);
       await doctors.refetch();
@@ -77,7 +86,7 @@ export function AvailableDoctorsWorkspace() {
         {doctors.isLoading ? <TableSkeleton label="Loading doctor availability" /> : doctors.isError ? <ListError message="Could not load doctors." onRetry={() => void doctors.refetch()} /> : filteredDoctors.length === 0 ? <ListEmpty icon={<Stethoscope className="mx-auto text-slate-300" size={30}/>} title={search ? "No doctors match your search" : "No active doctors found"} hint={canManage ? "Add a doctor record to make it available for patient consultations." : "Ask the administrator to add doctor records."} /> : <div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-[13px]"><thead className={theadClass}><tr><th className={thFirstClass}>Doctor</th><th className={thClass}>Specialty</th><th className={thClass}>Consultation fee</th><th className={thClass}>Status</th>{canManage && <th className="py-3.5 pr-2 text-base font-bold">Action</th>}</tr></thead><tbody className={tbodyClass}>{filteredDoctors.map(doctor => <tr key={doctor.id} className={rowClass}><td className="py-3 pr-4 pl-2 font-medium text-slate-900">{doctor.full_name}</td><td className="py-3 pr-4">{doctor.specialty || "General practice"}</td><td className="py-3 pr-4 tabular-nums">{money(doctor.fixed_fee)}</td><td className="py-3 pr-4"><StatusPill tone={doctor.is_on_duty ? "success" : "neutral"}>{doctor.is_on_duty ? "On duty" : "Off duty"}</StatusPill></td>{canManage && <td className="py-3"><Button type="button" variant="secondary" size="sm" onClick={() => openForm(doctor)}><Pencil size={14}/> Edit</Button></td>}</tr>)}</tbody></table></div>}
       </CardContent></Card>
 
-      {formOpen && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saveDoctor.isPending)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="doctor-form-title" className="my-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="doctor-form-title" className="text-lg font-semibold">{editing ? "Edit doctor record" : "Add doctor record"}</h2></div><button type="button" aria-label="Close doctor form" onClick={()=>setFormOpen(false)} disabled={saveDoctor.isPending} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></div><form onSubmit={submit} className="space-y-4"><label className="block text-sm font-medium text-slate-700">Doctor full name<input required maxLength={150} value={fullName} onChange={event=>setFullName(event.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Specialty (optional)<input maxLength={120} value={specialty} onChange={event=>setSpecialty(event.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Consultation fee (₱)<input required type="number" min="0" step="0.01" value={fixedFee} onChange={event=>setFixedFee(event.target.value)} className={fieldClass}/></label><div className="grid grid-cols-2 gap-3"><label className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={event=>setIsActive(event.target.checked)} className="size-4 accent-sky-700"/> Active</label><label className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isOnDuty} onChange={event=>setIsOnDuty(event.target.checked)} className="size-4 accent-sky-700"/> On Duty</label></div><div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={()=>setFormOpen(false)} disabled={saveDoctor.isPending}>Cancel</Button><Button type="submit" disabled={saveDoctor.isPending||!fullName.trim()||!Number.isFinite(Number(fixedFee))||Number(fixedFee)<0}>{saveDoctor.isPending?"Saving…":editing?"Save doctor":"Add doctor"}</Button></div></form></section></div>}
+      {formOpen && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!saveDoctor.isPending)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="doctor-form-title" className="my-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="doctor-form-title" className="text-lg font-semibold">{editing ? "Edit doctor record" : "Add doctor record"}</h2></div><button type="button" aria-label="Close doctor form" onClick={()=>setFormOpen(false)} disabled={saveDoctor.isPending} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></div><form onSubmit={submit} className="space-y-4"><div className="grid gap-3 sm:grid-cols-3"><label className="block text-sm font-medium text-slate-700">First name<input required maxLength={60} autoComplete="given-name" value={firstName} onChange={event=>setFirstName(event.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Middle name<input maxLength={60} autoComplete="additional-name" value={middleName} onChange={event=>setMiddleName(event.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Last name<input required maxLength={60} autoComplete="family-name" value={lastName} onChange={event=>setLastName(event.target.value)} className={fieldClass}/></label></div><label className="block text-sm font-medium text-slate-700">Specialty (optional)<input maxLength={120} value={specialty} onChange={event=>setSpecialty(event.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Consultation fee (₱)<input required type="number" min="0" step="0.01" value={fixedFee} onChange={event=>setFixedFee(event.target.value)} className={fieldClass}/></label><div className="grid grid-cols-2 gap-3"><label className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isActive} onChange={event=>setIsActive(event.target.checked)} className="size-4 accent-sky-700"/> Active</label><label className="flex items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm"><input type="checkbox" checked={isOnDuty} onChange={event=>setIsOnDuty(event.target.checked)} className="size-4 accent-sky-700"/> On Duty</label></div><div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={()=>setFormOpen(false)} disabled={saveDoctor.isPending}>Cancel</Button><Button type="submit" disabled={saveDoctor.isPending||!firstName.trim()||!lastName.trim()||!Number.isFinite(Number(fixedFee))||Number(fixedFee)<0}>{saveDoctor.isPending?"Saving…":editing?"Save doctor":"Add doctor"}</Button></div></form></section></div>}
     </div>
   );
 }
