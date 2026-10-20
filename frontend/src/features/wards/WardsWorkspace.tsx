@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { BedDouble, CheckCircle2, Settings2, RefreshCw, ShieldAlert, X, Users, LayoutGrid } from "lucide-react";
+import { BedDouble, CheckCircle2, Settings2, ShieldAlert, X, LayoutGrid } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { Card, CardContent, CardHeader } from "../../components/ui/Card";
+import { Card, CardContent } from "../../components/ui/Card";
+import { ListToolbar, Metric, MetricDivider, MetricStrip, RefreshButton, ToolbarActions } from "../../components/ui/ListTable";
 import { useOpenEncounters, type EncounterRecord } from "../patients/data";
 import { getSupabaseClient } from "../../lib/supabase";
 import { requestError } from "../requests/data";
@@ -428,20 +429,14 @@ export function WardsWorkspace() {
         </Card>
       )}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex w-full flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 font-semibold">
-              <BedDouble size={18} className="text-sky-700" /> Bed board
-            </div>
-            <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
+        <CardContent className="px-4 pb-4 pt-6 sm:px-5 sm:pb-5 sm:pt-7">
+          <ListToolbar>
+            <div className="flex items-center gap-2 font-semibold text-slate-900"><BedDouble size={18} className="text-sky-700" /> Bed board</div>
+            <ToolbarActions className="xl:ml-auto">
               {role === "admin" && <Button variant="secondary" onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Settings2 size={15}/> Configure</Button>}
-              <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || wardCatalog.isFetching || rooms.isFetching}>
-                <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
+              <RefreshButton label="Refresh ward board" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} spinning={board.isFetching || wardCatalog.isFetching || rooms.isFetching} />
+            </ToolbarActions>
+          </ListToolbar>
           {role === "nurse_station" && !assignedWardId ? (
             <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
               Your staff profile has no ward assignment. Ask an administrator to assign this account to Emergency Room, Female Ward, Male Ward, or Pedia Ward. Patient and bed details are hidden until the assignment is configured.
@@ -483,14 +478,11 @@ export function WardsWorkspace() {
                     <div className="mb-5 flex flex-wrap items-center gap-3">
                       <h2 className="min-w-0 shrink-0 font-semibold text-slate-900">{w.name}</h2>
                       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-                        <div className="flex min-w-[132px] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3">
-                          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-700"><BedDouble size={17}/></span>
-                          <div className="min-w-0"><p className="text-[11px] font-medium text-slate-500">Available</p><p className="text-lg font-semibold leading-tight tabular-nums text-slate-900">{rows.filter((b) => b.bed_id && !b.occupied).length}</p></div>
-                        </div>
-                        <div className="flex min-w-[132px] items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3 py-2">
-                          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-sky-50 text-sky-700"><LayoutGrid size={17}/></span>
-                          <div className="min-w-0"><p className="text-[11px] font-medium text-slate-500">Configured</p><p className="text-lg font-semibold leading-tight tabular-nums text-slate-900">{rows.filter((b) => b.bed_id).length}</p></div>
-                        </div>
+                        <MetricStrip>
+                          <Metric icon={<BedDouble size={16} className="text-emerald-700"/>} label="Available" value={rows.filter((b) => b.bed_id && !b.occupied).length} />
+                          <MetricDivider />
+                          <Metric icon={<LayoutGrid size={16} className="text-sky-700"/>} label="Configured" value={rows.filter((b) => b.bed_id).length} />
+                        </MetricStrip>
                         {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}>Edit price</Button>}
                       </div>
                     </div>
