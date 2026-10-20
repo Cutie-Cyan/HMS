@@ -163,4 +163,4 @@ input[aria-label*="Search" i]:focus {
 }
 thead { border-top: 0 !important; border-bottom: 0 !important; }
 thead tr { border-top: 0 !important; border-bottom: 0 !important; }
-thead th { border-top: 0 !important; border-bottom: 0 !important; }
+thead th { border-top: 0 !important; border-bottom: 0 !important; font-size: 0.75rem !important; font-weight: 600 !important; letter-spacing: 0.025em; color: #475569; }
