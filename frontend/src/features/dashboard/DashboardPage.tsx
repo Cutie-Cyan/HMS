@@ -172,7 +172,7 @@ export function DashboardPage() {
         };
         const groups = [...new Set(filteredMetrics.map((metric) => groupFor(metric.label)))];
         return filteredMetrics.length ? <div className="space-y-6">{groups.map((group) => <section key={group} aria-label={group}>
-          <h2 className="mb-3 border-b border-slate-100 pb-2 text-sm font-semibold tracking-wide text-slate-800">{group}</h2>
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-slate-800">{group}</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {filteredMetrics.filter((metric) => groupFor(metric.label) === group).map(({ label, value, detail, icon: Icon }) => {
               const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary)
