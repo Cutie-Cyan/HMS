@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/AuthProvider";
-import { MODULES, canAccessModule, type HmsModule } from "../../lib/permissions";
+import { MODULES, canAccessModule, homePathForRole, type HmsModule } from "../../lib/permissions";
 
 const icons: Record<HmsModule, typeof LayoutDashboard> = {
   dashboard: LayoutDashboard,
@@ -64,7 +64,7 @@ export function AppShell() {
   const navigation = (mobile = false) => (
     <>
       <div className={`flex h-[88px] shrink-0 items-center border-b border-white/10 ${mobile || expanded ? "justify-between px-5" : "justify-center px-2"}`}>
-        <NavLink to="/overview" aria-label="HMS home" title="HMS home" className="flex items-center gap-3">
+        <NavLink to={profile ? homePathForRole(profile.role) : "/patients"} aria-label="HMS home" title="HMS home" className="flex items-center gap-3">
           <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-black text-white shadow-lg ring-1 ring-white/15">
             <svg viewBox="0 0 48 48" className="size-8" role="img" aria-label="HMS logo">
               <path d="M11 9 L20 14 L31 31 Q34 36 39 32 Q43 28 39 22 L34 14 Q31 10 27 13 L23 16 L28 21 L31 18 L35 25 Q37 29 34 30 Q32 31 30 28 L19 11 Q15 6 11 9Z" fill="currentColor"/>
