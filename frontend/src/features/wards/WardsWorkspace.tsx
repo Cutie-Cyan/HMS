@@ -401,8 +401,8 @@ export function WardsWorkspace() {
           <section role="dialog" aria-modal="true" aria-labelledby="ward-config-title" className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
             <header className="flex items-center justify-between px-5 py-4"><div><h2 id="ward-config-title" className="font-semibold">Configure rooms and beds</h2></div><button type="button" aria-label="Close" onClick={() => setConfigOpen(false)} className="rounded-lg p-2 hover:bg-slate-100"><X size={20} /></button></header>
             <div className="relative flex px-5" role="tablist" aria-label="Configure beds or rooms">
-              <button type="button" role="tab" aria-selected={configTab === "bed"} onClick={() => setConfigTab("bed")} className={"relative min-h-12 flex-1 px-4 text-sm font-semibold transition-colors " + (configTab === "bed" ? "text-sky-700" : "text-slate-500 hover:text-slate-800")}>Add bed</button>
-              <button type="button" role="tab" aria-selected={configTab === "room"} onClick={() => setConfigTab("room")} className={"relative min-h-12 flex-1 px-4 text-sm font-semibold transition-colors " + (configTab === "room" ? "text-sky-700" : "text-slate-500 hover:text-slate-800")}>Add room</button>
+              <button type="button" role="tab" aria-selected={configTab === "bed"} onClick={() => setConfigTab("bed")} className={"relative min-h-12 flex-1 border-b-2 px-4 text-sm font-semibold transition-colors " + (configTab === "bed" ? "border-sky-600 text-sky-700" : "border-transparent text-slate-500 hover:text-slate-800")}>Add bed</button>
+              <button type="button" role="tab" aria-selected={configTab === "room"} onClick={() => setConfigTab("room")} className={"relative min-h-12 flex-1 border-b-2 px-4 text-sm font-semibold transition-colors " + (configTab === "room" ? "border-sky-600 text-sky-700" : "border-transparent text-slate-500 hover:text-slate-800")}>Add room</button>
             </div>
             <div className="overflow-y-auto p-5">
               {configTab === "room" ? (
