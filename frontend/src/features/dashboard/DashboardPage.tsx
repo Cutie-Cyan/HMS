@@ -117,7 +117,14 @@ export function DashboardPage() {
     { label: "Low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below configured threshold", icon: Boxes, to: MODULES.inventory.path },
   ] : [];
 
-  const queryList = [staff, beds, patients, encounters, requests, inventory].filter((query) => query.isEnabled);
+  const queryList = [
+    ...(isAdmin ? [staff] : []),
+    ...(isAdmin || isEmergency || isStation ? [beds] : []),
+    ...(canSeePatients ? [patients] : []),
+    ...(canSeeEncounters ? [encounters] : []),
+    ...(canSeeRequests ? [requests] : []),
+    ...(isAdmin || isPharmacy || isLab ? [inventory] : []),
+  ];
   const hasDataError = queryList.some((query) => query.isError);
   const isRefreshing = queryList.some((query) => query.isFetching);
   const refreshDashboard = async () => { await Promise.all(queryList.map((query) => query.refetch())); };
@@ -164,7 +171,7 @@ export function DashboardPage() {
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
           <span className="grid size-9 place-items-center rounded-lg bg-sky-100 text-sky-700"><AlertTriangle size={18}/></span>
-          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{requests.isEnabled ? pendingRequests.length + " awaiting payment" : "Requests unavailable for this role"} · {inventory.isEnabled ? lowStock.length + " low-stock items" : "Inventory not in this role"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
+          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{canSeeRequests ? pendingRequests.length + " awaiting payment" : "Requests not assigned"} · {isAdmin || isPharmacy || isLab ? lowStock.length + " low-stock items" : "Inventory not assigned"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
         </div>
       </div>
     </section>;
