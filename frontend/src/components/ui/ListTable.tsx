@@ -56,7 +56,7 @@ export function TableSkeleton({ label }: { label: string }) {
 export function ListError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return <div className="py-6 text-center">
     <p role="alert" className="text-sm text-rose-700">{message}</p>
-    <button type="button" className="mt-1 text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900" onClick={onRetry}>Retry</button>
+    <div className="mt-3 flex justify-center"><Button type="button" variant="secondary" size="sm" onClick={onRetry}>Retry</Button></div>
   </div>;
 }
 
