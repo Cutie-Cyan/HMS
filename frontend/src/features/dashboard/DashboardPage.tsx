@@ -104,11 +104,13 @@ export function DashboardPage() {
     { label: "Patient records", value: adminSummary.data?.patient_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.active_patient_count} active patients` : "Hospital-wide patient records", icon: Users, to: MODULES.patients.path },
     { label: "Active patients", value: adminSummary.data?.active_patient_count ?? "—", detail: "Patients not marked discharged", icon: Activity, to: MODULES.patients.path },
     { label: "Open encounters", value: adminSummary.data?.open_encounter_count ?? "—", detail: "Current encounter queue", icon: Stethoscope, to: MODULES["available-doctors"].path },
-    { label: "Total requests", value: adminSummary.data?.request_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.pending_payment_count} awaiting payment` : "Medicine and lab requests", icon: ClipboardCheck, to: MODULES.staff.path },
+    { label: "Total requests", value: adminSummary.data?.request_count ?? "—", detail: "Medicine and laboratory requests", icon: ClipboardCheck, to: MODULES.staff.path },
+    { label: "Awaiting payment", value: adminSummary.data?.pending_payment_count ?? "—", detail: "Outstanding medicine and lab payments", icon: Wallet, to: MODULES.billing.path },
+    { label: "Paid requests", value: adminSummary.data?.paid_request_count ?? "—", detail: "Payments received for department requests", icon: FileText, to: MODULES.billing.path },
     { label: "Configured beds", value: adminSummary.data?.configured_bed_count ?? "—", detail: "Across hospital wards", icon: BedDouble, to: MODULES.wards.path },
     { label: "Available beds", value: adminSummary.data?.available_bed_count ?? "—", detail: adminSummary.data ? `${adminSummary.data.occupied_bed_count} currently occupied` : "Live bed board", icon: BedDouble, to: MODULES.wards.path },
     { label: "Occupied beds", value: adminSummary.data?.occupied_bed_count ?? "—", detail: "Beds currently assigned to patients", icon: BedDouble, to: MODULES.wards.path },
-    { label: "Paid requests", value: adminSummary.data?.paid_request_count ?? "—", detail: "Paid requests awaiting department handling or completion", icon: ClipboardCheck, to: MODULES.requests.path },
+
     { label: "Medicine low-stock items", value: adminSummary.data?.medicine_low_stock_count ?? "—", detail: "At or below reorder threshold", icon: Boxes, to: MODULES.staff.path },
   ] : isInfo ? [
     { label: "Total patient records", value: patients.data?.length ?? "—", detail: "All registered patients", icon: Users, to: MODULES.patients.path },
@@ -177,16 +179,6 @@ export function DashboardPage() {
             </div>
           </div>;
         }) : <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500 sm:col-span-2 xl:col-span-3">No matching metrics found.</p>}
-      </div>
-      <div className="mt-5 grid gap-3 border-t border-slate-100 pt-4 sm:grid-cols-2">
-        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
-          <span className={`grid size-9 place-items-center rounded-lg ${hasDataError ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-700"}`}><Activity size={18}/></span>
-          <div><p className="text-sm font-semibold text-slate-800">Data connection</p><p className="text-xs text-slate-500">{hasDataError ? "Some records need refreshing" : isRefreshing ? "Updating dashboard…" : "Dashboard data is up to date"}</p></div>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
-          <span className="grid size-9 place-items-center rounded-lg bg-sky-100 text-sky-700"><AlertTriangle size={18}/></span>
-          <div><p className="text-sm font-semibold text-slate-800">Needs attention</p><p className="text-xs text-slate-500">{isAdmin ? (adminSummary.data?.pending_payment_count ?? "—") + " awaiting payment" : canSeeRequests ? pendingRequests.length + " awaiting payment" : "Requests not assigned"} · {isAdmin ? (adminSummary.data?.medicine_low_stock_count ?? "—") + " low-stock items" : isPharmacy || isLab ? lowStock.length + " low-stock items" : "Inventory not assigned"}{canSeeEncounters ? ` · ${(encounters.data ?? []).length} open encounters` : ""}</p></div>
-        </div>
       </div>
     </section>;
   </div>;
