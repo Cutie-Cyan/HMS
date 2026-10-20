@@ -432,6 +432,7 @@ export function WardsWorkspace() {
               <BedDouble size={18} className="text-sky-700" /> Bed board
             </div>
             <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
+              {role === "admin" && <Button variant="secondary" onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Settings2 size={15}/> Configure</Button>}
               <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh ward board" title="Refresh" onClick={() => { void board.refetch(); void wardCatalog.refetch(); if (role === "admin") void rooms.refetch(); }} disabled={board.isFetching || wardCatalog.isFetching || rooms.isFetching}>
                 <RefreshCw size={16} className={board.isFetching ? "animate-spin" : ""} />
               </Button>
@@ -488,30 +489,10 @@ export function WardsWorkspace() {
                           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-sky-50 text-sky-700"><LayoutGrid size={17}/></span>
                           <div className="min-w-0"><p className="text-[11px] font-medium text-slate-500">Configured</p><p className="text-lg font-semibold leading-tight tabular-nums text-slate-900">{rows.filter((b) => b.bed_id).length}</p></div>
                         </div>
-                        {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setConfigTab("bed"); setConfigOpen(true); }}><Settings2 size={15}/> Configure</Button>}
+                        {role === "admin" && <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}>Edit price</Button>}
                       </div>
                     </div>
-                    <div className="mb-5 grid gap-3 sm:grid-cols-2">
-                      <div className="flex min-h-[108px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Public bed</p>
-                          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{money(Number(first?.public_daily_rate ?? w.public_daily_rate))}</p>
-                          <p className="mt-1 text-xs text-slate-500">Per day</p>
-                        </div>
-                        <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-700"><BedDouble size={21}/></div>
-                      </div>
-                      <div className="flex min-h-[108px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Private room</p>
-                          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{money(Number(first?.private_daily_rate ?? w.private_daily_rate))}</p>
-                          <p className="mt-1 text-xs text-slate-500">Per day</p>
-                        </div>
-                        <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><BedDouble size={21}/></div>
-                      </div>
-                    </div>
-                    {role === "admin" && <div className="mb-5 flex justify-end">
-                      <Button type="button" variant="secondary" onClick={() => { setPublicRate(String(first?.public_daily_rate ?? w.public_daily_rate)); setPrivateRate(String(first?.private_daily_rate ?? w.private_daily_rate)); setRateType("public"); setEditingRatesWard(w.id); }}>Edit price</Button>
-                    </div>}
+
                     {role !== "admin" && <div className="mb-4 flex justify-end border-b border-slate-200" role="tablist" aria-label="Choose rooms or beds">
                       <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
                       <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "rooms" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
