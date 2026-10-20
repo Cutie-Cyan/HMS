@@ -117,10 +117,6 @@ export function DashboardPage() {
     { label: "Low-stock items", value: inventory.data ? lowStock.length : "—", detail: "At or below configured threshold", icon: Boxes, to: MODULES.inventory.path },
   ] : [];
 
-  const queryList = [staff, beds, patients, encounters, requests, inventory];
-  const hasDataError = queryList.some((query) => query.isError);
-
-
   const queryList = [staff, beds, patients, encounters, requests, inventory].filter((query) => query.isEnabled);
   const hasDataError = queryList.some((query) => query.isError);
   const isRefreshing = queryList.some((query) => query.isFetching);
