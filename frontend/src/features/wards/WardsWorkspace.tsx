@@ -366,7 +366,8 @@ export function WardsWorkspace() {
       {editingRatesWard && role === "admin" && (() => {
         const ward = wardList.find((item) => item.id === editingRatesWard);
         if (!ward) return null;
-        return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingRatesWard(null); }}>
+        return (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingRatesWard(null); }}>
           <section role="dialog" aria-modal="true" aria-labelledby="edit-ward-prices-title" className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
             <header className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><h2 id="edit-ward-prices-title" className="text-base font-semibold text-slate-900">Edit ward prices</h2><p className="mt-1 text-sm text-slate-500">{ward.name} · rates per 24 hours</p></div><button type="button" aria-label="Close" onClick={() => setEditingRatesWard(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></header>
             <form onSubmit={async (e) => {
@@ -381,7 +382,8 @@ export function WardsWorkspace() {
               <div className="flex justify-end gap-2 border-t border-slate-100 pt-4"><Button type="button" variant="secondary" onClick={() => setEditingRatesWard(null)}>Cancel</Button><Button type="submit" disabled={saveRates.isPending}>{saveRates.isPending ? "Saving…" : "Save prices"}</Button></div>
             </form>
           </section>
-        </div>;
+          </div>
+        );
       })()}
       {configOpen && role === "admin" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfigOpen(false); }}>
