@@ -175,26 +175,29 @@ export function DashboardPage() {
           <h2 className="mb-3 border-b border-slate-100 pb-2 text-sm font-semibold tracking-wide text-slate-800">{group}</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {filteredMetrics.filter((metric) => groupFor(metric.label) === group).map(({ label, value, detail, icon: Icon }) => {
-          const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary) : label.toLowerCase().includes("staff") ? staff
-            : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
-            : label.toLowerCase().includes("encounter") ? encounters
-            : label.toLowerCase().includes("request") ? requests
-            : label.toLowerCase().includes("bed") ? beds
-             : label.toLowerCase().includes("stock") ? inventory : null;
-          const failed = Boolean(query?.isError);
-          const loading = Boolean(query?.isLoading);
-          return <div key={label} className="flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <span className="min-w-0 text-sm font-semibold leading-5 text-slate-600">{label}</span>
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"><Icon size={19} strokeWidth={1.8}/></span>
-            </div>
-            <p className={`mt-4 text-3xl font-semibold leading-none tracking-tight tabular-nums ${failed ? "text-rose-700" : "text-slate-950"}`}>{failed ? "!" : loading ? "…" : value}</p>
-            <div className="mt-auto flex items-end justify-between gap-3 pt-4">
-              <p className={`min-w-0 whitespace-normal break-words text-xs leading-5 ${failed ? "text-rose-700" : "text-slate-500"}`}>{failed ? "Data unavailable · refresh to retry" : loading ? "Loading data…" : detail}</p>
-            </div>
-          </div>;
-        }) : <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500 sm:col-span-2 xl:col-span-3">No matching metrics found.</p>}
-      </div>
+              const query = isAdmin ? (label.toLowerCase().includes("staff") ? staff : adminSummary)
+                : label.toLowerCase().includes("staff") ? staff
+                : label.toLowerCase().includes("patient") || label.toLowerCase().includes("record") ? patients
+                : label.toLowerCase().includes("encounter") ? encounters
+                : label.toLowerCase().includes("request") || label.toLowerCase().includes("payment") || label.toLowerCase().includes("amount") || label.toLowerCase().includes("billing") ? requests
+                : label.toLowerCase().includes("bed") ? beds
+                : label.toLowerCase().includes("stock") || label.toLowerCase().includes("medicine") ? inventory : null;
+              const failed = Boolean(query?.isError);
+              const loading = Boolean(query?.isLoading);
+              return <div key={label} className="flex min-h-[150px] min-w-0 flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="min-w-0 text-sm font-semibold leading-5 text-slate-600">{label}</span>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"><Icon size={19} strokeWidth={1.8}/></span>
+                </div>
+                <p className={`mt-4 text-3xl font-semibold leading-none tracking-tight tabular-nums ${failed ? "text-rose-700" : "text-slate-950"}`}>{failed ? "!" : loading ? "…" : value}</p>
+                <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+                  <p className={`min-w-0 whitespace-normal break-words text-xs leading-5 ${failed ? "text-rose-700" : "text-slate-500"}`}>{failed ? "Data unavailable · refresh to retry" : loading ? "Loading data…" : detail}</p>
+                </div>
+              </div>;
+            })}
+          </div>
+        </section>)}</div> : <p className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">No matching metrics found.</p>;
+      })()}
     </section>;
   </div>;
 }
