@@ -27,7 +27,7 @@ export const MODULES: Record<
   { label: string; path: string; roles: StaffRole[] }
 > = {
   dashboard: {
-    label: "Overview",
+    label: "Dashboard",
     path: "/overview",
     roles: [
       "admin",
