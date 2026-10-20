@@ -21,7 +21,7 @@ export function PatientRegistrationWorkspace(){
  const reviewSubmission=async(submissionId:string,approve:boolean)=>{setError("");setSuccess("");try{const result=await review.mutateAsync({submissionId,approve});setSuccess(approve?`Submission approved. Patient number: ${result.patient_number??"created"}`:"Patient registration submission rejected.");}catch(cause){setError(humanizeError(cause));}};
  return <div className="mx-auto w-full max-w-7xl space-y-3 pb-5">
   
-  {(success||error)&&<div role={error?"alert":"status"} className={`no-print fixed right-4 top-4 z-[120] max-w-[min(24rem,calc(100vw-2rem))] rounded-lg px-3 py-2 text-sm shadow-lg ${error?"bg-rose-700 text-white":"bg-slate-900 text-white"}`}>{error||success}</div>}
+  {(success||error)&&<div role={error?"alert":"status"} className={`no-print hms-toast-auto fixed right-4 top-4 z-[120] rounded-lg px-3 py-2 text-xs font-semibold shadow-lg ${error?"bg-rose-700 text-white":"bg-slate-900 text-white"}`} aria-label={error||success} title={error||success}>{error?"Error":"Saved"}</div>}
 
 
   {enabled&&<Card className="no-print"><CardHeader className="!px-4 !pt-3 !pb-0 sm:!px-5"><div className="mb-4 flex w-full flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 font-semibold"><ClipboardCheck size={18} className="text-sky-700"/> Pending QR submissions</div><div className="no-print ml-auto flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
