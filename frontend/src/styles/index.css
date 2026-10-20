@@ -164,3 +164,13 @@ input[aria-label*="Search" i]:focus {
 thead { border-top: 0 !important; border-bottom: 0 !important; }
 thead tr { border-top: 0 !important; border-bottom: 0 !important; }
 thead th { border-top: 0 !important; border-bottom: 0 !important; font-size: 0.75rem !important; font-weight: 600 !important; letter-spacing: 0.025em; color: #475569; }
+
+
+/* Shared short status toasts fade away automatically. */
+.hms-toast-auto {
+  animation: hms-toast-dismiss 2.8s ease forwards;
+}
+@keyframes hms-toast-dismiss {
+  0%, 72% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; pointer-events: none; }
+}
