@@ -117,7 +117,10 @@ export function usePatientDirectory(search = "", enabled = true) {
       if (error) throw error;
       return (data ?? []) as PatientRecord[];
     },
-    // Refresh through registration/review mutation invalidation, not timed polling.
+    // Always reload when the Records tab mounts again. The app-wide QueryClient
+    // disables refetchOnMount, which otherwise can leave this directory showing
+    // cached rows when users switch back from Patient Registration.
+    refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
 }
