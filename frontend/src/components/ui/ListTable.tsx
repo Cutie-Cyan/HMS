@@ -25,7 +25,7 @@ export function SearchField({ label, placeholder, value, onChange }: { label: st
 }
 
 export function ToolbarActions({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`flex shrink-0 flex-wrap items-center justify-start gap-3 xl:justify-end ${className}`}>{children}</div>;
+  return <div className={`ml-auto flex w-full shrink-0 flex-wrap items-center justify-end gap-3 xl:w-auto xl:justify-end ${className}`}>{children}</div>;
 }
 
 export function MetricStrip({ children }: { children: ReactNode }) {
