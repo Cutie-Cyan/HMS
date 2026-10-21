@@ -22,6 +22,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const requestQueue = useRequestWorkspace();
   const payRequest = usePayRequest();
   const [patientId, setPatientId] = useState("");
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   const [type, setType] = useState<RequestType>(mode === "cbc" ? "lab" : "medicine");
   const [itemId, setItemId] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -113,15 +114,21 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
         </CardHeader>
         <CardContent>
           {requestQueue.isLoading ? <p className="py-6 text-sm text-slate-500">Loading requests…</p> : requestQueue.isError ? <div className="py-6"><p role="alert" className="text-sm text-rose-700">Could not load requests.</p><Button className="mt-3" variant="secondary" onClick={() => void requestQueue.refetch()}>Retry</Button></div> : (requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).length ? <div className="space-y-3">
-            {(requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).map((request) => <article key={request.request_id} className="rounded-xl border border-slate-200 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div><p className="font-semibold text-slate-900">{request.patient_name}</p><p className="mt-1 text-xs text-slate-500">{request.patient_number} · {request.ward_name ?? "Emergency / outpatient"}</p><p className="mt-2 text-sm capitalize">{request.request_type === "lab" ? "Laboratory" : "Medicine"} request</p></div>
-                <Badge tone={statusTone(request.status)}>{request.status.replaceAll("_", " ")}</Badge>
-              </div>
-              <div className="mt-3 space-y-2">{request.items.map((item) => <div key={item.id} className="flex flex-wrap justify-between gap-3 text-sm"><span>{item.description} × {item.quantity}</span><span>{money(Number(item.unit_price) * item.quantity)}</span></div>)}</div>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="text-sm font-semibold">Total {money(Number(request.total))}{request.bill_paid ? " · Paid" : ""}</p>{isCashier && request.status === "pending_payment" && <Button disabled={payRequest.isPending} onClick={() => void recordPayment(request.request_id, request.patient_name)}><CreditCard size={16}/>{payRequest.isPending ? "Recording…" : "Record payment"}</Button>}</div>
-              {request.lab_result && <div className="mt-3 rounded-lg bg-sky-50 p-3"><p className="text-xs font-semibold text-sky-800">Laboratory result</p><p className="mt-1 whitespace-pre-wrap text-sm text-sky-950">{request.lab_result}</p></div>}
-            </article>)}
+            {(requestQueue.data ?? []).filter((request) => (mode !== "cbc" || (request.request_type === "lab" && request.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count")))) && (!isCashier || request.status === "pending_payment")).map((request) => {
+              const expanded = expandedRequestId === request.request_id;
+              return <article key={request.request_id} className="overflow-hidden rounded-xl border border-slate-200">
+                <button type="button" aria-expanded={expanded} onClick={() => setExpandedRequestId(expanded ? null : request.request_id)} className="flex w-full flex-wrap items-center justify-between gap-3 p-4 text-left transition hover:bg-slate-50">
+                  <span className="min-w-0"><span className="block font-semibold text-slate-900">{request.patient_name}</span><span className="mt-1 block text-xs text-slate-500">{request.patient_number} · {request.ward_name ?? "Emergency / outpatient"}</span></span>
+                  <span className="flex items-center gap-3"><Badge tone={statusTone(request.status)}>{request.status.replaceAll("_", " ")}</Badge><span className="text-xs text-slate-400">{expanded ? "−" : "+"}</span></span>
+                </button>
+                {expanded && <div className="border-t border-slate-100 p-4">
+                  <p className="text-sm capitalize text-slate-600">{request.request_type === "lab" ? "Laboratory" : "Medicine"} request</p>
+                  <div className="mt-3 space-y-2">{request.items.map((item) => <div key={item.id} className="flex flex-wrap justify-between gap-3 text-sm"><span>{item.description} × {item.quantity}</span><span>{money(Number(item.unit_price) * item.quantity)}</span></div>)}</div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3"><p className="text-sm font-semibold">Total {money(Number(request.total))}{request.bill_paid ? " · Paid" : ""}</p>{isCashier && request.status === "pending_payment" && <Button disabled={payRequest.isPending} onClick={() => void recordPayment(request.request_id, request.patient_name)}><CreditCard size={16}/>{payRequest.isPending ? "Recording…" : "Record payment"}</Button>}</div>
+                  {request.lab_result && <div className="mt-3 rounded-lg bg-sky-50 p-3"><p className="text-xs font-semibold text-sky-800">Laboratory result</p><p className="mt-1 whitespace-pre-wrap text-sm text-sky-950">{request.lab_result}</p></div>}
+                </div>}
+              </article>;
+            })}
           </div> : <div className="py-8 text-center"><AlertCircle className="mx-auto text-slate-300" size={26}/><p className="mt-2 font-medium">{mode === "cbc" ? "No CBC requests yet" : isCashier ? "No requests awaiting payment" : "No requests yet"}</p><p className="mt-1 text-sm text-slate-500">{mode === "cbc" ? "CBC requests created for patients will appear here." : isCashier ? "New medicine and laboratory requests will appear here." : "Requests created for this encounter will appear here."}</p></div>}
         </CardContent>
       </Card>
