@@ -4,7 +4,7 @@ import { Activity, BedDouble, CheckCircle2, FileText, Pencil, Printer, RefreshCw
 import { useAuth } from "../auth/AuthProvider";
 import { getSupabaseClient } from "../../lib/supabase";
 import { Button } from "../../components/ui/Button";
-import { Card, CardContent, CardHeader } from "../../components/ui/Card";
+import { Card, CardContent } from "../../components/ui/Card";
 import { humanizeError, usePatientDirectory, usePatientHistory, useUpdatePatientDetails, type PatientRecord } from "./data";
 
 const fieldClass = "mt-1.5 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10";
