@@ -117,6 +117,10 @@ export function usePatientDirectory(search = "", enabled = true) {
       if (error) throw error;
       return (data ?? []) as PatientRecord[];
     },
+    // Keep the Patients Record screen current even when registration happens in another tab.
+    refetchInterval: enabled ? 5000 : false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
   });
 }
 export function useDoctors(enabled = true) {
