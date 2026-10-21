@@ -103,7 +103,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
             </label>
             {items.isError && <p role="alert" className="text-sm text-rose-700 md:col-span-2">Could not load department items. Check inventory setup and retry.</p>}
             {!items.isLoading && !items.isError && displayedItems.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2">{mode === "cbc" ? "CBC is not configured in Lab inventory yet. Ask Lab staff to add the CBC Test (Complete Blood Count) item first." : `No active ${type === "medicine" ? "medicine" : "laboratory"} items are available here. CBC requests use the dedicated CBC sidebar; ask the department to configure other items if needed.`}</p>}
-            <div className="md:col-span-2"><Button type="submit" disabled={create.isPending || patients.isLoading || encounters.isLoading || items.isLoading || !patientId || !patientEncounter || !itemId || Number(quantity) < 1 || Number(quantity) > Number(selectedItem?.quantity_on_hand ?? 0)}>{create.isPending ? "Creating request…" : "Send to Cashier"}</Button></div>
+            <div className="flex justify-end md:col-span-2"><Button type="submit" disabled={create.isPending || patients.isLoading || encounters.isLoading || items.isLoading || !patientId || !patientEncounter || !itemId || Number(quantity) < 1 || Number(quantity) > Number(selectedItem?.quantity_on_hand ?? 0)}>{create.isPending ? "Creating request…" : "Send to Cashier"}</Button></div>
           </form>}
         </CardContent>
       </Card>}
