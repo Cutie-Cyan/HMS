@@ -478,7 +478,12 @@ export function InventoryWorkspace() {
                 className={fieldClass}
               />
             </label>
-            <div className="flex items-end gap-2">
+            <div className="flex w-full items-end justify-end gap-2">
+              {editing && (
+                <Button type="button" variant="secondary" onClick={reset}>
+                  Cancel
+                </Button>
+              )}
               <Button type="submit" disabled={save.isPending}>
                 {save.isPending
                   ? "Saving…"
@@ -486,11 +491,6 @@ export function InventoryWorkspace() {
                     ? "Save changes"
                     : "Add item"}
               </Button>
-              {editing && (
-                <Button type="button" variant="secondary" onClick={reset}>
-                  Cancel
-                </Button>
-              )}
             </div>
           </form>
         </CardContent>
