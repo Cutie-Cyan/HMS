@@ -264,7 +264,7 @@ export function DoctorFormPage() {
 
       <Card id="encounter-records-panel">
         <CardHeader>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-3">
             <h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2>
             <div className="ml-auto flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
               <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
