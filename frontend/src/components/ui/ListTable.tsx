@@ -25,7 +25,7 @@ export function SearchField({ label, placeholder, value, onChange }: { label: st
 }
 
 export function ToolbarActions({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`ml-auto flex w-full shrink-0 flex-wrap items-center justify-end gap-3 xl:w-auto xl:justify-end ${className}`}>{children}</div>;
+  return <div className={`ml-auto flex w-full min-w-0 shrink-0 flex-wrap items-center justify-end gap-2 ${className}`}>{children}</div>;
 }
 
 export function MetricStrip({ children }: { children: ReactNode }) {
@@ -61,7 +61,7 @@ export function ListError({ message, onRetry }: { message: string; onRetry: () =
 }
 
 export function ListEmpty({ icon, title, hint }: { icon: ReactNode; title: string; hint: string }) {
-  return <div className="py-10 text-center">{icon}<p className="mt-3 font-medium">{title}</p><p className="mt-1 text-sm text-slate-500">{hint}</p></div>;
+  return <div className="py-10 text-center">{icon}<p className="mt-3 font-medium">{title}</p></div>;
 }
 
 export function PageToast({ message, error }: { message: string; error: string }) {
