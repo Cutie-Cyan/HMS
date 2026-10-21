@@ -212,7 +212,7 @@ export function NurseStationERPage() {
           {([
             { id: "overview", label: "Overview", icon: LayoutDashboard },
             { id: "queue", label: "Patient Queue", icon: ClipboardList },
-            { id: "triage", label: "Triage & Assessment", icon: Activity },
+            { id: "triage", label: "Start encounter", icon: Activity },
             { id: "clinical", label: "Clinical Records", icon: FileText },
             { id: "requests", label: "Requests & Results", icon: FlaskConical },
             { id: "beds", label: "Beds & Disposition", icon: BedDouble },
@@ -243,7 +243,7 @@ export function NurseStationERPage() {
 
       {activeTab === "triage" && (<Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Triage & Assessment</div>
+          <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Start encounter</div>
           
         </CardHeader>
         <CardContent>
@@ -313,9 +313,9 @@ export function NurseStationERPage() {
               <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
               
             </section>
-            <div className="flex justify-end"><div className="flex justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
+            <div className="flex justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
-            </Button></div></div>
+            </Button></div>
           </form>
         </CardContent>
       </Card>
@@ -329,7 +329,7 @@ export function NurseStationERPage() {
               <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={encounterSearch} onChange={(event) => setEncounterSearch(event.target.value)} placeholder="Search patient, number, or doctor…" aria-label="Search encounters" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" />
             </label>
-            <div className="flex items-center justify-end gap-2 lg:ml-auto">
+            <div className="flex items-center justify-end gap-2 self-end lg:ml-auto lg:self-auto">
               <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
                 <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
                 <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
