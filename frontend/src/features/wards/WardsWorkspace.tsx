@@ -521,7 +521,7 @@ export function WardsWorkspace() {
                     </div>}
                     {role === "admin" ? null : boardView === "rooms" ? (
                       <>
-                        {role === "admin" && (
+                        {(role as string) === "admin" && (
                           <div>
                             {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
                               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
