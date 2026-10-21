@@ -20,8 +20,24 @@ export function PublicPatientRegistrationPage() {
   const [pwdOrSenior, setPwdOrSenior] = useState(false);
   const [idFile, setIdFile] = useState<File | null>(null);
   const [idPreview, setIdPreview] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [idScanStatus, setIdScanStatus] = useState("");
   useEffect(() => { if (!idFile) { setIdPreview(""); return; } const url = URL.createObjectURL(idFile); setIdPreview(url); return () => URL.revokeObjectURL(url); }, [idFile]);
-  function chooseIdFile(file?: File) { if (!file) return; if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) { setError("Choose a JPG, PNG, or WEBP image under 10 MB."); return; } setError(""); setIdFile(file); }
+  async function chooseIdFile(file?: File) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) { setError("Choose a JPG, PNG, or WEBP image under 10 MB."); return; }
+    setError(""); setIdFile(file); setIdNumber(""); setIdScanStatus("Scanning ID number…");
+    try {
+      const w = window as Window & { Tesseract?: { recognize: (image: File, lang: string) => Promise<{ data: { text: string } }> } };
+      if (!w.Tesseract) await new Promise<void>((resolve, reject) => { const script = document.createElement("script"); script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"; script.onload = () => resolve(); script.onerror = () => reject(new Error("Could not load text scanner")); document.head.appendChild(script); });
+      const result = await w.Tesseract!.recognize(file, "eng");
+      const text = result.data.text;
+      const lines = text.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+      const candidate = lines.find(value => /\d{4,}/.test(value) && /^[A-Z0-9\s-]{4,30}$/i.test(value))?.replace(/\s+/g, " ").trim() ?? text.match(/[A-Z0-9][A-Z0-9 -]{3,24}\d[A-Z0-9 -]*/i)?.[0]?.replace(/\s+/g, " ").trim() ?? "";
+      if (candidate) { setIdNumber(candidate); setIdScanStatus("ID number detected. Check it against the number printed on your ID."); }
+      else setIdScanStatus("No clear ID number detected. Enter it manually or take a clearer photo.");
+    } catch { setIdScanStatus("Automatic scanning failed. Enter the ID number manually."); }
+  }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -78,7 +94,9 @@ export function PublicPatientRegistrationPage() {
 <div className="space-y-3">
                   <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={pwdOrSenior} onChange={e=>{setPwdOrSenior(e.target.checked); if (!e.target.checked) setIdFile(null);}} className="size-4 accent-teal-700"/><span className="font-medium">PWD / Senior citizen</span></label>
                   {pwdOrSenior && <div className="space-y-3">
-                    {idFile && <div className="relative flex min-h-44 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2"><img src={idPreview} alt="ID preview" className="max-h-64 w-full object-contain"/><button type="button" aria-label="Remove ID image" title="Remove ID image" onClick={()=>setIdFile(null)} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-rose-50 hover:text-rose-600"><Trash2 size={15}/></button></div>}
+                    {idFile && <div className="relative flex min-h-44 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2"><img src={idPreview} alt="ID preview" className="max-h-64 w-full object-contain"/><button type="button" aria-label="Remove ID image" title="Remove ID image" onClick={()=>{setIdFile(null);setIdNumber("");setIdScanStatus("");}} className="absolute right-2 top-2 grid size-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-rose-50 hover:text-rose-600"><Trash2 size={15}/></button></div>}
+                    <label className="block text-sm font-medium text-slate-700">ID number<input value={idNumber} onChange={e=>setIdNumber(e.target.value)} maxLength={100} autoComplete="off" placeholder="Scan an ID or enter the number" className={inputClass}/></label>
+                    {idScanStatus && <p role="status" className="text-xs text-slate-500">{idScanStatus}</p>}
                     <div className="flex flex-wrap gap-2">
                       <label className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><ImagePlus size={16}/> Upload file<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
                       <label className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><ScanLine size={16}/> Scan ID<input type="file" accept="image/*" capture="environment" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
