@@ -516,9 +516,15 @@ export function WardsWorkspace() {
                       </div>
                     </div>
 
-                    {role !== "admin" && <div className="mb-4 flex justify-end border-b border-slate-200" role="tablist" aria-label="Choose rooms or beds">
-                      <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "beds" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Beds ({rows.filter((b) => b.bed_id).length})</button>
-                      <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"relative min-h-10 rounded-none border-0 border-b-2 bg-transparent px-5 py-2.5 text-sm font-semibold transition " + (boardView === "rooms" ? "border-b-sky-600 text-sky-700" : "border-b-transparent text-slate-500 hover:border-b-slate-300 hover:text-slate-800")}>Rooms ({(rooms.data ?? []).filter((r) => r.ward_id === w.id).length})</button>
+                    {role !== "admin" && <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <label className="relative min-w-0 flex-1">
+                        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input value={boardSearch} onChange={(event) => setBoardSearch(event.target.value)} placeholder={boardView === "beds" ? "Search bed, room, or patient…" : "Search room code…"} aria-label={boardView === "beds" ? "Search beds" : "Search rooms"} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10" />
+                      </label>
+                      <div className="inline-flex shrink-0 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Choose rooms or beds">
+                        <button type="button" role="tab" aria-selected={boardView === "beds"} onClick={() => setBoardView("beds")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (boardView === "beds" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Beds <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{rows.filter((b) => b.bed_id).length}</span></button>
+                        <button type="button" role="tab" aria-selected={boardView === "rooms"} onClick={() => setBoardView("rooms")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (boardView === "rooms" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Rooms <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{(rooms.data ?? []).filter((r) => r.ward_id === w.id).length}</span></button>
+                      </div>
                     </div>}
                     {role === "admin" ? null : boardView === "rooms" ? (
                       <>
