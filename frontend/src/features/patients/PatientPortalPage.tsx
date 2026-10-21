@@ -79,7 +79,7 @@ export function PatientPortalPage() {
         <Card className="mt-5">
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
-              <div><h2 className="font-semibold">Live billing statement</h2><p className="mt-1 text-sm text-slate-500">Automatically refreshes every 15 seconds while this page is open.</p></div>
+              <div><h2 className="font-semibold">Live billing statement</h2></div>
               <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">Live</span>
             </div>
           </CardHeader>
@@ -94,7 +94,7 @@ export function PatientPortalPage() {
                 </dl>
                 <div className="mt-5 rounded-xl bg-teal-50 p-4"><p className="text-sm text-teal-900">Current bill total</p><p className="mt-1 text-2xl font-bold text-teal-950">{money(Number(bill.total_bill))}</p></div>
                 {bill.paid_at && <p className="mt-3 text-sm text-emerald-700">Payment recorded {new Date(bill.paid_at).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}.</p>}
-                <p className="mt-3 text-xs text-slate-500">Last updated: {new Date(bill.last_updated).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}. This is a billing summary, not an official receipt.</p>
+                
               </>
             ) : <p className="text-sm text-slate-600">No billing data is available for this encounter yet.</p>}
             {billError && <p role="status" className="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{billError}</p>}
