@@ -232,7 +232,7 @@ export function NurseStationERPage() {
           <Card><CardContent><p className="text-sm text-slate-500">Clinical records saved</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</p></CardContent></Card>
           <Card><CardContent><p className="text-sm text-slate-500">Patients available for ER intake</p><p className="mt-2 text-3xl font-semibold text-slate-950">{selectablePatients.length}</p></CardContent></Card>
         </div>
-        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2><p className="mt-1 text-sm text-slate-500">The Emergency Nurse receives the patient, completes initial triage, coordinates the paper form with the doctor, sends authorized orders to Lab or Pharmacy, communicates results, and records the doctor's disposition. Doctors do not log in.</p></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
+        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
           {[
             ["1", "Initial ER assessment", "Receive the patient referral, check urgency, and record chief complaint, vital signs, allergies, and initial nursing observations."],
             ["2", "Doctor + orders", "Print the assessment form for the doctor. Encode the returned findings and documented orders, then track Lab and Pharmacy responses."],
@@ -313,9 +313,9 @@ export function NurseStationERPage() {
               <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
               
             </section>
-            <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
+            <div className="flex justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
-            </Button>
+            </Button></div>
           </form>
         </CardContent>
       </Card>
@@ -329,7 +329,7 @@ export function NurseStationERPage() {
               <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={encounterSearch} onChange={(event) => setEncounterSearch(event.target.value)} placeholder="Search patient, number, or doctor…" aria-label="Search encounters" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" />
             </label>
-            <div className="flex items-center gap-2 lg:ml-auto">
+            <div className="flex items-center justify-end gap-2 lg:ml-auto">
               <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
                 <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
                 <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
