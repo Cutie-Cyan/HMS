@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Banknote,
   CheckCircle2,
+  Info,
   ClipboardCheck,
   RefreshCw,
   ShieldAlert,
@@ -159,6 +160,7 @@ export function BillingWorkspace() {
   const [discountIdByBill, setDiscountIdByBill] = useState<Record<string, string>>({});
   const [discountAmounts, setDiscountAmounts] = useState<Record<string, string>>({});
   const [billingView, setBillingView] = useState<"queue" | "history">("queue");
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
@@ -190,29 +192,29 @@ export function BillingWorkspace() {
       )}
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 font-semibold">
               <Banknote size={18} className="text-teal-700" /> Billing &amp; inpatient closeout
             </div>
-            <Button
-              variant="secondary"
-              className="!size-9 !min-h-9 !p-0"
-              aria-label="Refresh billing records"
-              title="Refresh"
-              onClick={() => void queue.refetch()}
-              disabled={queue.isFetching}
-            >
-              <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
-            </Button>
+            <div className="ml-auto flex items-center justify-end">
+              <Button
+                variant="secondary"
+                className="!size-9 !min-h-9 !p-0"
+                aria-label="Refresh billing records"
+                title="Refresh"
+                onClick={() => void queue.refetch()}
+                disabled={queue.isFetching}
+              >
+                <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
+              </Button>
+            </div>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
-            Room rates use rolling 24-hour blocks. A partial block is charged as
-            one day.
-          </p>
           {canViewHistory && (
-            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Billing views">
-              <Button type="button" variant={billingView === "queue" ? "primary" : "secondary"} onClick={() => setBillingView("queue")}>Billing queue</Button>
-              <Button type="button" variant={billingView === "history" ? "primary" : "secondary"} onClick={() => setBillingView("history")}>Transaction history</Button>
+            <div className="mt-4 flex justify-end">
+              <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Billing views">
+                <button type="button" role="tab" aria-selected={billingView === "queue"} onClick={() => setBillingView("queue")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (billingView === "queue" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Billing Queue</button>
+                <button type="button" role="tab" aria-selected={billingView === "history"} onClick={() => setBillingView("history")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (billingView === "history" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Transaction history</button>
+              </div>
             </div>
           )}
         </CardHeader>
@@ -261,6 +263,10 @@ export function BillingWorkspace() {
                             : "Not admitted"}
                         </p>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Button type="button" variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label={expandedRows[row.encounter_id] ? "Hide billing details" : "View billing details"} title={expandedRows[row.encounter_id] ? "Hide details" : "View details"} aria-expanded={!!expandedRows[row.encounter_id]} onClick={() => setExpandedRows((current) => ({ ...current, [row.encounter_id]: !current[row.encounter_id] }))}>
+                          <Info size={16}/>
+                        </Button>
                       <Badge
                         tone={
                           row.paid_at
@@ -280,7 +286,9 @@ export function BillingWorkspace() {
                               ? "Ready for final bill"
                               : "Requests not cleared"}
                       </Badge>
+                      </div>
                     </div>
+                    {expandedRows[row.encounter_id] && <>
                     <div className="mt-4 flex flex-col items-start gap-2">
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`}
@@ -514,6 +522,7 @@ export function BillingWorkspace() {
                           Payment is blocked until all requests are cleared.
                         </p>
                       )}
+                    </>}
                   </article>
                 );
               })}
