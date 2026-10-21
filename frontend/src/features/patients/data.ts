@@ -196,8 +196,10 @@ export function useRegisterPatient() {
       return rows[0];
     },
     onSuccess: async () => {
+      // A registration changes both the searchable list and the unfiltered summary.
+      // Refetch cached variants even if the Records tab is temporarily unmounted.
       await client.invalidateQueries({ queryKey: ["patients"] });
-      await client.refetchQueries({ queryKey: ["patients", "directory"], type: "active" });
+      await client.refetchQueries({ queryKey: ["patients", "directory"], type: "all" });
     },
   });
 }
