@@ -79,7 +79,7 @@ export function PublicPatientRegistrationPage() {
           <Card><CardContent><div className="py-8 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={42}/><h2 className="mt-4 text-xl font-semibold text-slate-900">Form submitted</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">Your details have been sent to the Information Officer for verification. This is not yet an official patient number or confirmation of registration.</p></div></CardContent></Card>
         ) : (
           <Card>
-            <CardHeader><h2 className="font-semibold text-slate-900">Personal information</h2><p className="mt-1 text-sm text-slate-500">Fields marked required must be completed.</p></CardHeader>
+            <CardHeader><h2 className="font-semibold text-slate-900">Personal information</h2></CardHeader>
             <CardContent>
               <form onSubmit={submit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
