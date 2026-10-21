@@ -1,7 +1,7 @@
 import {
   BedDouble, Boxes, LayoutDashboard,
   UserRoundCheck, ScrollText, Stethoscope, Users, Wallet, Menu, X,
-  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, XCircle, UserRound, Mail, LogOut,
+  ShieldCheck, PanelLeftClose, PanelLeftOpen, Search, UserRound, Mail, LogOut,
   FlaskConical, PackageOpen,
   UserRoundSearch, UserPlus, HeartPulse, ClipboardCheck, Receipt, ChartNoAxesCombined, TestTube, Microscope, FileClock, Syringe,
 } from "lucide-react";
