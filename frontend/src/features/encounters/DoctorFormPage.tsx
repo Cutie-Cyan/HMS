@@ -264,16 +264,14 @@ export function DoctorFormPage() {
 
       <Card id="encounter-records-panel">
         <CardHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2>
-            <div className="ml-auto flex items-center justify-end">
+            <div className="ml-auto flex items-center justify-end gap-2">
+              <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
+                <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
+                <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
+              </div>
               <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh encounters" title="Refresh" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} className={encounters.isFetching ? "animate-spin" : ""}/></Button>
-            </div>
-          </div>
-          <div className="flex justify-end pt-3">
-            <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
-              <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
-              <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
             </div>
           </div>
         </CardHeader>
