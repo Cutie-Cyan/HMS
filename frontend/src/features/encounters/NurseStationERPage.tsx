@@ -243,7 +243,7 @@ export function NurseStationERPage() {
       {activeTab === "triage" && (<Card>
         <CardHeader>
           <div className="flex items-center gap-2 font-semibold"><Stethoscope size={18} className="text-teal-700" /> Triage & Assessment</div>
-          <p className="mt-1 text-sm text-slate-500">The Emergency Nurse receives the patient from the Emergency Nurse referral workflow, records ER triage and vital signs, then prints the form for the doctor. The doctor completes the paper form; authorized staff encode the documented findings, orders, and recommended disposition.</p>
+          
         </CardHeader>
         <CardContent>
           {patients.isError || doctors.isError || encounters.isError ? <div role="alert" className="mb-4 text-sm text-rose-700">Unable to load encounter information. Refresh and try again.</div> : null}
@@ -310,7 +310,7 @@ export function NurseStationERPage() {
               </div>
               <label className="block text-sm font-medium text-slate-700">Known allergies<textarea rows={2} maxLength={1000} value={allergies} onChange={(event) => setAllergies(event.target.value)} placeholder="Known allergies or enter none reported" className={inputClass}/></label>
               <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
-              <p className="text-xs leading-5 text-slate-500">These details are saved with the encounter and included on the printable doctor form. Enter only observations that have actually been assessed.</p>
+              
             </section>
             <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
@@ -324,7 +324,7 @@ export function NurseStationERPage() {
       {(activeTab === "queue" || activeTab === "clinical") && (<Card id="encounter-records-panel">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2><p className="mt-1 text-sm text-slate-500">Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue.</p></div>
+            <div><h2 className="text-base font-semibold tracking-tight text-slate-900">ER Encounter Queue</h2></div>
             <Button variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label="Refresh encounters" title="Refresh" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} className={encounters.isFetching ? "animate-spin" : ""}/></Button>
           </div>
           <div className="flex flex-wrap gap-2 pt-3" role="group" aria-label="Encounter record views">
