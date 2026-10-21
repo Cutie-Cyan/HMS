@@ -36,7 +36,7 @@ export function LoginPage() {
       if (error) throw error;
       await refreshProfile();
     } catch (cause) {
-      setMessage(cause instanceof Error && /invalid login credentials/i.test(cause.message) ? "Email or password is incorrect. Check your details and try again." : cause instanceof Error ? cause.message : "Unable to sign in. Check your credentials and try again.");
+      setMessage("! Failed to Sign in");
     } finally {
       setSubmitting(false);
     }
@@ -51,7 +51,7 @@ export function LoginPage() {
         </div>
 
         {!configured && <p role="alert" className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs leading-5 text-amber-900">Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.</p>}
-        {message && <div role="alert" aria-live="polite" className="mt-5 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-sm leading-5 text-rose-800"><span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-rose-100 text-xs font-bold text-rose-700">!</span><div><p className="font-semibold">Sign-in failed</p><p className="mt-0.5 break-words">{message}</p></div></div>}
+        {message && <div role="alert" aria-live="polite" className="mt-5 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-sm leading-5 text-rose-800"><p className="font-semibold">{message}</p></div>}
 
         <form onSubmit={submit} className="space-y-5">
           <label className="block text-sm font-medium text-slate-700">Email address
