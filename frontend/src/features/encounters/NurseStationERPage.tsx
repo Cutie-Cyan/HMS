@@ -346,18 +346,17 @@ export function NurseStationERPage() {
               <div><h2 className="text-base font-semibold text-slate-900">{activeTab === "queue" ? "ER Encounter Queue" : "Saved Encounters"}</h2></div>
             </div>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <label className="relative min-w-0 flex-1">
-              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={encounterSearch} onChange={(event) => setEncounterSearch(event.target.value)} placeholder="Search patient, number, or doctor…" aria-label="Search encounters" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" />
-            </label>
-            <div className="flex items-center justify-end gap-2 self-end lg:ml-auto lg:self-auto">
-              <div className="relative grid grid-cols-2 rounded-full bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
-                  <span aria-hidden="true" className={"absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-full bg-teal-700 shadow-sm transition-transform duration-200 " + (encounterView === "saved" ? "translate-x-full" : "translate-x-0")} />
-                  <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"relative z-10 rounded-full px-4 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "text-white" : "text-slate-500 hover:text-slate-800")}>Queue <span className={"ml-1 rounded-full px-2 py-0.5 text-xs " + (encounterView === "queue" ? "bg-white/20 text-white" : "bg-white text-slate-600")}>{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
-                  <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"relative z-10 rounded-full px-4 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "text-white" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className={"ml-1 rounded-full px-2 py-0.5 text-xs " + (encounterView === "saved" ? "bg-white/20 text-white" : "bg-white text-slate-600")}>{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
+              <label className="relative min-w-0 flex-1">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input value={encounterSearch} onChange={(event) => setEncounterSearch(event.target.value)} placeholder="Search patient, number, or doctor…" aria-label="Search encounters" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" />
+              </label>
+              <div className="flex items-center justify-end gap-2 lg:ml-auto">
+                <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
+                  <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
+                  <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
                 </div>
-              <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh encounters" title="Refresh" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} className={encounters.isFetching ? "animate-spin" : ""}/></Button>
-            </div>
+                <Button variant="secondary" className="!size-10 !min-h-10 !p-0" aria-label="Refresh encounters" title="Refresh" onClick={() => void refresh()} disabled={encounters.isFetching}><RefreshCw size={15} className={encounters.isFetching ? "animate-spin" : ""}/></Button>
+              </div>
             </div>
           </div>
         </CardHeader>
