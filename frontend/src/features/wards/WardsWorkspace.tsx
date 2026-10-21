@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { BedDouble, CheckCircle2, Settings2, ShieldAlert, X, LayoutGrid } from "lucide-react";
+import { BedDouble, CheckCircle2, Search, Settings2, ShieldAlert, X, LayoutGrid } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../auth/AuthProvider";
 import { Badge } from "../../components/ui/Badge";
@@ -207,6 +207,7 @@ export function WardsWorkspace() {
   const [configTab, setConfigTab] = useState<"room" | "bed">("bed");
   const [selectedWardId, setSelectedWardId] = useState("");
   const [boardView, setBoardView] = useState<"beds" | "rooms">("beds");
+  const [boardSearch, setBoardSearch] = useState("");
   const [editingRatesWard, setEditingRatesWard] = useState<string | null>(null);
   const [publicRate, setPublicRate] = useState("");
   const [privateRate, setPrivateRate] = useState("");
