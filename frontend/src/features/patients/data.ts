@@ -193,7 +193,10 @@ export function useRegisterPatient() {
       if (!rows?.[0]) throw new Error("Registration did not return a patient number.");
       return rows[0];
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: ["patients"] }),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["patients"] });
+      await client.refetchQueries({ queryKey: ["patients", "directory"], type: "active" });
+    },
   });
 }
 export function useUpdatePatientDetails() {
