@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Banknote,
   CheckCircle2,
-  Info,
   ClipboardCheck,
   RefreshCw,
   ShieldAlert,
@@ -196,27 +195,25 @@ export function BillingWorkspace() {
             <div className="flex items-center gap-2 font-semibold">
               <Banknote size={18} className="text-teal-700" /> Billing &amp; inpatient closeout
             </div>
-            <div className="ml-auto flex items-center justify-end">
-              <Button
-                variant="secondary"
-                className="!size-9 !min-h-9 !p-0"
-                aria-label="Refresh billing records"
-                title="Refresh"
-                onClick={() => void queue.refetch()}
-                disabled={queue.isFetching}
-              >
-                <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
-              </Button>
-            </div>
           </div>
-          {canViewHistory && (
-            <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex items-center justify-end gap-2">
+            {canViewHistory && (
               <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Billing views">
                 <button type="button" role="tab" aria-selected={billingView === "queue"} onClick={() => setBillingView("queue")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (billingView === "queue" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Billing Queue</button>
                 <button type="button" role="tab" aria-selected={billingView === "history"} onClick={() => setBillingView("history")} className={"rounded-lg px-4 py-2 text-sm font-semibold transition " + (billingView === "history" ? "bg-white text-sky-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Transaction history</button>
               </div>
-            </div>
-          )}
+            )}
+            <Button
+              variant="secondary"
+              className="!size-9 !min-h-9 !p-0"
+              aria-label="Refresh billing records"
+              title="Refresh"
+              onClick={() => void queue.refetch()}
+              disabled={queue.isFetching}
+            >
+              <RefreshCw size={15} className={queue.isFetching ? "animate-spin" : ""} />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {queue.isLoading ? (
@@ -249,7 +246,21 @@ export function BillingWorkspace() {
                     key={row.encounter_id}
                     className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      aria-expanded={!!expandedRows[row.encounter_id]}
+                      aria-label={`${expandedRows[row.encounter_id] ? "Hide" : "Show"} billing details for ${row.patient_name}`}
+                      onClick={() => setExpandedRows((current) => ({ ...current, [row.encounter_id]: !current[row.encounter_id] }))}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setExpandedRows((current) => ({ ...current, [row.encounter_id]: !current[row.encounter_id] }));
+                        }
+                      }}
+                      className="flex cursor-pointer flex-wrap items-start justify-between gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                    >
                       <div>
                         <h2 className="font-semibold">{row.patient_name}</h2>
                         <p className="mt-1 text-xs text-slate-500">
@@ -264,9 +275,6 @@ export function BillingWorkspace() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button type="button" variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label={expandedRows[row.encounter_id] ? "Hide billing details" : "View billing details"} title={expandedRows[row.encounter_id] ? "Hide details" : "View details"} aria-expanded={!!expandedRows[row.encounter_id]} onClick={() => setExpandedRows((current) => ({ ...current, [row.encounter_id]: !current[row.encounter_id] }))}>
-                          <Info size={16}/>
-                        </Button>
                       <Badge
                         tone={
                           row.paid_at
