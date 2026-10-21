@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, BedDouble, CheckCircle2, FileText, Pencil, Printer, RefreshCw, Search, Users, X } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { getSupabaseClient } from "../../lib/supabase";
@@ -28,6 +28,23 @@ function ageLabel(date: string | null) {
 
 export function PatientWorkspace() {
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const client = getSupabaseClient();
+    const channel = client
+      .channel("patient-records-new-patient-refresh")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "patients" },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["patients", "directory"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void client.removeChannel(channel);
+    };
+  }, [queryClient]);
   const canEdit = profile?.role === "info_officer";
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<PatientRecord | null>(null);
