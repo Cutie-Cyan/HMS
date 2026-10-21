@@ -232,7 +232,7 @@ export function NurseStationERPage() {
           <Card><CardContent><p className="text-sm text-slate-500">Clinical records saved</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</p></CardContent></Card>
           <Card><CardContent><p className="text-sm text-slate-500">Patients available for ER intake</p><p className="mt-2 text-3xl font-semibold text-slate-950">{selectablePatients.length}</p></CardContent></Card>
         </div>
-        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2><p className="mt-1 text-sm text-slate-500">The Emergency Nurse receives the patient, completes initial triage, coordinates the paper form with the doctor, sends authorized orders to Lab or Pharmacy, communicates results, and records the doctor's disposition. Doctors do not log in.</p></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
+        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
           {[
             ["1", "Initial ER assessment", "Receive the patient referral, check urgency, and record chief complaint, vital signs, allergies, and initial nursing observations."],
             ["2", "Doctor + orders", "Print the assessment form for the doctor. Encode the returned findings and documented orders, then track Lab and Pharmacy responses."],
@@ -298,7 +298,7 @@ export function NurseStationERPage() {
               </label>
             </section>
             <section className="space-y-4 rounded-xl border border-slate-200 p-4">
-              <div><h2 className="font-semibold text-slate-900">Triage and initial nurse assessment</h2><p className="mt-1 text-sm text-slate-500">Record the presenting concern, urgency, and available observations. Reassess as needed.</p></div>
+              <div><h2 className="font-semibold text-slate-900">Triage and initial nurse assessment</h2></div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block text-sm font-medium text-slate-700">Triage priority<select required value={triagePriority} onChange={(event) => setTriagePriority(event.target.value)} className={inputClass}><option value="">Select priority</option><option value="immediate">Immediate</option><option value="very_urgent">Very urgent</option><option value="urgent">Urgent</option><option value="standard">Standard</option><option value="non_urgent">Non-urgent</option></select></label>
                 <label className="block text-sm font-medium text-slate-700">Chief complaint<input required maxLength={500} value={chiefComplaint} onChange={(event) => setChiefComplaint(event.target.value)} placeholder="Reason for the ER visit" className={inputClass}/></label>
@@ -313,9 +313,9 @@ export function NurseStationERPage() {
               <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
               
             </section>
-            <Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
+            <div className="flex justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
-            </Button>
+            </Button></div>
           </form>
         </CardContent>
       </Card>
@@ -329,7 +329,7 @@ export function NurseStationERPage() {
               <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={encounterSearch} onChange={(event) => setEncounterSearch(event.target.value)} placeholder="Search patient, number, or doctor…" aria-label="Search encounters" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" />
             </label>
-            <div className="flex items-center gap-2 lg:ml-auto">
+            <div className="flex items-center justify-end gap-2 lg:ml-auto">
               <div className="inline-flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="Encounter record views">
                 <button type="button" role="tab" aria-selected={encounterView === "queue"} onClick={() => setEncounterView("queue")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "queue" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Queue <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</span></button>
                 <button type="button" role="tab" aria-selected={encounterView === "saved"} onClick={() => setEncounterView("saved")} className={"rounded-lg px-3 py-2 text-sm font-semibold transition " + (encounterView === "saved" ? "bg-white text-teal-800 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800")}>Saved Encounters <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</span></button>
@@ -342,7 +342,7 @@ export function NurseStationERPage() {
           {encounters.isLoading ? <p className="py-8 text-center text-sm text-slate-500">Loading encounter records…</p> : encounters.isError ? <div className="py-6 text-center"><p className="text-sm text-rose-700">Could not load encounter records.</p><Button className="mt-3" onClick={() => void encounters.refetch()}>Retry</Button></div> : (() => {
             const normalizedSearch = encounterSearch.trim().toLowerCase();
             const visibleEncounters = activeEncounters.filter((item) => (encounterView === "queue" ? item.workflow_stage !== "recorded" : item.workflow_stage === "recorded") && (!normalizedSearch || [item.patient_name, item.patient_number, item.doctor_name ?? ""].some((value) => value.toLowerCase().includes(normalizedSearch))));
-            if (visibleEncounters.length === 0) return <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">{encounterView === "queue" ? "Queue is empty" : "No saved encounters yet"}</p><p className="mt-1 text-sm text-slate-500">{encounterView === "queue" ? "New ER encounters waiting for doctor assessment or returned forms awaiting encoding appear here." : "Doctor findings recorded for active encounters appear here. The encounter may remain open while tests, treatment, or disposition are pending."}</p></div>;
+            if (visibleEncounters.length === 0) return <div className="py-10 text-center"><CheckCircle2 className="mx-auto text-slate-300" size={30}/><p className="mt-3 font-medium">{encounterView === "queue" ? "Queue is empty" : "No saved encounters yet"}</p></div>;
             return <div className="space-y-3">{visibleEncounters.map((item) => <article key={item.encounter_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold text-slate-900">{item.patient_name}</h3><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{item.patient_number}</span><StagePill stage={item.workflow_stage}/></div><p className="mt-1 text-sm text-slate-500">Doctor: {item.doctor_name ?? "Not assigned"} · Saved {new Date(item.created_at).toLocaleString()}</p>{item.findings_recorded_at && <p className="mt-1 text-xs text-slate-500">Doctor form encoded {new Date(item.findings_recorded_at).toLocaleString()}</p>}</div><div className="flex flex-wrap gap-2">
               <Button size="sm" variant="secondary" onClick={() => setPrintTarget(item)}><Printer size={14}/> Print form</Button>
               {item.workflow_stage === "pending_doctor" && <Button size="sm" onClick={() => void handleReturned(item)} disabled={markReturned.isPending}>Mark form returned</Button>}
