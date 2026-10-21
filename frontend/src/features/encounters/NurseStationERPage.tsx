@@ -238,7 +238,7 @@ export function NurseStationERPage() {
             ["2", "Doctor + orders", "Print the assessment form for the doctor. Encode the returned findings and documented orders, then track Lab and Pharmacy responses."],
             ["3", "Exit or admission", "Communicate results to the doctor and record the documented plan: continue ER care, discharge through required billing, or request ward admission."],
           ].map(([number, title, detail]) => <li key={number} className="rounded-xl border border-slate-200 p-4"><span className="inline-grid size-7 place-items-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800">{number}</span><h3 className="mt-3 font-semibold text-slate-900">{title}</h3></li>)}
-        </ol><div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => selectTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => selectTab("queue")}>Open patient queue</Button></div></CardContent></Card>
+        </ol><div className="mt-4 flex flex-wrap justify-end gap-2"><Button onClick={() => selectTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => selectTab("queue")}>Open patient queue</Button></div></CardContent></Card>
       </div>}
 
       {activeTab === "triage" && (<Card>
