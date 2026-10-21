@@ -499,7 +499,7 @@ export function BillingWorkspace() {
                     )}
                     {canPrepare && (
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e3e8] bg-[#fafafd] p-3">
-                        <p className="text-sm text-slate-600">Prepare the bill first, then choose the applicable discount category and enter the verified approved amount.</p>
+                        
                         <Button
                           disabled={busy}
                           onClick={() =>
