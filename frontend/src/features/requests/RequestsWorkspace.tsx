@@ -80,6 +80,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
           {patients.isError || encounters.isError ? <p role="alert" className="text-sm text-rose-700">Patient or consultation records could not be loaded. Refresh and try again.</p> : <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
             <label className="text-sm font-medium text-slate-700">Patient
               <select required value={patientId} onChange={(event) => setPatientId(event.target.value)} className={fieldClass}>
+                <option value="" disabled>Select patient</option>
                 {(patients.data ?? []).filter((patient) => patient.status !== "discharged").map((patient) => <option key={patient.patient_id} value={patient.patient_id}>{patient.first_name} {patient.last_name} — {patient.patient_number}</option>)}
               </select>
               {patientId && <span role="status" className={`mt-2 block rounded-lg border px-3 py-2 text-sm ${patientEncounter ? "border-sky-200 bg-sky-50 font-medium text-sky-800" : "border-amber-300 bg-amber-50 font-semibold text-amber-900"}`}>{patientEncounter ? "Open consultation linked" : "No open consultation — create or open a consultation before submitting a request."}</span>}
