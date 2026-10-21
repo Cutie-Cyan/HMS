@@ -297,7 +297,7 @@ export function DoctorFormPage() {
         <div className="mt-5"><h3 className="font-bold">Initial nurse assessment / observations</h3><div className="mt-2 min-h-24 whitespace-pre-wrap border border-slate-400 p-3 text-sm">{printTarget.nurse_assessment || "No initial assessment recorded."}</div></div>
         <div className="mt-5 grid grid-cols-2 items-stretch gap-3 print:grid-cols-2"><section className="min-w-0 min-h-[18rem] border border-slate-400 p-3 sm:p-4"><h3 className="border-b border-slate-300 pb-2 text-sm font-bold uppercase tracking-wide">Findings</h3><div className="mt-3 min-h-[14rem] whitespace-pre-wrap text-sm">{printTarget.workflow_stage === "recorded" ? printTarget.findings : ""}</div></section><section className="min-w-0 min-h-[18rem] border border-slate-400 p-3 sm:p-4"><h3 className="border-b border-slate-300 pb-2 text-sm font-bold uppercase tracking-wide">Recommendations</h3><div className="mt-3 min-h-[14rem] whitespace-pre-wrap text-sm">{printTarget.workflow_stage === "recorded" ? printTarget.recommendations : ""}</div></section></div>
         <div className="mt-12 grid grid-cols-2 gap-12 text-center text-xs"><div className="border-t border-slate-500 pt-2">Emergency Nurse</div><div className="border-t border-slate-500 pt-2">Doctor</div></div>
-        <p className="mt-6 text-center text-xs">After the doctor completes this paper form, return it to the Emergency Nurse for encoding in Phase 2.</p>
+        
       </section>}
     </div>
   );
