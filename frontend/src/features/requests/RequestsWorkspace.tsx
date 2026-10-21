@@ -29,7 +29,7 @@ export function RequestsWorkspace({ mode = "requests" }: { mode?: "requests" | "
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const items = useRequestableItems(type, canCreate);
-  const isCBCItem = (item: { item_code: string; item_name: string }) => item.item_code.toUpperCase() === "LAB-CBC" || item.item_name.toLowerCase().includes("complete blood count");
+  const isCBCItem = (item: { item_code: string; item_name: string }) => item.item_code.toLowerCase().includes("cbc") || item.item_name.toLowerCase().includes("cbc") || item.item_name.toLowerCase().includes("complete blood count");
   const displayedItems = mode === "cbc"
     ? (items.data ?? []).filter(isCBCItem)
     : type === "lab"
