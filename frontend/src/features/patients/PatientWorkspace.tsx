@@ -31,18 +31,22 @@ export function PatientWorkspace() {
   const queryClient = useQueryClient();
   useEffect(() => {
     const client = getSupabaseClient();
-    const channel = client
-      .channel("patient-records-new-patient-refresh")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "patients" },
-        () => {
+    let cancelled = false;
+    let channel: ReturnType<typeof client.channel> | undefined;
+
+    void client.realtime.setAuth().then(() => {
+      if (cancelled) return;
+      channel = client
+        .channel("hms:patient-records", { config: { private: true } })
+        .on("broadcast", { event: "patient_registered" }, () => {
           void queryClient.invalidateQueries({ queryKey: ["patients", "directory"] });
-        },
-      )
-      .subscribe();
+        })
+        .subscribe();
+    });
+
     return () => {
-      void client.removeChannel(channel);
+      cancelled = true;
+      if (channel) void client.removeChannel(channel);
     };
   }, [queryClient]);
   const canEdit = profile?.role === "info_officer";
