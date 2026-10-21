@@ -48,7 +48,7 @@ export function NurseStationERPage() {
   const [patientQuery, setPatientQuery] = useState("");
   const [doctorId, setDoctorId] = useState("");
   const [nurseAssessment, setNurseAssessment] = useState("");
-  const [triagePriority, setTriagePriority] = useState("");
+  const [triagePriority, setTriagePriority] = useState("standard");
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [bloodPressure, setBloodPressure] = useState("");
   const [heartRate, setHeartRate] = useState("");
@@ -60,7 +60,7 @@ export function NurseStationERPage() {
   const [selectedEncounter, setSelectedEncounter] = useState<EncounterRecord | null>(null);
   const [findings, setFindings] = useState("");
   const [recommendations, setRecommendations] = useState("");
-  const [recommendationType, setRecommendationType] = useState("");
+  const [recommendationType, setRecommendationType] = useState("consult");
   const [printTarget, setPrintTarget] = useState<EncounterRecord | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -208,21 +208,31 @@ export function NurseStationERPage() {
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Emergency Room</h1>
           
         </div>
-        <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2" aria-label="Emergency Room sections">
-          {([
-            { id: "overview", label: "Overview", icon: LayoutDashboard },
-            { id: "queue", label: "Patient Queue", icon: ClipboardList },
-            { id: "triage", label: "Start encounter", icon: Activity },
-            { id: "clinical", label: "Clinical Records", icon: FileText },
-            { id: "requests", label: "Requests & Results", icon: FlaskConical },
-            { id: "beds", label: "Beds & Disposition", icon: BedDouble },
-          ] as const).map(({ id, label, icon: Icon }) => (
-            <button key={id} type="button" onClick={() => selectTab(id)} aria-current={activeTab === id ? "page" : undefined}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition ${activeTab === id ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
-              <Icon size={16} />{label}
+        <div className="flex flex-wrap items-center justify-end gap-3 border-b border-slate-200 pb-3">
+          <nav className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 p-1 shadow-inner" aria-label="Encounter workflow">
+            <button type="button" onClick={() => selectTab("triage")} aria-current={activeTab === "triage" ? "page" : undefined}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${activeTab === "triage" ? "bg-teal-700 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}>
+              <Activity size={16} /> Save Encounter
             </button>
-          ))}
-        </nav>
+            <button type="button" onClick={() => selectTab("queue")} aria-current={activeTab === "queue" ? "page" : undefined}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition ${activeTab === "queue" ? "bg-teal-700 text-white shadow" : "text-slate-600 hover:text-slate-900"}`}>
+              <ClipboardList size={16} /> Queue
+            </button>
+          </nav>
+          <div className="flex flex-wrap items-center gap-1">
+            {([
+              { id: "overview", label: "Overview", icon: LayoutDashboard },
+              { id: "clinical", label: "Clinical Records", icon: FileText },
+              { id: "requests", label: "Requests & Results", icon: FlaskConical },
+              { id: "beds", label: "Beds & Disposition", icon: BedDouble },
+            ] as const).map(({ id, label, icon: Icon }) => (
+              <button key={id} type="button" onClick={() => selectTab(id)} aria-current={activeTab === id ? "page" : undefined}
+                className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition ${activeTab === id ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
+                <Icon size={16} />{label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {activeTab === "overview" && <div className="space-y-4">
