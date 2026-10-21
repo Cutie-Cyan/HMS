@@ -532,7 +532,7 @@ export function WardsWorkspace() {
                           <div>
                             {(rooms.data ?? []).some((r) => r.ward_id === w.id) ? (
                               <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                                {(rooms.data ?? []).filter((r) => r.ward_id === w.id).map((room) => {
+                                {(rooms.data ?? []).filter((r) => r.ward_id === w.id && (!boardSearch.trim() || r.room_code.toLowerCase().includes(boardSearch.trim().toLowerCase()))).map((room) => {
                                   const roomBeds = rows.filter((b) => b.room_id === room.id || b.room_code === room.room_code);
                                   const occupied = roomBeds.filter((b) => b.bed_id && b.occupied).length;
                                   const total = roomBeds.filter((b) => b.bed_id).length;
@@ -561,7 +561,7 @@ export function WardsWorkspace() {
                         {rows.some((b) => b.bed_id) ? (
                               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                                 {rows
-                                  .filter((b) => b.bed_id)
+                                  .filter((b) => b.bed_id && (!boardSearch.trim() || [b.bed_code ?? "", b.room_code ?? "", b.patient_name ?? "", b.patient_number ?? ""].some((value) => value.toLowerCase().includes(boardSearch.trim().toLowerCase()))))
                                   .map((b) => (
                                     <BedCard
                                       key={b.bed_id}
