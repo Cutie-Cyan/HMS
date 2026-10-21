@@ -330,7 +330,7 @@ export function NurseStationERPage() {
               <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
               
             </section>
-            <div className="flex justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
+            <div className="flex w-full justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
               {savePhase1.isPending ? "Saving…" : "Save Encounter"}
             </Button></div>
           </form>
