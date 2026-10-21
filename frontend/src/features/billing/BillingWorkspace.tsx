@@ -363,12 +363,6 @@ export function BillingWorkspace() {
                         applied during final bill preparation.
                       </p>
                     )}
-                    {!row.requests_cleared && (
-                      <p className="mt-3 text-sm text-amber-800">
-                        Clear all requests first: each must be released or
-                        cancelled, and every request bill must be paid.
-                      </p>
-                    )}
                     {row.final_bill_id && (
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-100 bg-sky-50/50 p-3">
                         <div>
