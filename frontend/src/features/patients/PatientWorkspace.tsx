@@ -29,23 +29,6 @@ function ageLabel(date: string | null) {
 export function PatientWorkspace() {
   const { profile } = useAuth();
 
-    let cancelled = false;
-    let channel: ReturnType<typeof client.channel> | undefined;
-
-    void client.realtime.setAuth().then(() => {
-      if (cancelled) return;
-      channel = client
-        .channel("hms:patient-records", { config: { private: true } })
-        .on("broadcast", { event: "patient_registered" }, () => {
-          void queryClient.invalidateQueries({ queryKey: ["patients", "directory"] });
-        })
-        .subscribe();
-    });
-
-    return () => {
-      cancelled = true;
-      if (channel) void client.removeChannel(channel);
-    };
   const canEdit = profile?.role === "info_officer";
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<PatientRecord | null>(null);
