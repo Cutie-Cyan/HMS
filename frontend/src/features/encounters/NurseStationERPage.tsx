@@ -264,7 +264,6 @@ export function NurseStationERPage() {
         </CardHeader>
         <CardContent>
           {patients.isError || doctors.isError || encounters.isError ? <div role="alert" className="mb-4 text-sm text-rose-700">Unable to load encounter information. Refresh and try again.</div> : null}
-          <p className="mb-4 text-sm leading-6 text-slate-600">Register the ER encounter, record the nurse assessment, then print the form for the doctor. Patients assigned to another ward must be handled by that ward.</p>
           <form onSubmit={saveInitialForm} className="space-y-5">
             <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <h2 className="mb-3 text-base font-semibold tracking-tight text-slate-900">Patient Information</h2>
@@ -344,7 +343,7 @@ export function NurseStationERPage() {
         <CardHeader>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-              <div><h2 className="text-base font-semibold text-slate-900">{activeTab === "queue" ? "ER Encounter Queue" : "Saved Encounters"}</h2><p className="mt-1 max-w-2xl text-sm leading-5 text-slate-500">{activeTab === "queue" ? "Only encounters assigned to the Emergency Room appear here. Other ward patients remain visible in Patient Records but cannot be processed from this queue." : "Review completed ER encounters and their recorded clinical findings."}</p></div>
+              <div><h2 className="text-base font-semibold text-slate-900">{activeTab === "queue" ? "ER Encounter Queue" : "Saved Encounters"}</h2></div>
             </div>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label className="relative min-w-0 flex-1">
