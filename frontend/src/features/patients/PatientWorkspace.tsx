@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Activity, BedDouble, CheckCircle2, FileText, Pencil, Printer, RefreshCw, Search, Users, X } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
@@ -28,9 +28,7 @@ function ageLabel(date: string | null) {
 
 export function PatientWorkspace() {
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const client = getSupabaseClient();
+
     let cancelled = false;
     let channel: ReturnType<typeof client.channel> | undefined;
 
@@ -48,7 +46,6 @@ export function PatientWorkspace() {
       cancelled = true;
       if (channel) void client.removeChannel(channel);
     };
-  }, [queryClient]);
   const canEdit = profile?.role === "info_officer";
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<PatientRecord | null>(null);
