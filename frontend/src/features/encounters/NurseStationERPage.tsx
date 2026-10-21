@@ -277,7 +277,7 @@ export function NurseStationERPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">Encounter already in queue</p>
                       <p className="mt-1 leading-5">This patient already has an active encounter ({stageLabel(existingEncounter.workflow_stage).toLowerCase()}). Continue the existing record to avoid duplicates.</p>
-                      <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => { selectTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
+                      <div className="mt-3 flex justify-end"><Button type="button" size="sm" variant="secondary" onClick={() => { selectTab("queue"); window.setTimeout(() => document.getElementById("encounter-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }}>
                         Go to existing encounter
                       </Button>
                     </div>
