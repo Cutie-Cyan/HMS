@@ -113,13 +113,13 @@ export function PublicPatientRegistrationPage() {
                     <label className="block text-sm font-medium text-slate-700">ID number<input value={idNumber} onChange={e=>setIdNumber(e.target.value)} maxLength={100} autoComplete="off" placeholder="Scan an ID or enter the number" className={inputClass}/></label>
                     {idScanStatus && <p role="status" className="text-xs text-slate-500">{idScanStatus}</p>}
                     <div className="flex flex-wrap gap-2">
-                      <label className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><ImagePlus size={16}/> Upload file<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
-                      <label className="inline-flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"><ScanLine size={16}/> Scan ID<input type="file" accept="image/*" capture="environment" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
+                      <label className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-teal-700 bg-white px-4 text-sm font-semibold text-teal-800 shadow-sm transition hover:bg-teal-50 hover:shadow-md focus-within:outline-none focus-within:ring-4 focus-within:ring-teal-500/25"><ImagePlus size={16}/> Upload file<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
+                      <label className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-teal-700 bg-white px-4 text-sm font-semibold text-teal-800 shadow-sm transition hover:bg-teal-50 hover:shadow-md focus-within:outline-none focus-within:ring-4 focus-within:ring-teal-500/25"><ScanLine size={16}/> Scan ID<input type="file" accept="image/*" capture="environment" className="sr-only" onChange={e=>chooseIdFile(e.target.files?.[0])}/></label>
                     </div>
                   </div>}
                 </div>
                 {error && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}
-                <Button type="submit" disabled={busy} className="w-full">{busy ? "Submitting…" : "Submit registration form"}</Button>
+                <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl bg-teal-700 text-base font-bold text-white shadow-md ring-1 ring-teal-800 transition hover:bg-teal-800 hover:shadow-lg focus-visible:ring-4 focus-visible:ring-teal-500/40">{busy ? "Submitting…" : "Submit registration form"}</Button>
               </form>
             </CardContent>
           </Card>
