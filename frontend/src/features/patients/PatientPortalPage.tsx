@@ -19,6 +19,8 @@ export function PatientPortalPage() {
   const [patientNumber, setPatientNumber] = useState(initialNumber);
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [phone, setPhone] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [loginMethod, setLoginMethod] = useState<"id" | "details">("id");
   const [record, setRecord] = useState<PortalRecord | null>(null);
   const [bill, setBill] = useState<PortalBill | null>(null);
   const [billError, setBillError] = useState("");
@@ -29,7 +31,7 @@ export function PatientPortalPage() {
     event.preventDefault(); setBusy(true); setError(""); setRecord(null); setBill(null); setBillError("");
     try {
       const { data, error: rpcError } = await getSupabaseClient().rpc("public_patient_portal_lookup", {
-        p_patient_number: patientNumber.trim().toUpperCase(), p_date_of_birth: dateOfBirth, p_phone: phone.trim(),
+        p_patient_number: patientNumber.trim().toUpperCase(), p_date_of_birth: loginMethod === "details" ? dateOfBirth : null, p_phone: loginMethod === "details" ? phone.trim() : null, p_id_number: loginMethod === "id" ? idNumber.trim() : null,
       });
       if (rpcError) throw rpcError;
       const rows = data as PortalRecord[] | null;
