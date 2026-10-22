@@ -47,7 +47,17 @@ export function PublicPatientRegistrationPage() {
     setBusy(true);
     setError("");
     try {
-      const { error: submitError } = await getSupabaseClient()
+      const supabase = getSupabaseClient();
+      let idDocumentPath: string | null = null;
+      if (pwdOrSenior && idFile) {
+        const extension = idFile.type === "image/png" ? "png" : idFile.type === "image/webp" ? "webp" : "jpg";
+        idDocumentPath = `pending/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from("patient-id-documents")
+          .upload(idDocumentPath, idFile, { contentType: idFile.type, upsert: false });
+        if (uploadError) throw new Error(`Could not securely upload your ID image: ${uploadError.message}`);
+      }
+      const { error: submitError } = await supabase
         .from("patient_registration_submissions")
         .insert({
           first_name: firstName.trim(),
@@ -59,8 +69,12 @@ export function PublicPatientRegistrationPage() {
           address: address.trim() || null,
           pwd_or_senior: pwdOrSenior,
           id_number: pwdOrSenior ? (idNumber.trim() || null) : null,
+          id_document_path: idDocumentPath,
         });
-      if (submitError) throw submitError;
+      if (submitError) {
+        if (idDocumentPath) await supabase.storage.from("patient-id-documents").remove([idDocumentPath]);
+        throw submitError;
+      }
       setSubmitted(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to send your form. Please try again or ask hospital staff for help.");
