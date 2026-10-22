@@ -38,9 +38,13 @@ type BillingRow = {
   paid_at: string | null;
 };
 type Earnings = { paid_revenue: number; outstanding_bills: number; bill_count: number; paid_bill_count: number; inventory_revenue: number; inventory_cost: number; inventory_profit: number };
-function patientPortalUrl(encounterId: string) {
-  const url = new URL(`${import.meta.env.BASE_URL}patient-portal`, window.location.origin);
+function patientPortalUrl(encounterId: string, patientNumber: string) {
+  const basePath = import.meta.env.BASE_URL.endsWith("/")
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`;
+  const url = new URL(`${basePath}patient-portal`, window.location.origin);
   url.searchParams.set("encounterId", encounterId);
+  url.searchParams.set("patientNumber", patientNumber);
   return url.toString();
 }
 const TEST_DISCOUNT_IDS = {
@@ -300,7 +304,7 @@ export function BillingWorkspace() {
                     {expandedRows[row.encounter_id] && <>
                     <div className="mt-4 flex flex-col items-start gap-2">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`}
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(patientPortalUrl(row.encounter_id, row.patient_number))}`}
                         alt="Patient billing portal QR code"
                         width={144}
                         height={144}
