@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   PackagePlus,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { getSupabaseClient } from "../../lib/supabase";
@@ -260,6 +261,8 @@ export function InventoryWorkspace() {
   const fulfill = useFulfillRequest();
   const acceptLab = useAcceptLabRequest();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
+  const [search, setSearch] = useState("");
+  const [showNeedsConfirmation, setShowNeedsConfirmation] = useState(false);
   const [view, setView] = useState<"stock" | "supplies" | "profit" | "requests" | "add" | "results">(() => location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory" ? "profit" : location.pathname === "/medicine-requests" || location.pathname === "/lab-requests" || location.pathname === "/cbc" ? "requests" : location.pathname === "/lab-results" ? "results" : location.pathname === "/lab-supplies" ? "supplies" : "stock");
   useEffect(() => {
     if (location.pathname === "/profit-inventory" || location.pathname === "/lab-profit-inventory") setView("profit");
@@ -362,6 +365,11 @@ export function InventoryWorkspace() {
   const queue = (requests.data ?? []).filter((r) => r.request_type === type && (location.pathname !== "/cbc" || r.items.some((item) => item.description.toLowerCase().includes("cbc") || item.description.toLowerCase().includes("complete blood count"))));
   const incomingQueue = type === "lab" ? queue.filter((request) => request.status === "paid") : queue;
   const acceptedLabQueue = queue.filter((request) => request.status === "in_progress");
+  const normalizedSearch = search.trim().toLowerCase();
+  const searchedInventory = (inventory.data ?? []).filter((item) => (type !== "lab" || (item.catalog_type ?? "requestable") === "requestable") && (!normalizedSearch || `${item.item_name} ${item.item_code} ${item.unit}`.toLowerCase().includes(normalizedSearch)));
+  const confirmationQueue = queue.filter((request) => request.status === "pending_payment" || request.status === "paid");
+  const searchedQueue = (showNeedsConfirmation ? confirmationQueue : incomingQueue).filter((request) => !normalizedSearch || `${request.patient_name} ${request.patient_number} ${request.ward_name ?? ""} ${request.request_type} ${request.status} ${request.items.map((item) => item.description).join(" ")}`.toLowerCase().includes(normalizedSearch));
+  const searchedProfit = (profit.data ?? []).filter((row) => !normalizedSearch || `${row.request_id} ${row.recorded_at} ${row.revenue} ${row.cost} ${row.profit}`.toLowerCase().includes(normalizedSearch));
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-5">
@@ -502,7 +510,8 @@ export function InventoryWorkspace() {
             <div className="flex items-center gap-2 font-semibold">
               <Boxes size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory inventory" : "Medicine stock"}
             </div>
-            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <label className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:max-w-sm"><Search size={16} className="absolute left-3 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={type === "lab" ? "Search tests..." : "Search medicines..."} className={`${fieldClass} !mt-0 pl-9`} aria-label="Search inventory" /></label>
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {profile?.role === "lab" && <Button onClick={() => { reset(); setCatalogType("requestable"); setView("add"); }}>
                 <PackagePlus size={15} /> Add Test
               </Button>}
@@ -606,14 +615,12 @@ export function InventoryWorkspace() {
       </Card>}
       {profile?.role === "lab" && view === "results" && <Card><CardHeader><div className="font-semibold">Released laboratory results</div><p className="mt-1 text-sm text-slate-500">Verified results released to the Nurse Station.</p></CardHeader><CardContent>{requests.isLoading ? <p className="py-6 text-sm text-slate-500">Loading lab results…</p> : requests.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load lab results.</p> : (requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).length ? <div className="space-y-3">{(requests.data ?? []).filter((r) => r.request_type === "lab" && r.status === "released" && r.lab_result).map((r) => <article key={r.request_id} className="rounded-xl border border-slate-200 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{r.patient_name}</p><p className="mt-1 text-xs text-slate-500">{r.patient_number} · {r.ward_name ?? "Emergency / outpatient"}</p></div><Badge tone="success">Released</Badge></div><p className="mt-3 text-sm font-medium">Requested tests</p><p className="text-sm text-slate-600">{r.items.map((item) => item.description).join(", ")}</p><p className="mt-3 text-sm font-medium">Result</p><p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm">{r.lab_result}</p></article>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No released lab results yet.</p>}</CardContent></Card>}
       {(profile?.role === "pharmacy" || profile?.role === "lab") && view === "profit" && <Card>
-        <CardHeader><div className="font-semibold">{type === "lab" ? "Laboratory service financial records" : "Medicine profit records"}</div><p className="mt-1 text-sm text-slate-500">Revenue, cost, and profit recorded when paid {type === "lab" ? "diagnostic services" : "medicine requests"} are released.</p></CardHeader>
-        <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check {type === "lab" ? "laboratory" : "pharmacy"} read access to profit records.</p> : profit.data?.length ? <div className="space-y-3">{profit.data.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.recorded_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid {location.pathname === "/cbc" ? "CBC" : type === "lab" ? "laboratory" : "medicine"} requests are released.</p>}</CardContent>
+        <CardHeader><div className="flex flex-wrap items-center gap-3"><div className="font-semibold">{type === "lab" ? "Laboratory service financial records" : "Medicine profit records"}</div><label className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:max-w-sm"><Search size={16} className="absolute left-3 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search profit records..." className={`${fieldClass} !mt-0 pl-9`} aria-label="Search profit records" /></label></div></CardHeader>
+        <CardContent>{profit.isLoading ? <p className="py-6 text-sm text-slate-500">Loading profit records…</p> : profit.isError ? <p role="alert" className="py-6 text-sm text-rose-700">Could not load profit records. Check {type === "lab" ? "laboratory" : "pharmacy"} read access to profit records.</p> : searchedProfit.length ? <div className="space-y-3">{searchedProfit.map((row) => <div key={row.id} className="grid gap-2 rounded-xl border border-slate-200 p-4 sm:grid-cols-4"><div><p className="text-xs text-slate-500">Date</p><p className="text-sm font-medium">{new Date(row.recorded_at).toLocaleDateString()}</p></div><div><p className="text-xs text-slate-500">Revenue</p><p className="font-medium">{money(Number(row.revenue))}</p></div><div><p className="text-xs text-slate-500">Cost</p><p className="font-medium">{money(Number(row.cost))}</p></div><div><p className="text-xs text-slate-500">Profit</p><p className="font-semibold">{money(Number(row.profit))}</p></div></div>)}</div> : <p className="py-8 text-center text-sm text-slate-500">No profit records yet. Records appear after paid {location.pathname === "/cbc" ? "CBC" : type === "lab" ? "laboratory" : "medicine"} requests are released.</p>}</CardContent>
       </Card>}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "requests") && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold">
-            <ClipboardCheck size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory request queue" : "Paid medicine requests"}
-          </div>
+          <div className="flex flex-wrap items-center gap-3"><div className="flex items-center gap-2 font-semibold"><ClipboardCheck size={18} className="text-sky-700" /> {type === "lab" ? "Laboratory request queue" : "Paid medicine requests"}</div><label className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:max-w-sm"><Search size={16} className="absolute left-3 text-slate-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search requests..." className={`${fieldClass} !mt-0 pl-9`} aria-label="Search requests" /></label><Button variant="secondary" onClick={() => setShowNeedsConfirmation((value) => !value)}>{showNeedsConfirmation ? "Show work queue" : "Needs confirmation"}</Button></div>
         </CardHeader>
         <CardContent>
           {requests.isLoading ? (
@@ -633,9 +640,9 @@ export function InventoryWorkspace() {
                 Retry
               </Button>
             </div>
-          ) : incomingQueue.length ? (
+          ) : searchedQueue.length ? (
             <div className="space-y-3">
-              {incomingQueue.map((request) => (
+              {searchedQueue.map((request) => (
                 <FulfillmentCard
                   key={request.request_id}
                   request={request}
