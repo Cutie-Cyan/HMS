@@ -101,7 +101,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   if (module === "patient-registration") return <PatientRegistrationWorkspace />;
   if (module === "encounters") return <DoctorFormPage />;
   if (module === "triage") {
-    if (profile.role !== "nurse_station" || profile.wardId !== "e073038e-a976-4c7a-88ca-eb5c3418d287") {
+    if (profile.role !== "nurse_station" || !profile.wardId) {
       return <Navigate to={homePathForRole(profile.role)} replace />;
     }
     return <NurseStationERPage />;
