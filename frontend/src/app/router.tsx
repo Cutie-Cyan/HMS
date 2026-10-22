@@ -34,13 +34,19 @@ function SessionGate() {
   const location = useLocation();
   if (loading)
     return (
-      <div className="min-h-screen bg-[#f3f5f8] p-4 sm:p-6" aria-label="Loading HMS" role="status">
-        <div className="mx-auto max-w-[1440px] animate-pulse space-y-5">
-          <div className="h-10 w-56 rounded-xl bg-slate-200" />
-          <div className="flex flex-wrap gap-3"><div className="h-10 w-44 rounded-lg bg-slate-200" /><div className="h-10 w-32 rounded-lg bg-slate-200" /></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-            <div className="mb-6 flex flex-wrap justify-between gap-4"><div className="h-5 w-48 rounded bg-slate-200" /><div className="h-10 w-64 rounded-lg bg-slate-100" /></div>
-            <div className="space-y-4">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="grid grid-cols-3 gap-4 sm:grid-cols-6">{[0, 1, 2, 3, 4, 5].map((cell) => <div key={cell} className={cell > 2 ? "hidden h-4 rounded bg-slate-100 sm:block" : "h-4 rounded bg-slate-100"} />)}</div>)}</div>
+      <div className="min-h-screen bg-[#f3f5f8]" aria-label="Loading HMS" role="status">
+        <div className="flex min-h-screen animate-pulse">
+          <aside className="hidden w-64 shrink-0 flex-col gap-5 bg-slate-900 p-5 lg:flex">
+            <div className="flex h-14 items-center gap-3 border-b border-white/10 pb-4"><div className="size-10 rounded-xl bg-slate-700" /><div className="h-4 w-20 rounded bg-slate-700" /></div>
+            <div className="space-y-3 pt-3">{[0,1,2,3,4,5,6,7].map((item) => <div key={item} className="h-10 rounded-xl bg-slate-800" />)}</div>
+          </aside>
+          <div className="min-w-0 flex-1">
+            <header className="flex h-[72px] items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8"><div className="h-5 w-36 rounded bg-slate-200" /><div className="flex items-center gap-3"><div className="size-9 rounded-full bg-slate-200" /><div className="hidden space-y-2 sm:block"><div className="h-3 w-24 rounded bg-slate-200" /><div className="h-2.5 w-16 rounded bg-slate-100" /></div></div></header>
+            <main className="mx-auto max-w-[1440px] space-y-5 p-4 sm:p-7">
+              <div className="flex flex-wrap items-center justify-between gap-4"><div className="space-y-2"><div className="h-7 w-52 rounded-lg bg-slate-200" /><div className="h-3 w-72 max-w-full rounded bg-slate-100" /></div><div className="h-10 w-32 rounded-xl bg-slate-200" /></div>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[0,1,2,3].map((item) => <div key={item} className="h-24 rounded-2xl border border-slate-200 bg-white p-4"><div className="h-3 w-20 rounded bg-slate-100" /><div className="mt-4 h-6 w-24 rounded bg-slate-200" /></div>)}</div>
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-6 flex flex-wrap items-center justify-between gap-4"><div className="h-5 w-44 rounded bg-slate-200" /><div className="h-10 w-56 rounded-xl bg-slate-100" /></div><div className="space-y-3">{[0,1,2,3,4,5].map((item) => <div key={item} className="flex gap-3 rounded-xl border border-slate-100 p-3"><div className="size-9 shrink-0 rounded-lg bg-slate-100" /><div className="flex-1 space-y-2 py-1"><div className="h-3 w-2/5 rounded bg-slate-100" /><div className="h-3 w-3/5 rounded bg-slate-100" /></div><div className="h-8 w-20 rounded-lg bg-slate-100" /></div>)}</div></section>
+            </main>
           </div>
         </div>
       </div>
@@ -56,11 +62,20 @@ function SessionGate() {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   if (profileLoading)
     return (
-      <div className="min-h-screen bg-[#f3f5f8] p-4 sm:p-6" aria-label="Loading HMS" role="status">
-        <div className="mx-auto max-w-[1440px] animate-pulse space-y-5">
-          <div className="h-10 w-56 rounded-xl bg-slate-200" />
-          <div className="grid gap-4 sm:grid-cols-3"><div className="h-24 rounded-2xl bg-white" /><div className="h-24 rounded-2xl bg-white" /><div className="h-24 rounded-2xl bg-white" /></div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-6 h-5 w-48 rounded bg-slate-200" /><div className="space-y-4">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="h-4 rounded bg-slate-100" />)}</div></div>
+      <div className="min-h-screen bg-[#f3f5f8]" aria-label="Loading HMS" role="status">
+        <div className="flex min-h-screen animate-pulse">
+          <aside className="hidden w-64 shrink-0 flex-col gap-5 bg-slate-900 p-5 lg:flex">
+            <div className="flex h-14 items-center gap-3 border-b border-white/10 pb-4"><div className="size-10 rounded-xl bg-slate-700" /><div className="h-4 w-20 rounded bg-slate-700" /></div>
+            <div className="space-y-3 pt-3">{[0,1,2,3,4,5,6,7].map((item) => <div key={item} className="h-10 rounded-xl bg-slate-800" />)}</div>
+          </aside>
+          <div className="min-w-0 flex-1">
+            <header className="flex h-[72px] items-center justify-between border-b border-slate-200 bg-white px-5 sm:px-8"><div className="h-5 w-36 rounded bg-slate-200" /><div className="flex items-center gap-3"><div className="size-9 rounded-full bg-slate-200" /><div className="hidden space-y-2 sm:block"><div className="h-3 w-24 rounded bg-slate-200" /><div className="h-2.5 w-16 rounded bg-slate-100" /></div></div></header>
+            <main className="mx-auto max-w-[1440px] space-y-5 p-4 sm:p-7">
+              <div className="flex flex-wrap items-center justify-between gap-4"><div className="space-y-2"><div className="h-7 w-52 rounded-lg bg-slate-200" /><div className="h-3 w-72 max-w-full rounded bg-slate-100" /></div><div className="h-10 w-32 rounded-xl bg-slate-200" /></div>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[0,1,2,3].map((item) => <div key={item} className="h-24 rounded-2xl border border-slate-200 bg-white p-4"><div className="h-3 w-20 rounded bg-slate-100" /><div className="mt-4 h-6 w-24 rounded bg-slate-200" /></div>)}</div>
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="mb-6 flex flex-wrap items-center justify-between gap-4"><div className="h-5 w-44 rounded bg-slate-200" /><div className="h-10 w-56 rounded-xl bg-slate-100" /></div><div className="space-y-3">{[0,1,2,3,4,5].map((item) => <div key={item} className="flex gap-3 rounded-xl border border-slate-100 p-3"><div className="size-9 shrink-0 rounded-lg bg-slate-100" /><div className="flex-1 space-y-2 py-1"><div className="h-3 w-2/5 rounded bg-slate-100" /><div className="h-3 w-3/5 rounded bg-slate-100" /></div><div className="h-8 w-20 rounded-lg bg-slate-100" /></div>)}</div></section>
+            </main>
+          </div>
         </div>
       </div>
     );
