@@ -9,6 +9,7 @@ import {
   PackagePlus,
   RefreshCw,
   Search,
+  X,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthProvider";
 import { getSupabaseClient } from "../../lib/supabase";
@@ -383,13 +384,17 @@ export function InventoryWorkspace() {
       )}
       {((profile?.role !== "pharmacy" && profile?.role !== "lab") || view === "add") && <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 font-semibold">
-            <PackagePlus size={18} className="text-sky-700" />
-            {editing ? (type === "lab" ? "Edit laboratory record" : "Edit medicine") : (type === "lab" ? "Add test or consumable" : "Add medicine")}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 font-semibold">
+              <PackagePlus size={18} className="text-sky-700" />
+              {editing ? (type === "lab" ? "Edit laboratory record" : "Edit medicine") : (type === "lab" ? "Add test or consumable" : "Add medicine")}
+            </div>
+            <div className="ml-auto flex items-center justify-end gap-2">
+              <Button type="button" variant="secondary" className="!size-9 !min-h-9 !p-0" aria-label="Close form" title="Close" onClick={() => { reset(); setView("stock"); }}>
+                <X size={16} />
+              </Button>
+            </div>
           </div>
-          <p className="mt-1 text-sm text-slate-500">
-            {type === "lab" ? "Configure diagnostic services for patient requests, or track supplies used internally by the laboratory. Consumables are never sold to patients." : editing ? "Update medicine details and pricing. Stock quantity is controlled by request fulfillment." : "Add medicine. Opening stock is set once; later stock changes happen through approved requests and fulfillment."}
-          </p>
         </CardHeader>
         <CardContent>
           <form
@@ -486,7 +491,7 @@ export function InventoryWorkspace() {
                 className={fieldClass}
               />
             </label>
-            <div className="flex w-full items-end justify-end gap-2">
+            <div className="col-span-full flex w-full items-end justify-end gap-2">
               {editing && (
                 <Button type="button" variant="secondary" onClick={reset}>
                   Cancel
