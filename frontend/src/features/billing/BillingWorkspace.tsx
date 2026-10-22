@@ -165,6 +165,7 @@ export function BillingWorkspace() {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [dischargeTarget, setDischargeTarget] = useState<{ encounterId: string; patientName: string } | null>(null);
   const busy = prepare.isPending || pay.isPending || payRequest.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
   const act = async (operation: () => Promise<unknown>, success: string) => {
     setError("");
@@ -519,17 +520,7 @@ export function BillingWorkspace() {
                         {canDischarge && (
                           <Button
                             disabled={busy}
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  `Discharge ${row.patient_name}? The bed will be released.`,
-                                )
-                              )
-                                void act(
-                                  () => discharge.mutateAsync(row.encounter_id),
-                                  "Patient discharged and bed released.",
-                                );
-                            }}
+                            onClick={() => setDischargeTarget({ encounterId: row.encounter_id, patientName: row.patient_name })}
                           >
                             <ClipboardCheck size={16} /> Discharge patient
                           </Button>
@@ -584,6 +575,23 @@ export function BillingWorkspace() {
           )}
         </CardContent>
       </Card>
+      {dischargeTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !discharge.isPending) setDischargeTarget(null); }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="discharge-modal-title" aria-describedby="discharge-modal-description" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700"><ShieldAlert size={22} /></div>
+              <div>
+                <h2 id="discharge-modal-title" className="text-lg font-semibold text-slate-900">Confirm patient discharge</h2>
+                <p id="discharge-modal-description" className="mt-2 text-sm leading-6 text-slate-600">Discharge <strong className="text-slate-900">{dischargeTarget.patientName}</strong>? The patient will be discharged and their bed will be released.</p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col-reverse justify-end gap-2 sm:flex-row">
+              <Button variant="secondary" disabled={discharge.isPending} onClick={() => setDischargeTarget(null)}>Cancel</Button>
+              <Button disabled={discharge.isPending} className="bg-rose-700 text-white shadow-sm hover:bg-rose-800" onClick={() => void act(() => discharge.mutateAsync(dischargeTarget.encounterId), "Patient discharged and bed released.").then(() => setDischargeTarget(null))}>{discharge.isPending ? "Discharging…" : "Confirm discharge"}</Button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
