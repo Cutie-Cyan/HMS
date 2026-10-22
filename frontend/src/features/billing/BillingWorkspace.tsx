@@ -192,7 +192,7 @@ export function BillingWorkspace() {
           {error || message}
         </div>
       )}
-      {isCashier && (
+      {(isCashier || role === "admin") && (
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2 font-semibold">
