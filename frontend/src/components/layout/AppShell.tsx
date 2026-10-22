@@ -25,16 +25,15 @@ const icons: Record<HmsModule, typeof LayoutDashboard> = {
   "lab-requests": FileClock,
   "lab-results": TestTube,
   "lab-profit-inventory": ChartNoAxesCombined,
-  cbc: Microscope,
   "medicine-stock": Boxes,
   "medicine-requests": Syringe,
   "profit-inventory": Wallet,
   staff: Users,
   audit: ScrollText,
 };
-const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "cbc", "wards", "staff", "audit"];
+const navOrder: HmsModule[] = ["dashboard", "patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory", "wards", "staff", "audit"];
 const groups: { title: string; modules: HmsModule[] }[] = [
-  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "cbc", "wards"] },
+  { title: "Clinical", modules: ["patients", "patient-registration", "encounters", "triage", "available-doctors", "requests", "wards"] },
   { title: "Operations", modules: ["billing", "medicine-stock", "medicine-requests", "profit-inventory", "inventory", "lab-supplies", "lab-requests", "lab-results", "lab-profit-inventory"] },
   { title: "Administration", modules: ["dashboard", "staff", "audit"] },
 ];
