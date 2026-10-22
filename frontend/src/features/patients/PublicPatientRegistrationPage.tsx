@@ -58,6 +58,7 @@ export function PublicPatientRegistrationPage() {
           phone: phone.trim() || null,
           address: address.trim() || null,
           pwd_or_senior: pwdOrSenior,
+          id_number: pwdOrSenior ? (idNumber.trim() || null) : null,
         });
       if (submitError) throw submitError;
       setSubmitted(true);
