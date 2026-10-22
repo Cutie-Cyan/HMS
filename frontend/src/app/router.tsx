@@ -108,7 +108,7 @@ function RoleGate({ module }: { module: HmsModule }) {
   }
   if (module === "available-doctors") return <AvailableDoctorsWorkspace />;
   if (module === "requests") return <RequestsWorkspace />;
-  if (module === "cbc") return <RequestsWorkspace mode="cbc" />;
+  if (module === "cbc") return <Navigate to="/lab-requests" replace />;
   if (module === "billing") return <BillingWorkspace />;
   if (module === "inventory" || module === "medicine-stock" || module === "profit-inventory" || module === "medicine-requests" || module === "lab-supplies" || module === "lab-requests" || module === "lab-results" || module === "lab-profit-inventory") return <InventoryWorkspace />;
   if (module === "wards") return <WardsWorkspace />;
