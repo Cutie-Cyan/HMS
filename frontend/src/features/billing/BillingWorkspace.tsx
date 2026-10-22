@@ -315,7 +315,7 @@ export function BillingWorkspace() {
                         type="button"
                         variant="secondary"
                         onClick={() => {
-                          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(patientPortalUrl(row.encounter_id))}`;
+                          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(patientPortalUrl(row.encounter_id, row.patient_number))}`;
                           const printWindow = window.open("", "_blank", "width=480,height=560");
                           if (!printWindow) {
                             setError("Allow pop-ups to print the patient QR code.");
