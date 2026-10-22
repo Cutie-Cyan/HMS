@@ -35,7 +35,7 @@ export function PatientPortalPage() {
       });
       if (rpcError) throw rpcError;
       const rows = data as PortalRecord[] | null;
-      if (!rows?.length) { setError("We could not verify those details. Check your patient number and verification details."); return; }
+      if (!rows?.length) { setError("We could not verify those details. Check your patient number and ID number or registered details."); return; }
       setRecord(rows[0]);
     } catch {
       setError("Patient lookup is temporarily unavailable. Please try again later or ask the Information Officer for help.");
@@ -43,14 +43,16 @@ export function PatientPortalPage() {
   }
 
   useEffect(() => {
-    if (!record || !encounterId || !dateOfBirth || !patientNumber.trim()) return;
+    if (!record || !encounterId || !patientNumber.trim()) return;
+    if (loginMethod === "id" ? !idNumber.trim() : (!dateOfBirth || !phone.trim())) return;
     let active = true;
     const refreshBill = async () => {
       try {
         const { data, error: billRpcError } = await getSupabaseClient().rpc("public_patient_portal_bill_lookup", {
           p_patient_number: patientNumber.trim().toUpperCase(),
-          p_date_of_birth: dateOfBirth,
-          p_phone: phone.trim(),
+          p_date_of_birth: loginMethod === "details" ? dateOfBirth : null,
+          p_phone: loginMethod === "details" ? phone.trim() : null,
+          p_id_number: loginMethod === "id" ? idNumber.trim() : null,
           p_encounter_id: encounterId,
         });
         if (billRpcError) throw billRpcError;
@@ -68,7 +70,7 @@ export function PatientPortalPage() {
     void refreshBill();
     const interval = window.setInterval(() => void refreshBill(), 15000);
     return () => { active = false; window.clearInterval(interval); };
-  }, [record, encounterId, dateOfBirth, patientNumber, phone]);
+  }, [record, encounterId, dateOfBirth, patientNumber, phone, idNumber, loginMethod]);
 
   const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(value ?? 0));
 
@@ -76,7 +78,7 @@ export function PatientPortalPage() {
     <div className="mx-auto max-w-xl">
       <Link to="/patient-registration" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft size={16}/> Patient registration</Link>
       <div className="mb-6 flex items-center gap-3"><div className="grid size-12 place-items-center rounded-2xl bg-teal-700 text-white"><ClipboardList size={24}/></div><h1 className="text-2xl font-semibold tracking-tight text-slate-900">Returning patient</h1></div>
-      {!record ? <Card><CardHeader><h2 className="font-semibold">Verify your identity</h2></CardHeader><CardContent><form onSubmit={lookup} className="space-y-4"><label className="block text-sm font-medium text-slate-700">Patient number<input required autoComplete="off" value={patientNumber} onChange={e=>setPatientNumber(e.target.value)} placeholder="HMS-YYYYMMDD-000001" className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Date of birth<input required type="date" max={new Date().toISOString().slice(0,10)} value={dateOfBirth} onChange={e=>setDateOfBirth(e.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Registered phone number<input required type="tel" autoComplete="tel" maxLength={40} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone number on your hospital record" className={fieldClass}/></label>{error&&<p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}<Button type="submit" disabled={busy} className="w-full">{busy?"Checking record…":"View my record"}</Button></form></CardContent></Card> : <Card><CardHeader><div className="flex items-center gap-2"><UserRoundSearch className="text-teal-700"/><h2 className="font-semibold">Your registration record</h2></div></CardHeader><CardContent><dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-slate-500">Patient name</dt><dd className="mt-1 font-semibold text-slate-900">{record.first_name} {record.middle_name ? record.middle_name+" " : ""}{record.last_name}</dd></div><div><dt className="text-slate-500">Patient number</dt><dd className="mt-1 font-mono font-semibold text-slate-900">{record.patient_number}</dd></div><div><dt className="text-slate-500">Date of birth</dt><dd className="mt-1 text-slate-900">{record.date_of_birth}</dd></div><div><dt className="text-slate-500">Sex</dt><dd className="mt-1 capitalize text-slate-900">{record.sex}</dd></div><div><dt className="text-slate-500">Record status</dt><dd className="mt-1 capitalize text-slate-900">{record.status.replaceAll("_"," ")}</dd></div><div><dt className="text-slate-500">Registered on</dt><dd className="mt-1 text-slate-900">{new Date(record.created_at).toLocaleDateString()}</dd></div>{record.last_visit_at&&<div><dt className="text-slate-500">Most recent visit</dt><dd className="mt-1 text-slate-900">{new Date(record.last_visit_at).toLocaleDateString()}</dd></div>}</dl><Button variant="secondary" className="mt-4 w-full" onClick={()=>setRecord(null)}>Check another record</Button></CardContent></Card>}
+      {!record ? <Card><CardHeader><h2 className="font-semibold">Verify your identity</h2></CardHeader><CardContent><form onSubmit={lookup} className="space-y-4"><div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1"><button type="button" onClick={()=>setLoginMethod("id")} className={`min-h-10 rounded-lg px-2 text-sm font-medium ${loginMethod==="id"?"bg-white text-teal-800 shadow-sm":"text-slate-600"}`}>Patient number + ID</button><button type="button" onClick={()=>setLoginMethod("details")} className={`min-h-10 rounded-lg px-2 text-sm font-medium ${loginMethod==="details"?"bg-white text-teal-800 shadow-sm":"text-slate-600"}`}>Other details</button></div><label className="block text-sm font-medium text-slate-700">Patient number<input required autoComplete="off" value={patientNumber} onChange={e=>setPatientNumber(e.target.value)} placeholder="HMS-YYYYMMDD-000001" className={fieldClass}/></label>{loginMethod==="id"?<label className="block text-sm font-medium text-slate-700">ID number<input required autoComplete="off" maxLength={100} value={idNumber} onChange={e=>setIdNumber(e.target.value)} placeholder="ID number registered with the hospital" className={fieldClass}/></label>:<><label className="block text-sm font-medium text-slate-700">Date of birth<input required type="date" max={new Date().toISOString().slice(0,10)} value={dateOfBirth} onChange={e=>setDateOfBirth(e.target.value)} className={fieldClass}/></label><label className="block text-sm font-medium text-slate-700">Registered phone number<input required type="tel" autoComplete="tel" maxLength={40} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone number on your hospital record" className={fieldClass}/></label></>}{error&&<p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800">{error}</p>}<Button type="submit" disabled={busy} className="w-full">{busy?"Checking record…":"View my record"}</Button></form></CardContent></Card> : <Card><CardHeader><div className="flex items-center gap-2"><UserRoundSearch className="text-teal-700"/><h2 className="font-semibold">Your registration record</h2></div></CardHeader><CardContent><dl className="grid gap-4 text-sm sm:grid-cols-2"><div><dt className="text-slate-500">Patient name</dt><dd className="mt-1 font-semibold text-slate-900">{record.first_name} {record.middle_name ? record.middle_name+" " : ""}{record.last_name}</dd></div><div><dt className="text-slate-500">Patient number</dt><dd className="mt-1 font-mono font-semibold text-slate-900">{record.patient_number}</dd></div><div><dt className="text-slate-500">Date of birth</dt><dd className="mt-1 text-slate-900">{record.date_of_birth}</dd></div><div><dt className="text-slate-500">Sex</dt><dd className="mt-1 capitalize text-slate-900">{record.sex}</dd></div><div><dt className="text-slate-500">Record status</dt><dd className="mt-1 capitalize text-slate-900">{record.status.replaceAll("_"," ")}</dd></div><div><dt className="text-slate-500">Registered on</dt><dd className="mt-1 text-slate-900">{new Date(record.created_at).toLocaleDateString()}</dd></div>{record.last_visit_at&&<div><dt className="text-slate-500">Most recent visit</dt><dd className="mt-1 text-slate-900">{new Date(record.last_visit_at).toLocaleDateString()}</dd></div>}</dl><Button variant="secondary" className="mt-4 w-full" onClick={()=>setRecord(null)}>Check another record</Button></CardContent></Card>}
       {record && encounterId && (
         <Card className="mt-5">
           <CardHeader>
