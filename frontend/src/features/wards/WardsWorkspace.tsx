@@ -57,10 +57,10 @@ function useWardBoard(canConfigure: boolean) {
   });
   const rooms = useQuery({
     queryKey: ["wards", "rooms"],
-    enabled: canConfigure,
+    enabled: true,
     queryFn: async () => {
       const { data, error } =
-        await getSupabaseClient().rpc("admin_room_options");
+        await getSupabaseClient().rpc("staff_room_workspace");
       if (error) throw error;
       return (data ?? []) as RoomOption[];
     },
