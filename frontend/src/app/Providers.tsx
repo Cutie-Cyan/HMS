@@ -7,7 +7,7 @@ export function Providers({ children }: PropsWithChildren) {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { staleTime: 5 * 60_000, gcTime: 30 * 60_000, retry: 1, refetchOnWindowFocus: false, refetchOnReconnect: false, refetchOnMount: false },
+          queries: { staleTime: 15 * 60_000, gcTime: 2 * 60 * 60_000, retry: 1, refetchOnWindowFocus: false, refetchOnReconnect: false, refetchOnMount: false },
           mutations: { retry: 0 },
         },
       }),
