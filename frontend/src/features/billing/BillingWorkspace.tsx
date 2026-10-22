@@ -13,7 +13,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
 import { getSupabaseClient } from "../../lib/supabase";
-import { requestError } from "../requests/data";
+import { requestError, useRequestWorkspace, usePayRequest } from "../requests/data";
 
 type BillingRow = {
   encounter_id: string;
@@ -153,6 +153,9 @@ export function BillingWorkspace() {
   const { profile } = useAuth();
   const role = profile?.role ?? "";
   const { queue, discount, prepare, pay, discharge, recordDischargeOrder } = useBillingQueue();
+  const requestWorkspace = useRequestWorkspace();
+  const payRequest = usePayRequest();
+  const pendingRequests = (requestWorkspace.data ?? []).filter((request) => request.status === "pending_payment");
   const [dischargeOrderNotes, setDischargeOrderNotes] = useState<Record<string, string>>({});
   const [discountByBill, setDiscountByBill] = useState<Record<string, "none" | "philhealth" | "senior" | "pwd">>({});
   const [discountNotes, setDiscountNotes] = useState<Record<string, string>>({});
@@ -162,7 +165,7 @@ export function BillingWorkspace() {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const busy = prepare.isPending || pay.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
+  const busy = prepare.isPending || pay.isPending || payRequest.isPending || discharge.isPending || recordDischargeOrder.isPending || discount.isPending;
   const act = async (operation: () => Promise<unknown>, success: string) => {
     setError("");
     setMessage("");
@@ -188,6 +191,47 @@ export function BillingWorkspace() {
         >
           {error || message}
         </div>
+      )}
+      {isCashier && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2 font-semibold">
+              <Banknote size={18} className="text-teal-700" /> Request payments
+            </div>
+            <p className="mt-1 text-sm text-slate-500">Review and record payment for medicine and laboratory requests before they are processed.</p>
+          </CardHeader>
+          <CardContent>
+            {requestWorkspace.isLoading ? (
+              <p className="py-5 text-sm text-slate-500">Loading requests awaiting payment…</p>
+            ) : requestWorkspace.isError ? (
+              <div className="py-5 text-sm text-rose-700">
+                Could not load requests awaiting payment.
+                <Button className="ml-2" variant="secondary" onClick={() => void requestWorkspace.refetch()}>Retry</Button>
+              </div>
+            ) : pendingRequests.length ? (
+              <div className="space-y-3">
+                {pendingRequests.map((request) => (
+                  <article key={request.request_id} className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold text-slate-900">{request.patient_name}</h3>
+                        <Badge tone="warning">Payment pending</Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">{request.patient_number} · {request.ward_name ?? "Ward unavailable"} · {request.request_type === "lab" ? "Laboratory" : "Medicine"} request</p>
+                      <p className="mt-2 text-sm text-slate-700">{request.items.map((item) => `${item.description} × ${item.quantity}`).join(", ")}</p>
+                      <p className="mt-1 text-lg font-semibold">{money(Number(request.total))}</p>
+                    </div>
+                    <Button disabled={busy} onClick={() => void act(() => payRequest.mutateAsync(request.request_id), "Request payment recorded. The request is now available for department processing.")}>
+                      {payRequest.isPending ? "Recording…" : "Record request payment"}
+                    </Button>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="py-5 text-center text-sm text-slate-500">No medicine or laboratory requests awaiting payment.</p>
+            )}
+          </CardContent>
+        </Card>
       )}
       <Card>
         <CardHeader>
