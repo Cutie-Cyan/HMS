@@ -42,6 +42,11 @@
 }
 
 * { box-sizing: border-box; }
+.password-input::-ms-reveal,
+.password-input::-ms-clear {
+  display: none;
+}
+
 html { min-width: 320px; color-scheme: light; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input, select, textarea { font: inherit; }
