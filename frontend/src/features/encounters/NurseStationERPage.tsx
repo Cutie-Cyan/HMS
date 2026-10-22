@@ -301,12 +301,6 @@ export function NurseStationERPage() {
                 </div>
                 </div>
               )}
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Info label="Full name" value={nameOf(patient)} />
-                <Info label="Age" value={age(patient?.date_of_birth ?? null)} />
-                <Info label="Sex" value={patient?.sex ?? "—"} />
-                <Info label="Patient number" value={patient?.patient_number ?? "—"} />
-              </div>
               <label className="mt-4 block text-sm font-medium text-slate-700">Assigned doctor
                 <select value={doctorId} onChange={(event) => setDoctorId(event.target.value)} className={inputClass}>
                   <option value="" disabled hidden={Boolean(doctorId)}>Select doctor (optional)</option>
@@ -315,7 +309,7 @@ export function NurseStationERPage() {
               </label>
             </section>
             <section className="space-y-4 rounded-xl border border-slate-200 p-4">
-              <div><h2 className="font-semibold text-slate-900">Triage and initial nurse assessment</h2></div>
+              <div><h2 className="font-semibold text-slate-900">Triage & Assessment</h2></div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block text-sm font-medium text-slate-700">Triage priority<select required value={triagePriority} onChange={(event) => setTriagePriority(event.target.value)} className={inputClass}><option value="" disabled hidden={Boolean(triagePriority)}>Select priority</option><option value="immediate">Immediate</option><option value="very_urgent">Very urgent</option><option value="urgent">Urgent</option><option value="standard">Standard</option><option value="non_urgent">Non-urgent</option></select></label>
                 <label className="block text-sm font-medium text-slate-700">Chief complaint<input required maxLength={500} value={chiefComplaint} onChange={(event) => setChiefComplaint(event.target.value)} placeholder="Reason for the ER visit" className={inputClass}/></label>
@@ -327,7 +321,7 @@ export function NurseStationERPage() {
                 <label className="block text-sm font-medium text-slate-700">Pain score (0–10)<input type="number" min={0} max={10} value={painScore} onChange={(event) => setPainScore(event.target.value)} placeholder="Patient-reported pain" className={inputClass}/></label>
               </div>
               <label className="block text-sm font-medium text-slate-700">Known allergies<textarea rows={2} maxLength={1000} value={allergies} onChange={(event) => setAllergies(event.target.value)} placeholder="Known allergies or enter none reported" className={inputClass}/></label>
-              <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Relevant observations and assessment notes" className={inputClass}/></label>
+              <label className="block text-sm font-medium text-slate-700">Additional nurse observations<textarea rows={3} maxLength={3000} value={nurseAssessment} onChange={(event) => setNurseAssessment(event.target.value)} placeholder="Record only initial nursing observations relevant to triage" className={inputClass}/></label>
               
             </section>
             <div className="flex w-full justify-end"><Button type="submit" disabled={savePhase1.isPending || patients.isLoading || doctors.isLoading || encounters.isLoading || !patientId || Boolean(existingEncounter)}>
