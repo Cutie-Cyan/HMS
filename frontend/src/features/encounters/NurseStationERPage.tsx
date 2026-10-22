@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Activity, BedDouble, CheckCircle2, ClipboardList, ClipboardPen, Eye, FileText, FlaskConical, LayoutDashboard, Printer, RefreshCw, Search, Stethoscope, X } from "lucide-react";
+import { Activity, CheckCircle2, ClipboardList, ClipboardPen, Eye, FileText, Printer, RefreshCw, Search, Stethoscope, X } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card, CardContent, CardHeader } from "../../components/ui/Card";
-import { RequestsWorkspace } from "../requests/RequestsWorkspace";
-import { WardsWorkspace } from "../wards/WardsWorkspace";
 import {
   humanizeError,
   useDoctors,
@@ -66,7 +64,7 @@ export function NurseStationERPage() {
   const [success, setSuccess] = useState("");
   const [encounterView, setEncounterView] = useState<"queue" | "saved">("queue");
   const [encounterSearch, setEncounterSearch] = useState("");
-  const activeTab = (["overview", "queue", "triage", "clinical", "requests", "beds"].includes(searchParams.get("tab") ?? "") ? searchParams.get("tab") : "overview") as "overview" | "queue" | "triage" | "clinical" | "requests" | "beds";
+  const activeTab = (["queue", "triage", "clinical"].includes(searchParams.get("tab") ?? "") ? searchParams.get("tab") : "triage") as "queue" | "triage" | "clinical";
 
   const patient = patients.data?.find((item) => item.patient_id === patientId);
   const selectablePatients = useMemo(
@@ -86,8 +84,7 @@ export function NurseStationERPage() {
   const selectTab = (tab: typeof activeTab) => {
     setSearchParams((currentParams) => {
       const nextParams = new URLSearchParams(currentParams);
-      if (tab === "overview") nextParams.delete("tab");
-      else nextParams.set("tab", tab);
+      nextParams.set("tab", tab);
       return nextParams;
     }, { replace: true });
   };
@@ -225,37 +222,9 @@ export function NurseStationERPage() {
               <ClipboardList size={16} /> Queue
             </button>
           </nav>
-          <div className="flex flex-wrap items-center gap-1">
-            {([
-              { id: "overview", label: "Overview", icon: LayoutDashboard },
-              { id: "clinical", label: "Clinical Records", icon: FileText },
-              { id: "requests", label: "Requests & Results", icon: FlaskConical },
-              { id: "beds", label: "Beds & Disposition", icon: BedDouble },
-            ] as const).map(({ id, label, icon: Icon }) => (
-              <button key={id} type="button" onClick={() => selectTab(id)} aria-current={activeTab === id ? "page" : undefined}
-                className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition ${activeTab === id ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
-                <Icon size={16} />{label}
-              </button>
-            ))}
-          </div>
+
         </div>
       </div>
-
-      {activeTab === "overview" && <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Card><CardContent><p className="text-sm text-slate-500">Open ER encounters</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.length}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-slate-500">Awaiting doctor / encoding</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage !== "recorded").length}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-slate-500">Clinical records saved</p><p className="mt-2 text-3xl font-semibold text-slate-950">{activeEncounters.filter((item) => item.workflow_stage === "recorded").length}</p></CardContent></Card>
-          <Card><CardContent><p className="text-sm text-slate-500">Patients available for ER intake</p><p className="mt-2 text-3xl font-semibold text-slate-950">{selectablePatients.length}</p></CardContent></Card>
-        </div>
-        <Card><CardHeader><h2 className="font-semibold text-slate-900">ER workflow</h2></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-3">
-          {[
-            ["1", "Initial ER assessment", "Receive the patient referral, check urgency, and record chief complaint, vital signs, allergies, and initial nursing observations."],
-            ["2", "Doctor + orders", "Print the assessment form for the doctor. Encode the returned findings and documented orders, then track Lab and Pharmacy responses."],
-            ["3", "Exit or admission", "Communicate results to the doctor and record the documented plan: continue ER care, discharge through required billing, or request ward admission."],
-          ].map(([number, title, detail]) => <li key={number} className="rounded-xl border border-slate-200 p-4"><span className="inline-grid size-7 place-items-center rounded-full bg-teal-50 text-sm font-semibold text-teal-800">{number}</span><h3 className="mt-3 font-semibold text-slate-900">{title}</h3></li>)}
-        </ol><div className="mt-4 flex flex-wrap justify-end gap-2"><Button onClick={() => selectTab("triage")}><Activity size={15}/> Start triage</Button><Button variant="secondary" onClick={() => selectTab("queue")}>Open patient queue</Button></div></CardContent></Card>
-      </div>}
 
       {activeTab === "triage" && (<Card>
         <CardHeader>
@@ -371,7 +340,7 @@ export function NurseStationERPage() {
 
       )}
 
-      {activeTab === "requests" && <div className="space-y-3"><Card><CardHeader><h2 className="font-semibold text-slate-900">ER Requests & Results</h2></CardHeader><CardContent><RequestsWorkspace mode="requests" /></CardContent></Card></div>}
+
       {activeTab === "beds" && <div className="space-y-3"><Card><CardHeader><h2 className="font-semibold text-slate-900">ER Disposition & Ward Coordination</h2></CardHeader><CardContent><WardsWorkspace /></CardContent></Card></div>}
 
       {selectedEncounter && <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !recordFindings.isPending) setSelectedEncounter(null); }}><section role="dialog" aria-modal="true" aria-labelledby="doctor-findings-title" className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="doctor-findings-title" className="text-lg font-semibold tracking-tight text-slate-900">{selectedEncounter.workflow_stage === "recorded" ? "Doctor Record" : "Record Doctor Findings"}</h2><p className="mt-2 text-sm font-semibold text-slate-800">{selectedEncounter.patient_name}</p><p className="text-xs text-slate-500">{selectedEncounter.patient_number} · {selectedEncounter.doctor_name ?? "No doctor assigned"}</p></div><button type="button" aria-label="Close" onClick={() => setSelectedEncounter(null)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={18}/></button></div><form onSubmit={submitFindings} className="space-y-4"><label className="block text-sm font-medium text-slate-700">Recommendation type<select value={recommendationType} onChange={(event) => setRecommendationType(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} className={inputClass}><option value="" disabled hidden={Boolean(recommendationType)}>Not specified</option><option value="consult">Consult / follow-up</option><option value="lab">Laboratory</option><option value="medicine">Medicine</option><option value="mixed">Mixed</option></select></label><div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-medium text-slate-700">Findings<textarea required rows={7} value={findings} onChange={(event) => setFindings(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} placeholder="Doctor's findings" className={inputClass}/></label><label className="block text-sm font-medium text-slate-700">Recommendations<textarea required rows={7} value={recommendations} onChange={(event) => setRecommendations(event.target.value)} disabled={selectedEncounter.workflow_stage === "recorded"} placeholder="Doctor's recommendations" className={inputClass}/></label></div><div className="flex justify-end">{selectedEncounter.workflow_stage !== "recorded" && <Button type="submit" disabled={recordFindings.isPending}>{recordFindings.isPending ? "Saving…" : "Save"}</Button>}</div></form></section></div>}
