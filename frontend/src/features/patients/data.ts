@@ -164,7 +164,8 @@ export function usePendingPatientSubmissions(enabled = true) {
     queryFn: async () => {
       const { data, error } = await getSupabaseClient().rpc("info_officer_pending_patient_submissions");
       if (error) throw error;
-      return (data ?? []) as PatientRegistrationSubmission[];
+      // Newest submissions first so new self-registrations are visible at the top.
+      return [...((data ?? []) as PatientRegistrationSubmission[])].sort((x, y) => new Date(y.submitted_at).getTime() - new Date(x.submitted_at).getTime());
     },
     refetchInterval: enabled ? 5000 : false,
     refetchIntervalInBackground: true,
